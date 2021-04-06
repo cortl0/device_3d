@@ -5,7 +5,7 @@ for testing Binary neurons network
 
 ## For project clone
 ```
-git clone --recursive https://github.com/cortl0/bnn_3d
+git clone --recursive https://github.com/cortl0/device_3d
 ```
 
 ## If not recursive cloned then project preparation
