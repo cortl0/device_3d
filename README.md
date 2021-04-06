@@ -1,5 +1,4 @@
 # device_3d
-# condition: raw prototype
 The implementation of 3d model with the binary neurons  
 for testing Binary neurons network  
 
@@ -14,7 +13,7 @@ make prepare
 ```
 
 ## Project requirements
-Binary neurons network
+Binary neurons network  
 https://github.com/cortl0/binary_neurons_network
 
 OGRE (Object-Oriented Graphics Rendering Engine)  
@@ -28,9 +27,11 @@ https://bitbucket.org/odedevs/ode
 Qt Creator  
 https://www.qt.io
 
+## Project condition: raw prototype
+
 ## Author
 Ilya Shishkin  
-mailto:cortl@8iter.ru
+mailto: cortl@8iter.ru
 
 ## Links
 http://8iter.ru/ai.html  
