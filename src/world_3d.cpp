@@ -1,3 +1,11 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #include "world_3d.h"
 
 world_3d::world_3d() : OgreBites::ApplicationContext("bnn_test_app")
@@ -99,12 +107,38 @@ void world_3d::collide_action()
     });
 }
 
-static bool keyboard_key_flag_a = false;
-static bool keyboard_key_flag_w = false;
-static bool keyboard_key_flag_s = false;
-static bool keyboard_key_flag_d = false;
-static bool keyboard_key_flag_lshift = false;
-static bool keyboard_key_flag_space = false;
+bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
+{
+    switch (evt.keysym.sym)
+    {
+    case config::keyboard_key_c: // load
+        load();
+        break;
+    case config::keyboard_key_z: // save
+        save();
+        break;
+    case config::keyboard_key_x: // stop <-> start
+        if(start_flag)
+            stop();
+        else
+            start();
+        break;
+    }
+
+    return true;
+}
+
+void create_light(Ogre::SceneManager* scnMgr, Real x, Real y, Real z, const std::string name)
+{
+    Ogre::Light* light = scnMgr->createLight(name);
+    Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
+    lightNode->setPosition(x, y, z);
+    lightNode->attachObject(light);
+    //light->setSpecularColour(0.9, 0.5, 0.5);
+    //light->setDiffuseColour(1, 1, 1);
+    //light->setPowerScale(-100);
+    //light->setSpotlightFalloff(0.1f);
+}
 
 void world_3d::setup_ogre()
 {
@@ -149,57 +183,11 @@ void world_3d::setup_ogre()
         //        getRoot()->createRenderWindow("TestWin", 1920, 1080, true, &opts );
     }
 
-    {
-        Ogre::Light* light = scnMgr->createLight("MainLight0");
-        Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-        lightNode->setPosition(10000, 10000, 10000);
-        lightNode->attachObject(light);
-        //light->setSpecularColour(0.9, 0.5, 0.5);
-        //light->setDiffuseColour(1, 1, 1);
-        //light->setPowerScale(-100);
-        //light->setSpotlightFalloff(0.1f);
-    }
-    {
-        Ogre::Light* light = scnMgr->createLight("MainLight1");
-        Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-        lightNode->setPosition(-10000, 10000, 10000);
-        lightNode->attachObject(light);
-        //light->setSpecularColour(0.9, 0.5, 0.5);
-        //light->setDiffuseColour(1, 1, 1);
-        //light->setPowerScale(-100);
-        //light->setSpotlightFalloff(0.1f);
-    }
-    {
-        Ogre::Light* light = scnMgr->createLight("MainLight2");
-        Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-        lightNode->setPosition(-10000, 10000, -10000);
-        lightNode->attachObject(light);
-        //light->setSpecularColour(0.9, 0.5, 0.5);
-        //light->setDiffuseColour(1, 1, 1);
-        //light->setPowerScale(-100);
-        //light->setSpotlightFalloff(0.1f);
-    }
-    {
-        Ogre::Light* light = scnMgr->createLight("MainLight3");
-        Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-        lightNode->setPosition(10000, 10000, -10000);
-        lightNode->attachObject(light);
-        //light->setSpecularColour(0.9, 0.5, 0.5);
-        //light->setDiffuseColour(1, 1, 1);
-        //light->setPowerScale(-100);
-        //light->setSpotlightFalloff(0.1f);
-    }
-    {
-        // without light we would just get a black screen
-        Ogre::Light* light = scnMgr->createLight("MainLight4");
-        Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-        lightNode->setPosition(0, -10000, 0);
-        lightNode->attachObject(light);
-        //light->setSpecularColour(0.9, 0.5, 0.5);
-        //light1->setDiffuseColour(1, 1, 1);
-        //light1->setPowerScale(-100.0f);
-        //light1->setSpotlightFalloff(0.1f);
-    }
+    create_light(scnMgr, 10000, 10000, 10000, "MainLight0");
+    create_light(scnMgr, -10000, 10000, 10000, "MainLight1");
+    create_light(scnMgr, -10000, 10000, -10000, "MainLight2");
+    create_light(scnMgr, 10000, 10000, -10000, "MainLight3");
+    create_light(scnMgr, 0, -10000, 0, "MainLight4");
 
     // also need to tell where we are
     camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
@@ -231,7 +219,6 @@ void world_3d::setup_ogre()
 
 
     camNode->attachObject(cam);
-    camNode = camNode;
     // and tell it to render into the main window
     getRenderWindow()->addViewport(cam);
 
@@ -302,6 +289,10 @@ void world_3d::setup_ode()
 
 void world_3d::load()
 {
+    bool state = start_flag;
+
+    stop();
+
     std::list<std::string> l;
 
     for (auto & p : fs::directory_iterator(fs::current_path()))
@@ -315,19 +306,24 @@ void world_3d::load()
 
     std::ifstream in(fs::current_path() / l.back(), std::ios::binary);
 
-//    if(crtr.brn_frnd->load(in))
-//    {
-//        if(l.size() > 8)
-//            fs::remove_all(fs::current_path() / l.front());
-//    }
+    if(creature_.brn_frnd->load(in))
+    {
+        cout << "loaded" << endl;
+        if(l.size() > 8)
+            fs::remove_all(fs::current_path() / l.front());
+    }
+    else
+        cout << "load error" << endl;
+
+    if(state)
+        start();
 }
 
 void world_3d::save()
 {
-    cout << "save()" << endl;
+    bool state = start_flag;
 
-    if(start_stop_flag)
-        start_stop();
+    stop();
 
     static char time_buffer[15];
     std::time_t time = std::time(nullptr);
@@ -336,29 +332,33 @@ void world_3d::save()
     s += ".bnn";
     std::ofstream out(fs::current_path() / s, std::ios::binary);
 
-    if(crtr.brn_frnd->save(out))
+    if(creature_.brn_frnd->save(out))
         cout << "saved" << endl;
     else
         cout << "save error" << endl;
 
-    start_stop();
+    if(state)
+        start();
 }
 
-void world_3d::start_stop()
-{//return;
-    if(start_stop_flag)
+void world_3d::start()
+{
+    if(!start_flag)
     {
-        crtr.brn_frnd->stop();
-        cout << "stopped" << endl;
-    }
-    else
-    {
-
-        //crtr.ft = false;
-        crtr.brn->start(this);
+        start_flag = true;
+        creature_.start(this, creature_clock_cycle_handler);
         cout << "started" << endl;
     }
-    start_stop_flag = !start_stop_flag;
+}
+
+void world_3d::stop()
+{
+    if(start_flag)
+    {
+        creature_.stop();
+        start_flag = false;
+        cout << "stopped" << endl;
+    }
 }
 
 void world_3d::fill_it_up()
@@ -397,41 +397,6 @@ void world_3d::fill_it_up()
 
             bounding_nodes.push_back(stepping_figures.back()->node);
         }
-
-        {
-            auto w0 = stationary_colliding_geoms.rbegin();
-            auto w1 = stationary_colliding_geoms.rbegin();
-            advance(w1, 1);
-            auto w2 = stationary_colliding_geoms.rbegin();
-            advance(w2, 2);
-            auto w3 = stationary_colliding_geoms.rbegin();
-            advance(w3, 3);
-
-            {
-                dJointGroupID jg = dJointGroupCreate (0);
-                dJointID j = dJointCreateFixed (world, jg);
-                dJointAttach (j, dGeomGetBody(*w0), dGeomGetBody(*w1));
-                dJointSetFixed(j);
-            }
-            {
-                dJointGroupID jg = dJointGroupCreate (0);
-                dJointID j = dJointCreateFixed (world, jg);
-                dJointAttach (j, dGeomGetBody(*w1), dGeomGetBody(*w2));
-                dJointSetFixed(j);
-            }
-            {
-                dJointGroupID jg = dJointGroupCreate (0);
-                dJointID j = dJointCreateFixed (world, jg);
-                dJointAttach (j, dGeomGetBody(*w2), dGeomGetBody(*w3));
-                dJointSetFixed(j);
-            }
-            {
-                dJointGroupID jg = dJointGroupCreate (0);
-                dJointID j = dJointCreateFixed (world, jg);
-                dJointAttach (j, dGeomGetBody(*w3), dGeomGetBody(*w0));
-                dJointSetFixed(j);
-            }
-        }
     }
 
     // creating movable objects
@@ -466,30 +431,44 @@ void world_3d::fill_it_up()
 
             bounding_nodes.push_back(stepping_figures.back()->node);
         }
+
+        {
+            float r = ((float)rand() / RAND_MAX) * 20 + 50;
+
+            stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space,
+                                                                          r*r*r*mass_scale, r*scale)));
+            dBodySetPosition (stepping_figures.back()->body,
+                              -1000,
+                              1000,
+                              -1300);
+
+            movable_colliding_geoms.push_back(stepping_figures.back()->geom);
+
+            bounding_nodes.push_back(stepping_figures.back()->node);
+        }
     }
 
-    input_from_world.reset(new std::vector<uint32>(6));
+    input_from_world.reset(new std::vector<uint32>(eye_count * moveable_figures_quality));
     for_each(input_from_world->begin(), input_from_world->end(), [&](uint32& i){ i = 0; });
-
     // creating creature
     {
-        crtr = creature(scnMgr, world, input_from_world);
-        crtr.set_position(0, 50 * scale, 0);
+        creature_ = creature(scnMgr, world, input_from_world);
+        creature_.set_position(0, 50 * scale, 0);
 
-        creature_colliding_geoms.push_back(crtr.body.geom);
+        creature_colliding_geoms.push_back(creature_.body.geom);
 
-        bounding_nodes.push_back(crtr.body.node);
+        bounding_nodes.push_back(creature_.body.node);
 
         for (int i = 0; i < leg_count; i++)
         {
             //creature_colliding_geoms.push_back(crtr.legs[i].first.geom);
-            creature_colliding_geoms.push_back(crtr.legs[i].second.geom);
-            creature_colliding_geoms.push_back(crtr.legs[i].third.geom);
+            creature_colliding_geoms.push_back(creature_.legs[i].second.geom);
+            creature_colliding_geoms.push_back(creature_.legs[i].third.geom);
             //creature_colliding_geoms.push_back(crtr.legs[i].fourth.geom);
 
             //bounding_nodes.push_back(crtr.legs[i].first.node);
-            bounding_nodes.push_back(crtr.legs[i].second.node);
-            bounding_nodes.push_back(crtr.legs[i].third.node);
+            bounding_nodes.push_back(creature_.legs[i].second.node);
+            bounding_nodes.push_back(creature_.legs[i].third.node);
             //bounding_nodes.push_back(crtr.legs[i].fourth.node);
         }
 
@@ -501,40 +480,50 @@ void world_3d::fill_it_up()
         //bool ff = crtr.body.node->getShowBoundingBox();
     }
 
-    trpd.reset(new tripod(world, camNode, crtr.body.body));
+    tripod_.reset(new tripod(world, camNode, creature_.body.body));
+}
+
+void world_3d::creature_clock_cycle_handler(void* me_void)
+{
+
 }
 
 void world_3d::cycle()
 {
-    new std::thread([&]()
+    cycle_thread.reset(new std::thread([&]()
     {
-        float coef = 0.01f;
+        auto time_start = std::chrono::high_resolution_clock::now();
+        auto time_current = std::chrono::high_resolution_clock::now();
 
         while(true)
         {
-            while(!crtr.cycle);
+            time_current = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> diff = time_current - time_start;
+            time_start = time_current;
+
+            if(!start_flag)
+                continue;
 
             //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
-            dWorldStep(world, 0.05f);
+            dWorldStep(world, static_cast<float>(diff.count())*2.5f);
 
             for_each(stepping_figures.begin(), stepping_figures.end(), [&](std::unique_ptr<figure>& fig){ fig->step(); });
 
-            crtr.step();
-            trpd->step();
+            creature_.step();
+            tripod_->step();
 
             float f;
             float coef1 = 1.0f;
 
             for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
-
             {
                 size_t i = 0;
                 for_each(movable_colliding_geoms.begin(), movable_colliding_geoms.end(), [&](dGeomID& g)
                 {
                     auto pos_fig = dGeomGetPosition(g);
-                    auto pos_fl = dGeomGetPosition(crtr.legs[leg_fl].first.geom);
-                    auto pos_fr = dGeomGetPosition(crtr.legs[leg_fr].first.geom);
+                    auto pos_fl = dGeomGetPosition(creature_.legs[leg_fl].first.geom);
+                    auto pos_fr = dGeomGetPosition(creature_.legs[leg_fr].first.geom);
 
                     f = pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5);
                     (*input_from_world)[i++] = (uint32)(f * coef1);
@@ -543,68 +532,11 @@ void world_3d::cycle()
                 });
             }
             collide_action();
-
-            if(true)
-            {
-                auto q = camNode->getOrientation();
-
-                Ogre::Quaternion q1;
-                Vector3 x, y, z;
-
-                x = q.xAxis();
-                y = q.yAxis();
-                z = q.zAxis();
-
-                velocity +=
-                        x * (keyboard_key_flag_d - keyboard_key_flag_a) * coef
-                        + y * (keyboard_key_flag_space - keyboard_key_flag_lshift) * coef
-                        + z * (keyboard_key_flag_s - keyboard_key_flag_w) * coef;
-
-                camNode->setPosition(camNode->getPosition().x + velocity.x,
-                                     camNode->getPosition().y + velocity.y,
-                                     camNode->getPosition().z + velocity.z);
-            }
-
-            if(false)
-            {
-                float coef = 0.001f;
-
-                velocity += Vector3((keyboard_key_flag_d - keyboard_key_flag_a) * coef,
-                                    (keyboard_key_flag_lshift - keyboard_key_flag_space) * coef,
-                                    (keyboard_key_flag_s - keyboard_key_flag_w) * coef);
-
-                camNode->setPosition(camNode->getPosition().x + velocity.x,
-                                     camNode->getPosition().y + velocity.y,
-                                     camNode->getPosition().z + velocity.z);
-            }
-
-            if(false)
-            {
-                if(keyboard_key_flag_a) // left
-                    camNode->setPosition(camNode->getPosition().x - 1, camNode->getPosition().y, camNode->getPosition().z);
-
-                if(keyboard_key_flag_d) // right
-                    camNode->setPosition(camNode->getPosition().x + 1, camNode->getPosition().y, camNode->getPosition().z);
-
-                if(keyboard_key_flag_w) // forward
-                    camNode->setPosition(camNode->getPosition().x, camNode->getPosition().y, camNode->getPosition().z - 1);
-
-                if(keyboard_key_flag_s) // backward
-                    camNode->setPosition(camNode->getPosition().x, camNode->getPosition().y, camNode->getPosition().z + 1);
-
-                if(keyboard_key_flag_space) // up
-                    camNode->setPosition(camNode->getPosition().x, camNode->getPosition().y + 1, camNode->getPosition().z);
-
-                if(keyboard_key_flag_lshift) // down
-                    camNode->setPosition(camNode->getPosition().x, camNode->getPosition().y - 1, camNode->getPosition().z);
-            }
-
-            crtr.cycle = false;
         }
 
-        dWorldDestroy (world);
-        dCloseODE();
-    });
+//        dWorldDestroy (world);
+//        dCloseODE();
+    }));
 }
 
 void nearCallback (void *data, dGeomID o1, dGeomID o2)
@@ -638,6 +570,7 @@ void nearCallback (void *data, dGeomID o1, dGeomID o2)
 
     return;
 
+    // TODO
     if (dGeomIsSpace (o1) || dGeomIsSpace (o2)) {
         cout << "bbbbbbbbbbb" << endl;
         // colliding a space with something :
@@ -757,7 +690,6 @@ void nearCallback (void *data, dGeomID o1, dGeomID o2)
         // add these contact points to the simulation ...
         cout << "ccccccccccccc12" << endl;
         //cout << to_string(num_contact) << endl;
-
     }
 }
 
@@ -766,53 +698,5 @@ void world_3d::setup(void)
     setup_ogre();
     setup_ode();
     fill_it_up();
-
-
-    //    dMass m;
-    //        dMassSetSphere(&m, 0.1, ball_radius);
-
-    //        ball1_geom = dCreateSphere(space, ball_radius);
-    //        ball1_body = dBodyCreate(world);
-    //        dGeomSetBody(ball1_geom, ball1_body);
-    //        dBodySetMass(ball1_body, &m);
-
-    //        ball2_geom = dCreateSphere(space, ball_radius);
-    //        ball2_body = dBodyCreate(world);
-    //        dGeomSetBody(ball2_geom, ball2_body);
-    //        dBodySetMass(ball2_body, &m);
-
-
-
-
-    //    //dMass m;
-    //    dMassSetBox (&m,1,SIDE,SIDE,SIDE);
-    //    dMassAdjust (&m,MASS);
-
-    //    dQuaternion q;
-    //    dQFromAxisAndAngle (q,1,1,0,0.25*M_PI);
-
-    //    body[0] = dBodyCreate (world);
-    //    dBodySetMass (body[0],&m);
-    //    dBodySetPosition (body[0], -100, 100, 150);
-    //    dBodySetQuaternion (body[0],q);
-
-    //    body[1] = dBodyCreate (world);
-    //    dBodySetMass (body[1],&m);
-    //    dBodySetPosition (body[1], -100, 100, -150);
-    //    dBodySetQuaternion (body[1],q);
-
-    //    hinge = dJointCreateHinge (world,0);
-    //    dJointAttach (hinge,body[0],body[1]);
-    //    dJointSetHingeAnchor (hinge,0,0,1);
-    //    dJointSetHingeAxis (hinge,1,-1,1.41421356);
-
-    // run simulation
-    //dsSimulationLoop (argc, argv, DS_SIMULATION_DEFAULT_WIDTH, DS_SIMULATION_DEFAULT_HEIGHT, &fn);
-
-    //dWorldSetERP (world, 0.5);
-    //dWorldSetCFM (world, 0.001);
-    //dBodyAddForce            (body[0], 0, 0, +gravity);
-
-
-
+    cycle();
 }

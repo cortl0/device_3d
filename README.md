@@ -27,8 +27,6 @@ https://bitbucket.org/odedevs/ode
 Qt Creator  
 https://www.qt.io
 
-## Project condition: raw prototype
-
 ## Author
 Ilya Shishkin  
 mailto: cortl@8iter.ru
@@ -37,6 +35,7 @@ mailto: cortl@8iter.ru
 http://8iter.ru/ai.html  
 https://t.me/artificial_intelligence_bnn  
 https://t.me/artificial_intelligence_bnn_grp  
+https://github.com/cortl0/binary_neurons_network
 https://github.com/cortl0/device_3d
 
 ## License

@@ -1,3 +1,11 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #ifndef TRIPOD_H
 #define TRIPOD_H
 
@@ -23,7 +31,8 @@ struct tripod
     const dReal* bas;
     const dReal* bas_vel;
 
-    const dReal coef_d = 10.0f;
+    const dReal velosity_ignore_coef = 10.0f;
+    const dReal force_coef = 10.0f;
     float dx;
     float dy;
     float dz;

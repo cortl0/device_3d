@@ -1,3 +1,11 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #include "tripod.h"
 
 tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
@@ -78,8 +86,8 @@ void tripod::step()
     dy = (tar[1] - look[1]);
     dz = (tar[2] - look[2]);
 
-    if((abs(dx) - coef_d > 0) || (abs(dy) - coef_d > 0) || (abs(dz) - coef_d > 0))
-        dBodyAddForce(detector, dx, dy, dz);
+    if((abs(dx) - velosity_ignore_coef > 0) || (abs(dy) - velosity_ignore_coef > 0) || (abs(dz) - velosity_ignore_coef > 0))
+        dBodyAddForce(detector, dx * force_coef, dy * force_coef, dz * force_coef);
 
     dBodySetPosition(upper_detector, look[0], look[1] + cam_dz, look[2]);
 

@@ -1,5 +1,13 @@
-#ifndef FREE_FLY_H
-#define FREE_FLY_H
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
+#ifndef WORLD_3D_H
+#define WORLD_3D_H
 
 #include <iostream>
 #include <list>
@@ -22,11 +30,12 @@ using namespace std;
 #include "creature.h"
 #include "tripod.h"
 
+#define moveable_figures_quality 3
+
 using namespace Ogre;
 
 static dWorldID world_st;
 static dJointGroupID contactgroup_st;
-
 static dJointGroupID contactgroup_st1;
 
 class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputListener
@@ -45,7 +54,7 @@ class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputLi
 
     std::shared_ptr<std::vector<uint32>> input_from_world;
 
-    creature crtr;
+    creature creature_;
 
     std::list<Ogre::SceneNode*> bounding_nodes;
 
@@ -63,9 +72,12 @@ class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputLi
 
     const float f = static_cast<float>(pow(0.5, 0.5));
 
-    std::unique_ptr<tripod> trpd;
+    std::unique_ptr<std::thread> cycle_thread;
+    std::unique_ptr<tripod> tripod_;
     dGeomID plane;
-    bool start_stop_flag = true;
+    bool start_flag = false;
+
+    static void creature_clock_cycle_handler(void* me);
 public:
     world_3d();
     void collide_action();
@@ -73,10 +85,12 @@ public:
     void setup(void);
     void setup_ogre();
     void setup_ode();
+    bool keyReleased(const OgreBites::KeyboardEvent& evt);
     void cycle();
     void load();
     void save();
-    void start_stop();
+    void start();
+    void stop();
 };
 
-#endif // FREE_FLY_H
+#endif // WORLD_3D_H

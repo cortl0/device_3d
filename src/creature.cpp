@@ -1,9 +1,17 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #include "creature.h"
 
 creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<std::vector<uint32>> input_from_world)
     : input_from_world(input_from_world)
 {
-    for(int i = 0; i < for_dis_count; i++)
+    for(int i = 0; i < force_distance_count; i++)
     {
         force[i] = 0;
         distance[i] = 0;
@@ -44,9 +52,6 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
     //        dJointSetFixed(j);
     //    }
 
-
-
-
     if(leg_count > 0)
         // leg_fl
     {
@@ -70,31 +75,6 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         dJointAttach (j, dGeomGetBody(body.geom), dGeomGetBody(legs[leg_fr].first.geom));
         dJointSetFixed(j);
     }
-
-
-    //    if(leg_count > 2)
-    //        // leg_ml
-    //    {
-    //        dQuaternion q = {f,0,f,0};
-    //        legs[leg_ml] = creature::leg("leg_ml", scnMgr, world, space, -body_width / 2, 0, 0, q, -1, 1);
-
-    //        dJointGroupID jg = dJointGroupCreate (0);
-    //        dJointID j = dJointCreateFixed (world, jg);
-    //        dJointAttach (j, dGeomGetBody(body.geom), dGeomGetBody(legs[leg_ml].first.geom));
-    //        dJointSetFixed(j);
-    //    }
-
-    //    if(leg_count > 3)
-    //        // leg_mr
-    //    {
-    //        dQuaternion q = {1,0,0,0};
-    //        legs[leg_mr] = creature::leg("leg_mr", scnMgr, world, space, body_width / 2, 0, 0, q, 1, -1);
-
-    //        dJointGroupID jg = dJointGroupCreate (0);
-    //        dJointID j = dJointCreateFixed (world, jg);
-    //        dJointAttach (j, dGeomGetBody(body.geom), dGeomGetBody(legs[leg_mr].first.geom));
-    //        dJointSetFixed(j);
-    //    }
 
     if(leg_count > 2)
         // leg_rl
@@ -124,23 +104,21 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
     {
         colliding_geoms.push_back(legs[i].second.geom);
         colliding_geoms.push_back(legs[i].third.geom);
-        //colliding_geoms.push_back(legs[i].fourth.geom);
     }
 
-    _word random_array_length_in_power_of_two = 24;
+    _word random_array_length_in_power_of_two = 27;
+
     _word random_max_value_in_power_of_two = 31;
+
     _word quantity_of_neurons_in_power_of_two = 16;
 
     brn.reset(new bnn::brain(random_array_length_in_power_of_two,
                              random_max_value_in_power_of_two,
                              quantity_of_neurons_in_power_of_two,
                              input_length,
-                             output_length,
-                             brain_clock_cycle_handler));
+                             output_length));
 
     brn_frnd.reset(new bnn::brain_friend(*brn.get()));
-
-    //brn->start(this);
 
     {
         //   dJointGroupID cg_fl = dJointGroupCreate (0);
@@ -200,70 +178,47 @@ void creature::set_position(dReal x, dReal y, dReal z)
 
     //    legs[leg_fl].relocate(dx, dy, dz, q_rev);
     //    legs[leg_fr].relocate(dx, dy, dz, q);
-    //    legs[leg_ml].relocate(dx, dy, dz, q_rev);
-    //    legs[leg_mr].relocate(dx, dy, dz, q);
     //    legs[leg_rl].relocate(dx, dy, dz, q_rev);
     //    legs[leg_rr].relocate(dx, dy, dz, q);
 }
 
-//std::mutex mtx;
+void creature::start(void* owner, void (*owner_clock_cycle_handler)(void* owner))
+{
+    this->owner = owner;
+    this->owner_clock_cycle_handler = owner_clock_cycle_handler;
+
+    brn->start(this, brain_clock_cycle_handler);
+}
 
 void creature::step()
 {
     body.step();
-    //    body_sph0.step();
-    //    body_sph1.step();
-    //    body_sph2.step();
 
-    //    float coef_a;
-    //    float coef_b;
     float a;
     float b;
-
 
 #if(1)
     for(int i = 0; i < leg_count; i++)
     {
-        a = force[i * 3 + 0];
-        b = force[i * 3 + 1];
+        a = force[i * 2 + 0];
+        b = force[i * 2 + 1];
         legs[i].step(a, b);
-        distance[i * 3 + 0] = a;
-        distance[i * 3 + 1] = b;
-    }
-
-    if(ft)
-    {
-        brn->start(this);
-        ft = false;
+        distance[i * 2 + 0] = a;
+        distance[i * 2 + 1] = b;
     }
 #else
-    float coef = 0.01f;
-
-    a = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    b = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    legs[leg_fl].step(a, b);
-    a = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    b = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    legs[leg_fr].step(a, b);
-    a = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    b = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-//    legs[leg_ml].step(a, b);
-//    a = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-//    b = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-//    legs[leg_mr].step(a, b);
-//    a = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-//    b = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    legs[leg_rl].step(a, b);
-    a = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    b = ((float)rand() / RAND_MAX * 255 - 128) * coef;
-    legs[leg_rr].step(a, b);
-
-    if(ft)
+    for(int i = 0; i < leg_count; i++)
     {
-        brn->start(this);
-        ft = false;
+        a = ((float)rand() / RAND_MAX) * 2 - 1;
+        b = ((float)rand() / RAND_MAX) * 2 - 1;
+        legs[i].step(a, b);
     }
 #endif
+}
+
+void creature::stop()
+{
+    brn_frnd->stop();
 }
 
 creature::leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float dir_lr, float dir_fr)
@@ -271,15 +226,11 @@ creature::leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world,
     first = cube(name + "_first", scnMgr, world, space, first_mass, first_x, first_y, first_z);
     second = cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
     third = cube(name + "_third", scnMgr, world, space, third_mass, third_x, third_y, third_z);
-    //fourth = cube(name + "_fourth", scnMgr, world, space, fourth_mass, fourth_x, fourth_y, fourth_z);
-    //fifth = sphere(name + "_fifth", scnMgr, world, space, fifth_mass, fifth_r);
 
     //    dBodySetPosition (first.body, 0, 0, dir_fr * first_z / 2);
     //dBodySetPosition (first.body, 0, 0, 0);
     dBodySetPosition (second.body, dir_lr * second_x / 2, 0, 0);
     dBodySetPosition (third.body, dir_lr * (second_x + third_x / 2), 0, 0);
-    //dBodySetPosition (fourth.body, dir_lr * (second_x + third_x + fourth_x / 2), 0, 0);
-    //dBodySetPosition (fifth.body, dir * (second_x + third_x + fourth_x), 0, 0);
 
     dJointGroupID jg_fs = dJointGroupCreate (0);
     j_fs = dJointCreateHinge (world, jg_fs);
@@ -307,25 +258,6 @@ creature::leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world,
         dJointSetFixed(j);
     }
 
-//    {
-//        dJointGroupID jg_tf = dJointGroupCreate (0);
-//        j_tf = dJointCreateHinge (world, jg_tf);
-//        dJointAttach (j_tf, dGeomGetBody(third.geom), dGeomGetBody(fourth.geom));
-//        dJointSetHingeAnchor (j_tf, dir_lr * (second_x + third_x), 0, 0);
-//        dJointSetHingeAxis (j_tf, 0, 0, dir_lr * 1);
-//        dJointSetHingeParam (j_tf,dParamLoStop, M_PI * 1 / 12);
-//        dJointSetHingeParam (j_tf,dParamHiStop, M_PI * 10 / 12);
-//    }
-
-    //dJointAddHingeTorque(j_tf, 5);
-
-    //    {
-    //        dJointGroupID jg_tf1 = dJointGroupCreate (0);
-    //        dJointID j_tf1 = dJointCreateFixed(world, jg_tf1);
-    //        dJointAttach (j_tf1, dGeomGetBody(fourth.geom), dGeomGetBody(fifth.geom));
-    //        dJointSetFixed (j_tf1);
-    //    }
-
     relocate(x, y, z, q);
 
     first.node->setPosition(0, -60, 0);
@@ -347,14 +279,10 @@ void creature::leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
     auto p0 = dBodyGetPosition (first.body);
     auto p1 = dBodyGetPosition (second.body);
     auto p2 = dBodyGetPosition (third.body);
-    //auto p3 = dBodyGetPosition (fourth.body);
-    //auto p4 = dBodyGetPosition (fifth.body);
 
     dBodySetPosition (first.body, p0[0] + dx, p0[1] + dy, p0[2] + dz);
     dBodySetPosition (second.body, p1[0] + dx, p1[1] + dy, p1[2] + dz);
     dBodySetPosition (third.body, p2[0] + dx, p2[1] + dy, p2[2] + dz);
-    //dBodySetPosition (fourth.body, p3[0] + dx, p3[1] + dy, p3[2] + dz);
-    //dBodySetPosition (fifth.body, p3[0] + dx, p3[1] + dy, p3[2] + dz);
 
     // TODO
     //    dBodySetQuaternion(first.body, q);
@@ -389,141 +317,229 @@ void creature::leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
     //    Ogre::Quaternion q_rez = q1 * Ogre::Quaternion(0, q[0], q[1], q[2]) * q1.Inverse();
     //    Ogre::Vector3 p_rez(q_rez[1], q_rez[2], q_rez[3]);
     //dBodySetPosition (first.body, p_rez[0] + dx, p_rez[1] + dy, p_rez[2] + dz);
-
-
 }
 
 void creature::leg::step(float& fs, float& st/*, float& tf*/)
 {
+    //return;
     fs = fs * (first_z / 2 + second_x / 2);
     st = st * (second_x / 2 + third_x / 2);
-    //tf = tf * (third_x / 2 + fourth_x / 2);
 
     float torque_coef = 500.0f;
 
     dJointAddHingeTorque(j_fs, fs * torque_coef);
     dJointAddHingeTorque(j_st, st * torque_coef);
-    //dJointAddHingeTorque(j_tf, tf * torque_coef);
 
-    fs = dJointGetHingeAngle (j_fs) / M_PI;
-    st = dJointGetHingeAngle (j_st) / M_PI;
-    //tf = dJointGetHingeAngle (j_tf) / M_PI;
+    fs = dJointGetHingeAngle (j_fs) / M_PI * 6;
+    st = dJointGetHingeAngle (j_st) / M_PI * 2;
 
     //first.step();
     second.step();
     third.step();
-    //fourth.step();
-    //fifth.step();
 }
 
-const int cccc = 128;
-int ccc = cccc;
-
-void creature::brain_clock_cycle_handler(void* owner)
+bool get_bool(float from, float to, float value, int levels_number, int level)
 {
-    //mtx.lock();
+#if(0)
+    if(value <= from && level == 0)
+        return true;
 
+    if(value >= to && level == levels_number - 1)
+        return true;
 
-    auto own = static_cast<creature*>(owner);
+    to -= from;
+    value -= from;
+    from = 0;
 
-    while (own->cycle);
+    float level_size = to / levels_number;
+
+    float l_low = level_size * level;
+
+    float l_high = l_low + level_size;
+
+    if(value >= l_low && value <= l_high)
+        return true;
+
+    return false;
+#else
+    to -= from;
+    value -= from;
+    from = 0;
+
+    float level_size = to / levels_number;
+
+    float l_low = level_size * level;
+
+    if(value >= l_low)
+        return true;
+
+    return false;
+#endif
+}
+
+const int count_max = 128;
+int count_current = count_max;
+
+void creature::brain_clock_cycle_handler(void* me_void)
+{
+    //std::cout << "1" << std::endl;
+    //#define show_debug_data
+    void (*set_inputs)(creature*, int&, float , float) = [](creature* cr, int& count, float value, float range)
+    {
+#ifdef show_debug_data
+        std::string s;
+#endif
+        for(uint8 j = 0; j < bits_in_byte; j++)
+        {
+            cr->brn->set_in(count++, get_bool(-range, range, value, bits_in_byte, j));
+#ifdef show_debug_data
+            s += std::to_string((int)get_bool(-k, k, value, bits_in_byte, j));
+#endif
+        }
+#ifdef show_debug_data
+        std::cout << s;
+#endif
+    };
+
+    uint8 u;
+
+    auto me = static_cast<creature*>(me_void);
 
     int count_input = 0;
-    for(int i = 0; i < for_dis_count; i++)
+
+    // Set inputs by legs states
+    for(int i = 0; i < force_distance_count; i++)
     {
-        uint8 u = (uint8)(own->distance[i] * 128 + 128);
-        //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-        for(int j = 0; j < 8; j++)
-            own->brn->set_in(count_input++, (u >> j) & 1);
+        set_inputs(me, count_input, me->distance[i], 1);
+#ifdef show_debug_data
+        if(i % 2)
+            std::cout << " ";
+#endif
     }
 
+    static const Ogre::Quaternion ort_x(0, 1, 0, 0);
+    static const Ogre::Quaternion ort_y(0, 0, 1, 0);
+    static const Ogre::Quaternion ort_z(0, 0, 0, 1);
+
+    static Ogre::Quaternion ort_x_rel;
+    static Ogre::Quaternion ort_y_rel;
+    static Ogre::Quaternion ort_z_rel;
+
+    static Ogre::Quaternion dbr_rot;
+    static Ogre::Quaternion dbr_rot_inv;
+
+    static float x_scalar;
+    static float y_scalar;
+    static float z_scalar;
+
+    auto dbr = dBodyGetQuaternion(me->body.body);
+
+    auto dbv = dBodyGetLinearVel(me->body.body);
+
+    dbr_rot = Ogre::Quaternion(dbr[0], dbr[1], dbr[2], dbr[3]);
+    dbr_rot_inv = dbr_rot.Inverse();
+
+    // Relative ort vectors
+    ort_x_rel = dbr_rot * ort_x * dbr_rot_inv;
+    ort_y_rel = dbr_rot * ort_y * dbr_rot_inv;
+    ort_z_rel = dbr_rot * ort_z * dbr_rot_inv;
+
+    static float k;
 
     {
-        {
-            auto pos_body = dGeomGetPosition(own->body.geom);
-            uint8 u = (uint8)(pos_body[0]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
+        k = 10;
 
-            u = (uint8)(pos_body[1]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
+        // Set inputs by velosity
+        x_scalar = ort_x_rel[1] * dbv[0] + ort_x_rel[2] * dbv[1] + ort_x_rel[3] * dbv[2];
+        y_scalar = ort_y_rel[1] * dbv[0] + ort_y_rel[2] * dbv[1] + ort_y_rel[3] * dbv[2];
+        z_scalar = ort_z_rel[1] * dbv[0] + ort_z_rel[2] * dbv[1] + ort_z_rel[3] * dbv[2];
+        set_inputs(me, count_input, x_scalar, k);
+        set_inputs(me, count_input, y_scalar, k);
+        set_inputs(me, count_input, z_scalar, k);
+#ifdef show_debug_data
+        std::cout << " ";
+#endif
+    }
 
-            u = (uint8)(pos_body[2]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
-        }
+    if(1)
+    {
+        k = 2;
 
-        {
-            auto pos = dGeomGetPosition(own->legs[leg_fl].first.geom);
-            uint8 u = (uint8)(pos[0]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
+        auto dbr_vel = dBodyGetAngularVel(me->body.body);
 
-            u = (uint8)(pos[1]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
+        auto dbr_rot = Ogre::Quaternion(dbr_vel[0], dbr_vel[1], dbr_vel[2], dbr_vel[3]);
+        auto dbr_rot_inv = dbr_rot.Inverse();
 
-            u = (uint8)(pos[2]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
-        }
+        auto ort_x_rel = dbr_rot * ort_x * dbr_rot_inv;
+        auto ort_y_rel = dbr_rot * ort_y * dbr_rot_inv;
+        auto ort_z_rel = dbr_rot * ort_z * dbr_rot_inv;
 
-        {
-            auto pos = dGeomGetPosition(own->legs[leg_fr].first.geom);
-            uint8 u = (uint8)(pos[0]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
+        // Set inputs by direction
+        x_scalar = ort_x_rel[1] * 1 + ort_x_rel[2] * 0 + ort_x_rel[3] * 0;
+        y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 1 + ort_y_rel[3] * 0;
+        z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 0 + ort_z_rel[3] * 1;
+        set_inputs(me, count_input, x_scalar, k);
+        set_inputs(me, count_input, y_scalar, k);
+        set_inputs(me, count_input, z_scalar, k);
+#ifdef show_debug_data
+        std::cout << " ";
+#endif
 
-            u = (uint8)(pos[1]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
+        x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
+        y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 0 + ort_y_rel[3] * 1;
+        z_scalar = ort_z_rel[1] * 1 + ort_z_rel[2] * 0 + ort_z_rel[3] * 0;
+        set_inputs(me, count_input, x_scalar, k);
+        set_inputs(me, count_input, y_scalar, k);
+        set_inputs(me, count_input, z_scalar, k);
+#ifdef show_debug_data
+        std::cout << " ";
+#endif
 
-            u = (uint8)(pos[2]);
-            //std::cout << std::to_string(i) << " = " << std::to_string(own->distance[i]) << std::endl;
-            for(int j = 0; j < 8; j++)
-                own->brn->set_in(count_input++, (u >> j) & 1);
-        }
+        x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
+        y_scalar = ort_y_rel[1] * 1 + ort_y_rel[2] * 0 + ort_y_rel[3] * 0;
+        z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 1 + ort_z_rel[3] * 0;
+        set_inputs(me, count_input, x_scalar, k);
+        set_inputs(me, count_input, y_scalar, k);
+        set_inputs(me, count_input, z_scalar, k);
+#ifdef show_debug_data
+        std::cout << " ";
+#endif
+    }
+#ifdef show_debug_data
+    //std::cout << std::to_string(own->input_length) << std::endl;
+    std::cout << std::endl;
+#endif
+    {
 
-        {
-            for_each(own->input_from_world->begin(), own->input_from_world->end(), [&](uint32 value)
-            {
-                for(int j = 0; j < 32; j++)
-                    own->brn->set_in(count_input++, (value >> j) & 1);
-            });
-        }
+//        for_each(me->input_from_world->begin(), me->input_from_world->end(), [&](uint32 value)
+//        {
+//            for(int j = 0; j < 32; j++)
+//                me->brn->set_in(count_input++, (value >> j) & 1);
+//        });
     }
 
     int count_output = 0;
-    for(int i = 0; i < for_dis_count; i++)
+    for(int i = 0; i < force_distance_count; i++)
     {
         int8 u = 0;
-        for(int j = 0; j < 8; j++)
-            u |= (own->brn->get_out(count_output++) << j);
+        for(int j = 0; j < 2; j++)
+            u |= (me->brn->get_out(count_output++) << j);
         //std::cout << std::to_string(i) << " = " << std::to_string(u) << std::endl;
 
-
-        own->force[i] = (float)u / 128;
+        me->force[i] = (float)me->brn->get_out(count_output - 1) - (float)me->brn->get_out(count_output - 2);
     }
 
-
-    //mtx.unlock();
-
-    if(--ccc % cccc == 0)
+    if(--count_current % count_max == 0)
     {
-        std::cout << std::to_string(own->brn->iteration)
+        std::cout << std::to_string(me->brn->iteration)
                   << " = "
-                  << std::to_string(own->brn->quantity_of_neurons_in_power_of_two)
+                  << std::to_string(me->brn->quantity_of_neurons_in_power_of_two)
                   << " = "
-                  << std::to_string(own->brn->quantity_of_initialized_neurons_binary)
+                  << std::to_string(me->brn->quantity_of_initialized_neurons_binary)
+                  << " = "
+                  << std::to_string(me->brn->rndm->debug_count_put)
+                  << " = "
+                  << std::to_string(me->brn->rndm->debug_count_get)
                      //                  << " body\t"
                      //                  << std::to_string((int)dBodyGetPosition(own->body.body)[0])
                      //                << "\t"
@@ -532,81 +548,8 @@ void creature::brain_clock_cycle_handler(void* owner)
                      //                << std::to_string((int)dBodyGetPosition(own->body.body)[2])
                   << std::endl;
 
-
-        //        for (int i = 0; i<6; i++)
-        //        {
-        //            std::cout << "leg=" << std::to_string(i)
-        //                      << "\t"
-        //                      << std::to_string((int)dBodyGetPosition(own->legs[i].first.body)[0])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].first.body)[1])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].first.body)[2])
-        //                    << "|\t"
-
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].second.body)[0])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].second.body)[1])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].second.body)[2])
-        //                    << "|\t"
-
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].third.body)[0])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].third.body)[1])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].third.body)[2])
-        //                    << "|\t"
-
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].fourth.body)[0])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].fourth.body)[1])
-        //                    << "\t"
-        //                    << std::to_string((int)dBodyGetPosition(own->legs[i].fourth.body)[2])
-        //                    << "|\t"
-
-        //                    << std::endl;
-        //            std::cout << "leg=" << std::to_string(i)
-        //                      << "\t"
-        //                      << std::to_string((int)own->legs[i].first.node->getPosition()[0])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].first.node->getPosition()[1])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].first.node->getPosition()[2])
-        //                    << "|\t"
-
-        //                    << std::to_string((int)own->legs[i].second.node->getPosition()[0])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].second.node->getPosition()[1])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].second.node->getPosition()[2])
-        //                    << "|\t"
-
-        //                    << std::to_string((int)own->legs[i].third.node->getPosition()[0])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].third.node->getPosition()[1])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].third.node->getPosition()[2])
-        //                    << "|\t"
-
-        //                    << std::to_string((int)own->legs[i].fourth.node->getPosition()[0])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].fourth.node->getPosition()[1])
-        //                    << "\t"
-        //                    << std::to_string((int)own->legs[i].fourth.node->getPosition()[2])
-        //                    << "|\t"
-
-        //                    << std::endl;
-
-
-
-
-
-
-        //        }
-
-        ccc = cccc;
+        count_current = count_max;
     }
 
-    own->cycle = true;
+    me->owner_clock_cycle_handler(me->owner);
 }
