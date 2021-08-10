@@ -31,8 +31,8 @@ struct tripod
     const dReal* bas;
     const dReal* bas_vel;
 
-    const dReal velosity_ignore_coef = 10.0f;
-    const dReal force_coef = 10.0f;
+    const dReal velosity_ignore_coef = 1.0f;
+    const dReal force_coef = 5.0f;
     float dx;
     float dy;
     float dz;

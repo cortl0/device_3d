@@ -12,7 +12,9 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        bnn/src/brain/thread.cpp \
         creature.cpp \
+        leg.cpp \
         main.cpp \
         phys_obj/cube.cpp \
         phys_obj/figure.cpp \
@@ -23,6 +25,7 @@ SOURCES += \
 HEADERS += \
     config.h \
     creature.h \
+    leg.h \
     phys_obj/cube.h \
     phys_obj/figure.h \
     phys_obj/sphere.h \

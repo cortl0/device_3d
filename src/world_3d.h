@@ -15,8 +15,6 @@
 #include <thread>
 #include <unistd.h>
 
-using namespace std;
-
 #include "ode.h"
 #include "Ogre.h"
 #include "OgreApplicationContext.h"
@@ -24,9 +22,8 @@ using namespace std;
 #include "OgreRTShaderSystem.h"
 
 #include "config.h"
-#include "./phys_obj/cube.h"
-#include "./phys_obj/sphere.h"
-#include "config.h"
+#include "phys_obj/cube.h"
+#include "phys_obj/sphere.h"
 #include "creature.h"
 #include "tripod.h"
 
@@ -77,7 +74,6 @@ class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputLi
     dGeomID plane;
     bool start_flag = false;
 
-    static void creature_clock_cycle_handler(void* me);
 public:
     world_3d();
     void collide_action();

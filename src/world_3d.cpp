@@ -195,7 +195,7 @@ void world_3d::setup_ogre()
     switch (0)
     {
     case 0:
-        camNode->setPosition(0, 400 * scale, 1000 * scale);
+        camNode->setPosition(0, 400 * device_3d_SCALE, 1000 * device_3d_SCALE);
         break;
     case 1:
         camNode->setPosition(0, 800, 0);
@@ -207,7 +207,7 @@ void world_3d::setup_ogre()
 
     // create the camera
     cam = scnMgr->createCamera("myCam");
-    cam->setNearClipDistance(50); // specific to this sample
+    cam->setNearClipDistance(1); // specific to this sample
 
     cam->setAutoAspectRatio(true);
 
@@ -225,7 +225,7 @@ void world_3d::setup_ogre()
 
     auto ent_plane = scnMgr->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
     auto node_plane = scnMgr->getRootSceneNode()->createChildSceneNode();
-    node_plane->setScale(Ogre::Vector3(100, 100, 100));
+    node_plane->setScale(Ogre::Vector3(1, 1, 1));
     node_plane->setDirection(0,-1,0);
     node_plane->attachObject(ent_plane);
     ent_plane->setMaterial(figure::create_material(1024, 8, 255, 191));
@@ -235,7 +235,7 @@ void world_3d::setup_ode()
 {
     dInitODE2(0);
     world = dWorldCreate();
-    dWorldSetGravity (world, 0, -gravity, 0);
+    dWorldSetGravity (world, 0, -device_3d_GRAVITY, 0);
 
     space = dSimpleSpaceCreate(nullptr);
 
@@ -244,8 +244,8 @@ void world_3d::setup_ode()
     world_st = world;
 
     {
-        auto fff = dWorldGetERP(world);
-        auto fff1 = dWorldGetCFM(world);
+        //        auto fff = dWorldGetERP(world);
+        //        auto fff1 = dWorldGetCFM(world);
         //dWorldSetERP(world, 0.2f);
         //dWorldSetCFM(world, 1e-5);
 
@@ -346,7 +346,8 @@ void world_3d::start()
     if(!start_flag)
     {
         start_flag = true;
-        creature_.start(this, creature_clock_cycle_handler);
+        creature_.start();
+        cycle();
         cout << "started" << endl;
     }
 }
@@ -376,17 +377,17 @@ void world_3d::fill_it_up()
         for(int i = 0; i < 4; i++)
         {
             float x,y,z;
-            x=(i & 1) ? size : size / koef_size;
-            y=height;
-            z=(i & 1) ? size / koef_size : size;
+            x=(i & 1) ? size * device_3d_SCALE : size / koef_size * device_3d_SCALE;
+            y=height * device_3d_SCALE;
+            z=(i & 1) ? size * device_3d_SCALE / koef_size : size * device_3d_SCALE;
             stepping_figures.push_back(std::unique_ptr<cube>(new cube("wall_" + std::to_string(i) + std::to_string(i),
-                                                                      scnMgr, world, space, x * y * z * mass_scale,
-                                                                      x*scale, y*scale, z*scale, 255)));
+                                                                      scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
+                                                                      x, y, z, 255)));
 
             dBodySetPosition(stepping_figures.back()->body,
-                             !(i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1)*scale,
-                             (height / 2 + 1)*scale,
-                             (i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1)*scale);
+                             !(i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1) * device_3d_SCALE,
+                             (height / 2 + 1) * device_3d_SCALE,
+                             (i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1) * device_3d_SCALE);
 
             dJointGroupID jg = dJointGroupCreate (0);
             dJointID j = dJointCreateFixed (world, jg);
@@ -402,14 +403,14 @@ void world_3d::fill_it_up()
     // creating movable objects
     {
         {
-            float r = ((float)rand() / RAND_MAX) * 20 + 100;
+            float r = (((float)rand() / RAND_MAX) * 20 + 100) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<cube>(new cube("cube_qqq", scnMgr, world, space,
-                                                                      r*r*r*mass_scale, r*scale, r*scale, r*scale)));
+                                                                      r*r*r * device_3d_MASS_SCALE, r, r, r)));
             dBodySetPosition (stepping_figures.back()->body,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 500*scale,
-                              (((float)rand() / RAND_MAX)) * 500*scale,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 500*scale);
+                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
+                              (((float)rand() / RAND_MAX)) * 500 * device_3d_SCALE,
+                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE);
 
             movable_colliding_geoms.push_back(stepping_figures.back()->geom);
 
@@ -418,14 +419,14 @@ void world_3d::fill_it_up()
 
         for(int i = 0; i < 2; i++)
         {
-            float r = ((float)rand() / RAND_MAX) * 20 + 50;
+            float r = (((float)rand() / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_" + std::to_string(i), scnMgr, world, space,
-                                                                          r*r*r*mass_scale, r*scale)));
+                                                                          r*r*r * device_3d_MASS_SCALE, r)));
             dBodySetPosition (stepping_figures.back()->body,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1500*scale,
-                              (((float)rand() / RAND_MAX)) * 1500*scale,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1500*scale);
+                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
+                              (((float)rand() / RAND_MAX)) * 1500 * device_3d_SCALE,
+                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE);
 
             movable_colliding_geoms.push_back(stepping_figures.back()->geom);
 
@@ -433,14 +434,14 @@ void world_3d::fill_it_up()
         }
 
         {
-            float r = ((float)rand() / RAND_MAX) * 20 + 50;
+            float r = (((float)rand() / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space,
-                                                                          r*r*r*mass_scale, r*scale)));
+                                                                          r*r*r, r)));
             dBodySetPosition (stepping_figures.back()->body,
-                              -1000,
-                              1000,
-                              -1300);
+                              -1000 * device_3d_SCALE,
+                              1000 * device_3d_SCALE,
+                              -1300 * device_3d_SCALE);
 
             movable_colliding_geoms.push_back(stepping_figures.back()->geom);
 
@@ -453,7 +454,7 @@ void world_3d::fill_it_up()
     // creating creature
     {
         creature_ = creature(scnMgr, world, input_from_world);
-        creature_.set_position(0, 50 * scale, 0);
+        creature_.set_position(0, 50 * device_3d_SCALE, 0);
 
         creature_colliding_geoms.push_back(creature_.body.geom);
 
@@ -461,15 +462,13 @@ void world_3d::fill_it_up()
 
         for (int i = 0; i < leg_count; i++)
         {
-            //creature_colliding_geoms.push_back(crtr.legs[i].first.geom);
+            creature_colliding_geoms.push_back(creature_.legs[i].first.geom);
             creature_colliding_geoms.push_back(creature_.legs[i].second.geom);
             creature_colliding_geoms.push_back(creature_.legs[i].third.geom);
-            //creature_colliding_geoms.push_back(crtr.legs[i].fourth.geom);
 
-            //bounding_nodes.push_back(crtr.legs[i].first.node);
+            bounding_nodes.push_back(creature_.legs[i].first.node);
             bounding_nodes.push_back(creature_.legs[i].second.node);
             bounding_nodes.push_back(creature_.legs[i].third.node);
-            //bounding_nodes.push_back(crtr.legs[i].fourth.node);
         }
 
         //        dJointGroupID gc_body = dJointGroupCreate (0);
@@ -483,30 +482,27 @@ void world_3d::fill_it_up()
     tripod_.reset(new tripod(world, camNode, creature_.body.body));
 }
 
-void world_3d::creature_clock_cycle_handler(void* me_void)
-{
-
-}
-
 void world_3d::cycle()
 {
     cycle_thread.reset(new std::thread([&]()
     {
-        auto time_start = std::chrono::high_resolution_clock::now();
+        double frame_length = 1.0 / 60.0; // [seconds]
+
+        auto time_old = std::chrono::high_resolution_clock::now();
         auto time_current = std::chrono::high_resolution_clock::now();
+        auto time_diff = time_current - time_old;
+        auto time_sleep = time_current - time_old;
 
         while(true)
         {
-            time_current = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> diff = time_current - time_start;
-            time_start = time_current;
-
             if(!start_flag)
                 continue;
 
-            //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
+            dWorldStep(world, static_cast<float>(frame_length));
 
-            dWorldStep(world, static_cast<float>(diff.count())*2.5f);
+            collide_action();
+
+            //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
             for_each(stepping_figures.begin(), stepping_figures.end(), [&](std::unique_ptr<figure>& fig){ fig->step(); });
 
@@ -531,12 +527,24 @@ void world_3d::cycle()
                     (*input_from_world)[i++] = (uint32)(f * coef1);
                 });
             }
-            collide_action();
+
+            time_current = std::chrono::high_resolution_clock::now();
+
+            time_diff = time_current - time_old;
+
+            if(frame_length * 1000000000.0 > time_diff.count())
+                usleep((frame_length - time_diff.count() / 1000000000.0) * 1000000.0);
+
+            time_current = std::chrono::high_resolution_clock::now();
+
+            time_old = time_current;
         }
 
-//        dWorldDestroy (world);
-//        dCloseODE();
+        //        dWorldDestroy (world);
+        //        dCloseODE();
     }));
+
+    cycle_thread->detach();
 }
 
 void nearCallback (void *data, dGeomID o1, dGeomID o2)
@@ -698,5 +706,5 @@ void world_3d::setup(void)
     setup_ogre();
     setup_ode();
     fill_it_up();
-    cycle();
+    //cycle();
 }

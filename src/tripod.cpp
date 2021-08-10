@@ -42,9 +42,9 @@ tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
 
     cam_node->lookAt(Ogre::Vector3(dBodyGetPosition(detector)[0],dBodyGetPosition(detector)[1],dBodyGetPosition(detector)[2]), Ogre::Node::TS_PARENT);
     dQuaternion q = {cam_node->getOrientation().w,
-                cam_node->getOrientation().x,
-                cam_node->getOrientation().y,
-                cam_node->getOrientation().z};
+                     cam_node->getOrientation().x,
+                     cam_node->getOrientation().y,
+                     cam_node->getOrientation().z};
     dBodySetQuaternion(cam_base, q);
 
     {
@@ -64,9 +64,9 @@ tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
 
 void tripod::step()
 {
-    dBodyAddForce(detector, 0, gravity, 0);
-    dBodyAddForce(upper_detector, 0, gravity, 0);
-    dBodyAddForce(cam_base, 0, gravity, 0);
+    dBodyAddForce(detector, 0, device_3d_GRAVITY, 0);
+    dBodyAddForce(upper_detector, 0, device_3d_GRAVITY, 0);
+    dBodyAddForce(cam_base, 0, device_3d_GRAVITY, 0);
 
     tar = dBodyGetPosition(target);
 

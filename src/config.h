@@ -6,10 +6,13 @@
  *   licensed by GPL v3.0
  */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef DEVICE_3D_CONFIG_H
+#define DEVICE_3D_CONFIG_H
 
-#define gravity 9.81f // [m/s^2]
+#define device_3d_GRAVITY 9.81f // [m/s^2]
+
+#define device_3d_SCALE 0.01f
+#define device_3d_MASS_SCALE 1.0f
 
 struct config
 {
@@ -24,4 +27,4 @@ public:
     config(){}
 };
 
-#endif // CONFIG_H
+#endif // DEVICE_3D_CONFIG_H

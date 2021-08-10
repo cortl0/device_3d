@@ -7,11 +7,6 @@ for testing Binary neurons network
 git clone --recursive https://github.com/cortl0/device_3d
 ```
 
-## If not recursive cloned then project preparation
-```
-make prepare
-```
-
 ## Project requirements
 Binary neurons network  
 https://github.com/cortl0/binary_neurons_network
@@ -34,7 +29,6 @@ mailto: cortl@8iter.ru
 ## Links
 http://8iter.ru/ai.html  
 https://t.me/artificial_intelligence_bnn  
-https://t.me/artificial_intelligence_bnn_grp  
 https://github.com/cortl0/binary_neurons_network
 https://github.com/cortl0/device_3d
 
