@@ -30,8 +30,12 @@
 
 class leg
 {
-    dJointID j_fs;
-    dJointID j_st;
+    dJointGroupID jg_fs = dJointGroupCreate (0);
+    dJointGroupID jg_st = dJointGroupCreate (0);
+
+    dJointID j_fs, j_st;
+
+    float fs_low ,fs_hi, st_low, st_hi;
 
 public:
     cube first;
@@ -41,6 +45,7 @@ public:
     leg() {}
     leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float dir_lr, float dir_fr);
     void relocate(dReal dx, dReal dy, dReal dz, dQuaternion q);
+    void SetHingeParams(float fs_low, float fs_hi, float st_low, float st_hi);
 
     /// fs - input torque [-1, 1], output angle between first & second [-1, 1]
     /// st - input torque [-1, 1], output angle between second & third [-1, 1]

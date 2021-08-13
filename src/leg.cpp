@@ -19,31 +19,26 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
     dBodySetPosition (second.body, dir_lr * second_x / 2, 0, 0);
     dBodySetPosition (third.body, dir_lr * (second_x + third_x / 2), 0, 0);
 
-    dJointGroupID jg_fs = dJointGroupCreate (0);
     j_fs = dJointCreateHinge (world, jg_fs);
     dJointAttach (j_fs, dGeomGetBody(first.geom), dGeomGetBody(second.geom));
     dJointSetHingeAnchor (j_fs, 0, 0, 0);
     dJointSetHingeAxis (j_fs, 0, 1 * dir_lr, 0);
-    dJointSetHingeParam (j_fs,dParamLoStop, -M_PI / 6 );
-    dJointSetHingeParam (j_fs,dParamHiStop, M_PI / 6);
 
-    if(1)
+    j_st = dJointCreateHinge (world, jg_st);
+    dJointAttach (j_st, dGeomGetBody(second.geom), dGeomGetBody(third.geom));
+    dJointSetHingeAnchor (j_st, dir_lr * second_x, 0, 0);
+    dJointSetHingeAxis (j_st, 0, 0, dir_lr * 1);
+
+    if(0)
     {
-        dJointGroupID jg_st = dJointGroupCreate (0);
-        j_st = dJointCreateHinge (world, jg_st);
+        dJointID j_st = dJointCreateFixed (world, jg_st);
         dJointAttach (j_st, dGeomGetBody(second.geom), dGeomGetBody(third.geom));
-        dJointSetHingeAnchor (j_st, dir_lr * second_x, 0, 0);
-        dJointSetHingeAxis (j_st, 0, 0, dir_lr * 1);
-        dJointSetHingeParam (j_st,dParamLoStop, -M_PI * 1 / 2);
-        dJointSetHingeParam (j_st,dParamHiStop, +M_PI * 1 / 2);
+        dJointSetFixed(j_st);
     }
-    else
-    {
-        dJointGroupID jg = dJointGroupCreate (0);
-        dJointID j = dJointCreateFixed (world, jg);
-        dJointAttach (j, dGeomGetBody(second.geom), dGeomGetBody(third.geom));
-        dJointSetFixed(j);
-    }
+
+    //SetHingeParams(-M_PI / 6, M_PI / 6, -M_PI * 1 / 2, +M_PI * 1 / 2);
+    //SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 4, +M_PI * 1 / 3);
+    SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 6, +M_PI * 1 / 5);
 
     relocate(x, y, z, q);
 
@@ -59,6 +54,20 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
     //    dJointSetHingeAnchor (j_st, 50, 0, 0);
     //    dJointSetHingeAxis (j_st, 0, 0, 1);
 
+}
+
+void leg::SetHingeParams(float fs_low, float fs_hi, float st_low, float st_hi)
+{
+    this->fs_low = fs_low;
+    this->fs_hi = fs_hi;
+    this->st_low = st_low;
+    this->st_hi = st_hi;
+
+    dJointSetHingeParam (j_fs,dParamLoStop, fs_low);
+    dJointSetHingeParam (j_fs,dParamHiStop, fs_hi);
+
+    dJointSetHingeParam (j_st,dParamLoStop, st_low);
+    dJointSetHingeParam (j_st,dParamHiStop, st_hi);
 }
 
 void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
@@ -106,9 +115,17 @@ void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
     //dBodySetPosition (first.body, p_rez[0] + dx, p_rez[1] + dy, p_rez[2] + dz);
 }
 
-void leg::step(float& fs, float& st/*, float& tf*/)
+float value_in_range(const float& value, const float& range_start, const float& range_end)
 {
-    //return;
+    static const float default_range_start = -1;
+    static const float default_range_end = 1;
+    static const float default_range_delta = default_range_end - default_range_start;
+
+    return default_range_start + ((value - range_start) / (range_end - range_start)) * default_range_delta;
+}
+
+void leg::step(float& fs, float& st)
+{
     fs = fs * (first_z / 2 + second_x / 2);
     st = st * (second_x / 2 + third_x / 2);
 
@@ -117,8 +134,8 @@ void leg::step(float& fs, float& st/*, float& tf*/)
     dJointAddHingeTorque(j_fs, fs * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_fs))));
     dJointAddHingeTorque(j_st, st * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_st))));
 
-    fs = dJointGetHingeAngle (j_fs) / M_PI * 6;
-    st = dJointGetHingeAngle (j_st) / M_PI * 2;
+    fs = value_in_range(dJointGetHingeAngle (j_fs), fs_low, fs_hi);
+    st = value_in_range(dJointGetHingeAngle (j_st), st_low, st_hi);
 
     first.step();
     second.step();

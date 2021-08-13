@@ -106,7 +106,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         colliding_geoms.push_back(legs[i].third.geom);
     }
 
-    brn.reset(new bnn::brain(24, // random_array_length_in_power_of_two
+    brn.reset(new bnn::brain(random_array_length_in_power_of_two,
                              quantity_of_neurons_in_power_of_two,
                              input_length,
                              output_length));
@@ -219,25 +219,35 @@ bool get_bool(float from, float to, float value, int levels_number, int level)
 #endif
 }
 
+
+//#define show_debug_data
+
+#ifdef show_debug_data
+static std::string s;
+#endif
+
 void set_inputs(creature* cr, int& count, float value, float range)
 {
 #ifdef show_debug_data
-    std::string s;
+    std::string str;
 #endif
     for(uint8 j = 0; j < bits_in_byte; j++)
     {
         cr->brn->set_in(count++, get_bool(-range, range, value, bits_in_byte, j));
 #ifdef show_debug_data
-        s += std::to_string((int)get_bool(-range, range, value, bits_in_byte, j));
+        str += std::to_string((int)get_bool(-range, range, value, bits_in_byte, j));
 #endif
     }
 #ifdef show_debug_data
-    std::cout << s;
+    s += str;
 #endif
 };
 
 void creature::step()
 {
+#ifdef show_debug_data
+    s = "";
+#endif
     body.step();
 
     float a;
@@ -261,8 +271,6 @@ void creature::step()
     }
 #endif
 
-    //#define show_debug_data
-
     uint8 u;
 
     auto me = this;// static_cast<creature*>(me_void);
@@ -275,7 +283,7 @@ void creature::step()
         set_inputs(me, count_input, me->distance[i], 1.0f);
 #ifdef show_debug_data
         if(i % 2)
-            std::cout << " ";
+            s += " ";
 #endif
     }
 
@@ -319,7 +327,7 @@ void creature::step()
         set_inputs(me, count_input, y_scalar, k);
         set_inputs(me, count_input, z_scalar, k);
 #ifdef show_debug_data
-        std::cout << " ";
+        s += " ";
 #endif
     }
 
@@ -344,7 +352,7 @@ void creature::step()
         set_inputs(me, count_input, y_scalar, k);
         set_inputs(me, count_input, z_scalar, k);
 #ifdef show_debug_data
-        std::cout << " ";
+        s += " ";
 #endif
 
         x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
@@ -354,7 +362,7 @@ void creature::step()
         set_inputs(me, count_input, y_scalar, k);
         set_inputs(me, count_input, z_scalar, k);
 #ifdef show_debug_data
-        std::cout << " ";
+        s += " ";
 #endif
 
         x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
@@ -364,60 +372,47 @@ void creature::step()
         set_inputs(me, count_input, y_scalar, k);
         set_inputs(me, count_input, z_scalar, k);
 #ifdef show_debug_data
-        std::cout << " ";
+        s += " ";
 #endif
     }
+
 #ifdef show_debug_data
-    //std::cout << std::to_string(own->input_length) << std::endl;
-    std::cout << std::endl;
+    //s = "";
 #endif
-    {
 
-        //        for_each(me->input_from_world->begin(), me->input_from_world->end(), [&](uint32 value)
-        //        {
-        //            for(int j = 0; j < 32; j++)
-        //                me->brn->set_in(count_input++, (value >> j) & 1);
-        //        });
+#ifdef creature_sees_world
+    // I see three shapes at two coordinates
+    for_each(me->input_from_world->begin(), me->input_from_world->end(), [&](uint32 value)
+    {
+        for(int i = 0; i < 32; i++)
+        {
+#ifdef show_debug_data
+            //s += std::to_string((value >> i) & 1);
+#endif
+
+            me->brn->set_in(count_input++, (value >> i) & 1);
+        }
+
+#ifdef show_debug_data
+        s += " ";
+#endif
+    });
+#endif
+
+    // I can move legs
+    _word count_output = 0;
+    for(int i = 0; i < force_distance_count; i += 2)
+    {
+#ifdef show_debug_data
+        //s += std::to_string(me->brn->get_out(i)) + std::to_string(me->brn->get_out(i + 1));
+#endif
+
+        me->force[i] = static_cast<float>(me->brn->get_out(i)) - static_cast<float>(me->brn->get_out(i + 1));
     }
 
-    //std::cout << std::to_string(count_input) << std::endl;
-
-    int count_output = 0;
-    for(int i = 0; i < force_distance_count; i++)
-    {
-        int8 u = 0;
-        for(int j = 0; j < 2; j++)
-            u |= (me->brn->get_out(count_output++) << j);
-        //std::cout << std::to_string(i) << " = " << std::to_string(u) << std::endl;
-
-        me->force[i] = (float)me->brn->get_out(count_output - 1) - (float)me->brn->get_out(count_output - 2);
-    }
-
-    //std::cout << std::to_string(count_output) << std::endl;
-
-    //    if(--count_current % count_max == 0)
-    //    {
-    //        std::cout << std::to_string(me->brn->iteration)
-    ////                  << " : "
-    ////                  << std::to_string(me->brn->quantity_of_neurons_in_power_of_two)
-    ////                  << " : "
-    ////                  << std::to_string(me->brn->quantity_of_initialized_neurons_binary)
-    //#ifdef DEBUG
-    //                  << " : "
-    //                  << std::to_string(me->brn->rndm->debug_count_put)
-    //                  << " : "
-    //                  << std::to_string(me->brn->rndm->debug_count_get)
-    //#endif
-    //                     //                  << " body\t"
-    //                     //                  << std::to_string((int)dBodyGetPosition(own->body.body)[0])
-    //                     //                << "\t"
-    //                     //                << std::to_string((int)dBodyGetPosition(own->body.body)[1])
-    //                     //                << "\t"
-    //                     //                << std::to_string((int)dBodyGetPosition(own->body.body)[2])
-    //                  << std::endl;
-
-    //        count_current = count_max;
-    //    }
+#ifdef show_debug_data
+    std::cout << s << std::endl;
+#endif
 }
 
 void creature::stop()

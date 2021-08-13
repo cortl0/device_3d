@@ -44,26 +44,32 @@ const float f = static_cast<float>(pow(0.5, 0.5));
 #define bits_in_byte 8
 #define joint_in_leg_count 2
 #define eye_count 2
+#define coordinates_count 3
+#define creature_sees_world
 
 struct creature
 {
     std::shared_ptr<std::vector<uint32>> input_from_world;
 
-    _word quantity_of_neurons_in_power_of_two = 18;
+    _word random_array_length_in_power_of_two = 24;
+
+    _word quantity_of_neurons_in_power_of_two = 20;
 
     _word input_length =
-            160;
-    //88;
-
-    //            // I feel my legs
-    //            leg_count * bits_in_byte * joint_in_leg_count
-    //            // I feel my plase & orientation by the dots on my body
-    //            + 3 * bits_in_byte * coordinates_count
-    //            // I see three shapes at two coordinates
-    //            + 3 * 2 * sizeof(uint32) * bits_in_byte;
+            // I feel my legs
+            leg_count * bits_in_byte * joint_in_leg_count
+            // I feel my velosity
+            + bits_in_byte * coordinates_count
+            // I feel my orientation by the three dots on my body
+            + 3 * bits_in_byte * coordinates_count
+#ifdef creature_sees_world
+            // I see three shapes at two coordinates
+            + 3 * 2 * sizeof(uint32) * bits_in_byte;
+#endif
+    ;
 
     _word output_length =
-            // I control my legs10
+            // I control my legs
             leg_count * 2 * joint_in_leg_count;
 
 #define force_distance_count (leg_count * 2)

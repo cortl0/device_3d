@@ -52,8 +52,14 @@ void collide_action2(dGeomID o1, dGeomID o2)
 
 
                 ;
-        contact[i].surface.mu = dInfinity;
-        contact[i].surface.mu2 = dInfinity;
+//        contact[i].surface.mu = dInfinity;
+//        contact[i].surface.mu2 = dInfinity;
+
+
+        contact[i].surface.mu = 4;
+        contact[i].surface.mu2 = 4;
+
+
         //                contact[i].surface.bounce = 0.1f;
         //                contact[i].surface.bounce_vel = 0.0f;
         //                contact[i].surface.slip1 = 1;
@@ -70,8 +76,6 @@ void collide_action2(dGeomID o1, dGeomID o2)
 
 void world_3d::collide_action()
 {
-    dJointGroupEmpty (contactgroup_st);
-
     for_each(stationary_colliding_geoms.begin(), stationary_colliding_geoms.end(), [&](dGeomID sg)
     {
         for_each(movable_colliding_geoms.begin(), movable_colliding_geoms.end(), [&](dGeomID mg)
@@ -451,10 +455,11 @@ void world_3d::fill_it_up()
 
     input_from_world.reset(new std::vector<uint32>(eye_count * moveable_figures_quality));
     for_each(input_from_world->begin(), input_from_world->end(), [&](uint32& i){ i = 0; });
+
     // creating creature
     {
         creature_ = creature(scnMgr, world, input_from_world);
-        creature_.set_position(0, 50 * device_3d_SCALE, 0);
+        creature_.set_position(0, 100 * device_3d_SCALE, 0);
 
         creature_colliding_geoms.push_back(creature_.body.geom);
 
@@ -498,9 +503,6 @@ void world_3d::cycle()
             if(!start_flag)
                 continue;
 
-            dWorldStep(world, static_cast<float>(frame_length));
-
-            collide_action();
 
             //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
@@ -510,7 +512,7 @@ void world_3d::cycle()
             tripod_->step();
 
             float f;
-            float coef1 = 1.0f;
+            float coef1 = 1.0f / device_3d_SCALE;
 
             for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
             {
@@ -527,6 +529,14 @@ void world_3d::cycle()
                     (*input_from_world)[i++] = (uint32)(f * coef1);
                 });
             }
+
+
+            collide_action();
+
+            dWorldStep(world, static_cast<float>(frame_length));
+
+            dJointGroupEmpty (contactgroup_st);
+
 
             time_current = std::chrono::high_resolution_clock::now();
 
@@ -582,7 +592,7 @@ void nearCallback (void *data, dGeomID o1, dGeomID o2)
     if (dGeomIsSpace (o1) || dGeomIsSpace (o2)) {
         cout << "bbbbbbbbbbb" << endl;
         // colliding a space with something :
-        dSpaceCollide2 (o1, o2, data,&nearCallback);
+        dSpaceCollide2 (o1, o2, data, &nearCallback);
 
         // collide all geoms internal to the space(s)
         if (dGeomIsSpace (o1))
