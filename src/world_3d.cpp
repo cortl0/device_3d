@@ -52,8 +52,8 @@ void collide_action2(dGeomID o1, dGeomID o2)
 
 
                 ;
-//        contact[i].surface.mu = dInfinity;
-//        contact[i].surface.mu2 = dInfinity;
+        //        contact[i].surface.mu = dInfinity;
+        //        contact[i].surface.mu2 = dInfinity;
 
 
         contact[i].surface.mu = 4;
@@ -407,14 +407,14 @@ void world_3d::fill_it_up()
     // creating movable objects
     {
         {
-            float r = (((float)rand() / RAND_MAX) * 20 + 100) * device_3d_SCALE;
+            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<cube>(new cube("cube_qqq", scnMgr, world, space,
                                                                       r*r*r * device_3d_MASS_SCALE, r, r, r)));
             dBodySetPosition (stepping_figures.back()->body,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
-                              (((float)rand() / RAND_MAX)) * 500 * device_3d_SCALE,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE);
+                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
+                              ((static_cast<float>(rand()) / RAND_MAX)) * 500 * device_3d_SCALE,
+                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE);
 
             movable_colliding_geoms.push_back(stepping_figures.back()->geom);
 
@@ -423,14 +423,14 @@ void world_3d::fill_it_up()
 
         for(int i = 0; i < 2; i++)
         {
-            float r = (((float)rand() / RAND_MAX) * 20 + 50) * device_3d_SCALE;
+            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_" + std::to_string(i), scnMgr, world, space,
                                                                           r*r*r * device_3d_MASS_SCALE, r)));
             dBodySetPosition (stepping_figures.back()->body,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
-                              (((float)rand() / RAND_MAX)) * 1500 * device_3d_SCALE,
-                              (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE);
+                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
+                              ((static_cast<float>(rand()) / RAND_MAX)) * 1500 * device_3d_SCALE,
+                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE);
 
             movable_colliding_geoms.push_back(stepping_figures.back()->geom);
 
@@ -438,7 +438,7 @@ void world_3d::fill_it_up()
         }
 
         {
-            float r = (((float)rand() / RAND_MAX) * 20 + 50) * device_3d_SCALE;
+            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space,
                                                                           r*r*r, r)));
@@ -476,10 +476,10 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(creature_.legs[i].third.node);
         }
 
-        //        dJointGroupID gc_body = dJointGroupCreate (0);
-        //        dJointID j_body = dJointCreateFixed (world, gc_body);
-        //        dJointAttach (j_body, 0, dGeomGetBody(crtr.body.geom));
-        //        dJointSetFixed(j_body);
+//        dJointGroupID gc_body = dJointGroupCreate (0);
+//        dJointID j_body = dJointCreateFixed (world, gc_body);
+//        dJointAttach (j_body, 0, dGeomGetBody(creature_.body.geom));
+//        dJointSetFixed(j_body);
 
         //bool ff = crtr.body.node->getShowBoundingBox();
     }
@@ -496,7 +496,6 @@ void world_3d::cycle()
         auto time_old = std::chrono::high_resolution_clock::now();
         auto time_current = std::chrono::high_resolution_clock::now();
         auto time_diff = time_current - time_old;
-        auto time_sleep = time_current - time_old;
 
         while(true)
         {
@@ -523,10 +522,10 @@ void world_3d::cycle()
                     auto pos_fl = dGeomGetPosition(creature_.legs[leg_fl].first.geom);
                     auto pos_fr = dGeomGetPosition(creature_.legs[leg_fr].first.geom);
 
-                    f = pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5);
-                    (*input_from_world)[i++] = (uint32)(f * coef1);
-                    f = pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5);
-                    (*input_from_world)[i++] = (uint32)(f * coef1);
+                    f = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
+                    (*input_from_world)[i++] = static_cast<uint32>(f * coef1);
+                    f = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
+                    (*input_from_world)[i++] = static_cast<uint32>(f * coef1);
                 });
             }
 
@@ -543,7 +542,7 @@ void world_3d::cycle()
             time_diff = time_current - time_old;
 
             if(frame_length * 1000000000.0 > time_diff.count())
-                usleep((frame_length - time_diff.count() / 1000000000.0) * 1000000.0);
+                usleep(static_cast<__useconds_t>((frame_length - time_diff.count() / 1000000000.0) * 1000000.0));
 
             time_current = std::chrono::high_resolution_clock::now();
 
@@ -596,9 +595,9 @@ void nearCallback (void *data, dGeomID o1, dGeomID o2)
 
         // collide all geoms internal to the space(s)
         if (dGeomIsSpace (o1))
-            dSpaceCollide ((dSpaceID)o1, data, &nearCallback);
+            dSpaceCollide (reinterpret_cast<dSpaceID>(o1), data, &nearCallback);
         if (dGeomIsSpace (o2))
-            dSpaceCollide ((dSpaceID)o2, data, &nearCallback);
+            dSpaceCollide (reinterpret_cast<dSpaceID>(o2), data, &nearCallback);
 
     } else {
 

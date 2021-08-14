@@ -219,14 +219,12 @@ bool get_bool(float from, float to, float value, int levels_number, int level)
 #endif
 }
 
-
 //#define show_debug_data
-
 #ifdef show_debug_data
 static std::string s;
 #endif
 
-void set_inputs(creature* cr, int& count, float value, float range)
+void set_inputs(creature* cr, _word& count, float value, float range)
 {
 #ifdef show_debug_data
     std::string str;
@@ -235,7 +233,7 @@ void set_inputs(creature* cr, int& count, float value, float range)
     {
         cr->brn->set_in(count++, get_bool(-range, range, value, bits_in_byte, j));
 #ifdef show_debug_data
-        str += std::to_string((int)get_bool(-range, range, value, bits_in_byte, j));
+        str += std::to_string(get_bool(-range, range, value, bits_in_byte, j));
 #endif
     }
 #ifdef show_debug_data
@@ -271,11 +269,9 @@ void creature::step()
     }
 #endif
 
-    uint8 u;
+    auto me = this;
 
-    auto me = this;// static_cast<creature*>(me_void);
-
-    int count_input = 0;
+    _word count_input = 0;
 
     // Set inputs by legs states
     for(int i = 0; i < force_distance_count; i++)
@@ -376,10 +372,6 @@ void creature::step()
 #endif
     }
 
-#ifdef show_debug_data
-    //s = "";
-#endif
-
 #ifdef creature_sees_world
     // I see three shapes at two coordinates
     for_each(me->input_from_world->begin(), me->input_from_world->end(), [&](uint32 value)
@@ -400,14 +392,13 @@ void creature::step()
 #endif
 
     // I can move legs
-    _word count_output = 0;
-    for(int i = 0; i < force_distance_count; i += 2)
+    for(_word i = 0; i < force_distance_count; i++)
     {
 #ifdef show_debug_data
-        //s += std::to_string(me->brn->get_out(i)) + std::to_string(me->brn->get_out(i + 1));
+        s += std::to_string(me->brn->get_out(i * 2)) + std::to_string(me->brn->get_out(i * 2 + 1));
 #endif
 
-        me->force[i] = static_cast<float>(me->brn->get_out(i)) - static_cast<float>(me->brn->get_out(i + 1));
+        me->force[i] = static_cast<float>(me->brn->get_out(i * 2)) - static_cast<float>(me->brn->get_out(i * 2 + 1));
     }
 
 #ifdef show_debug_data

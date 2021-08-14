@@ -123,7 +123,7 @@ float value_in_range(const float& value, const float& range_start, const float& 
 
     return default_range_start + ((value - range_start) / (range_end - range_start)) * default_range_delta;
 }
-
+#include <iostream>
 void leg::step(float& fs, float& st)
 {
     fs = fs * (first_z / 2 + second_x / 2);

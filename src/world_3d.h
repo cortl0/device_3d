@@ -33,7 +33,6 @@ using namespace Ogre;
 
 static dWorldID world_st;
 static dJointGroupID contactgroup_st;
-static dJointGroupID contactgroup_st1;
 
 class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputListener
 {

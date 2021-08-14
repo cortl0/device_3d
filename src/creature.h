@@ -45,7 +45,7 @@ const float f = static_cast<float>(pow(0.5, 0.5));
 #define joint_in_leg_count 2
 #define eye_count 2
 #define coordinates_count 3
-#define creature_sees_world
+//#define creature_sees_world
 
 struct creature
 {
