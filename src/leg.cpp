@@ -8,11 +8,15 @@
 
 #include "leg.h"
 
-leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float dir_lr, float dir_fr)
+leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float dir_lr, float dir_fr, uint32 color)
 {
     first = cube(name + "_first", scnMgr, world, space, first_mass, first_x, first_y, first_z);
     second = cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
     third = cube(name + "_third", scnMgr, world, space, third_mass, third_x, third_y, third_z);
+
+    first.set_material(figure::create_material_chess(128, 32, color, 0x333333ff));
+    second.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+    third.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
     //    dBodySetPosition (first.body, 0, 0, dir_fr * first_z / 2);
     //dBodySetPosition (first.body, 0, 0, 0);

@@ -8,7 +8,7 @@
 
 #include "cube.h"
 
-cube::cube(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass, dReal lx, dReal ly, dReal lz, uint8 a)
+cube::cube(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass, dReal lx, dReal ly, dReal lz)
     : figure(scnMgr, world, space, mass)
 {
     ent = scnMgr->createEntity(name, Ogre::SceneManager::PrefabType::PT_CUBE);
@@ -18,9 +18,6 @@ cube::cube(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceI
     node->setScale(Ogre::Vector3(lx/100.0f, ly/100.0f, lz/100.0f));
 
     node->attachObject(ent);
-
-
-    ent->setMaterial(create_material(64, 16, 191, 127, a));
 
     geom = dCreateBox (space, lx, ly, lz);
 

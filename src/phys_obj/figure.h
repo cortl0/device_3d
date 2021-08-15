@@ -34,7 +34,13 @@ struct figure
     ~figure();
     figure() {}
     figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass);
-    static MaterialPtr create_material(int size, int step, uint8 color1, uint8 color2, uint8 a = 255);
+
+    /**
+      @param color0, color1 - BGRA
+     */
+    static MaterialPtr create_material_chess(int size, int step, uint32 color0, uint32 color1);
+
+    void set_material(MaterialPtr materialPtr);
     void step();
 };
 

@@ -232,7 +232,7 @@ void world_3d::setup_ogre()
     node_plane->setScale(Ogre::Vector3(1, 1, 1));
     node_plane->setDirection(0,-1,0);
     node_plane->attachObject(ent_plane);
-    ent_plane->setMaterial(figure::create_material(1024, 8, 255, 191));
+    ent_plane->setMaterial(figure::create_material_chess(1024, 8, 0x777777ff, 0xbbbbbbff));
 }
 
 void world_3d::setup_ode()
@@ -386,7 +386,9 @@ void world_3d::fill_it_up()
             z=(i & 1) ? size * device_3d_SCALE / koef_size : size * device_3d_SCALE;
             stepping_figures.push_back(std::unique_ptr<cube>(new cube("wall_" + std::to_string(i) + std::to_string(i),
                                                                       scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
-                                                                      x, y, z, 255)));
+                                                                      x, y, z)));
+
+            stepping_figures.back()->set_material(figure::create_material_chess(128, 32, 0x000000ff, 0xbbbbbbff));
 
             dBodySetPosition(stepping_figures.back()->body,
                              !(i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1) * device_3d_SCALE,
@@ -411,6 +413,9 @@ void world_3d::fill_it_up()
 
             stepping_figures.push_back(std::unique_ptr<cube>(new cube("cube_qqq", scnMgr, world, space,
                                                                       r*r*r * device_3d_MASS_SCALE, r, r, r)));
+
+            stepping_figures.back()->set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+
             dBodySetPosition (stepping_figures.back()->body,
                               ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
                               ((static_cast<float>(rand()) / RAND_MAX)) * 500 * device_3d_SCALE,
@@ -427,6 +432,9 @@ void world_3d::fill_it_up()
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_" + std::to_string(i), scnMgr, world, space,
                                                                           r*r*r * device_3d_MASS_SCALE, r)));
+
+            stepping_figures.back()->set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
+
             dBodySetPosition (stepping_figures.back()->body,
                               ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
                               ((static_cast<float>(rand()) / RAND_MAX)) * 1500 * device_3d_SCALE,
@@ -442,6 +450,9 @@ void world_3d::fill_it_up()
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space,
                                                                           r*r*r, r)));
+
+            stepping_figures.back()->set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
+
             dBodySetPosition (stepping_figures.back()->body,
                               -1000 * device_3d_SCALE,
                               1000 * device_3d_SCALE,

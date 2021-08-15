@@ -8,7 +8,13 @@
 
 #include "figure.h"
 
-figure::figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass) : world(world), space(space)
+figure::~figure()
+{
+    //scnMgr->destroyEntity(ent);
+}
+
+figure::figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass)
+    : world(world), space(space)
 {
     this->scnMgr = scnMgr;
     node = scnMgr->getRootSceneNode()->createChildSceneNode();
@@ -27,12 +33,17 @@ void figure::step()
     node->setOrientation(qrot[0], qrot[1], qrot[2], qrot[3]);
 }
 
-figure::~figure()
+void figure::set_material(MaterialPtr materialPtr)
 {
-    //scnMgr->destroyEntity(ent);
+    ent->setMaterial(materialPtr);
 }
+
 static int count_name = 5;
-MaterialPtr figure::create_material(int size, int step, uint8 color1, uint8 color2, uint8 a)
+
+/**
+  @param color0, color1 - BGRA
+ */
+MaterialPtr figure::create_material_chess(int size, int step, uint32 color0, uint32 color1)
 {
     // Create the texture
     TexturePtr texture = TextureManager::getSingleton().createManual(
@@ -57,9 +68,9 @@ MaterialPtr figure::create_material(int size, int step, uint8 color1, uint8 colo
     // Fill in some pixel data. This will give a semi-transparent blue,
     // but this is of course dependent on the chosen pixel format.
 
-    uint8 g1 = color1;
-    uint8 g2 = color2;
-    uint8 current = g1;
+    uint32 g1 = color0;
+    uint32 g2 = color1;
+    uint32 current = g1;
 
     for (size_t i = 0; i < size; i++)
     {
@@ -70,10 +81,10 @@ MaterialPtr figure::create_material(int size, int step, uint8 color1, uint8 colo
             else
                 current = g1;
 
-            *pDest++ = current; // B
-            *pDest++ = current; // G
-            *pDest++ = current; // R
-            *pDest++ = a; // A
+            *pDest++ = (current >> 24) & 255; // B
+            *pDest++ = (current >> 16) & 255; // G
+            *pDest++ = (current >> 8) & 255; // R
+            *pDest++ = (current >> 0) & 255; // A
         }
 
         pDest += pixelBox.getRowSkip() * Ogre::PixelUtil::getNumElemBytes(pixelBox.format);

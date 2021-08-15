@@ -19,9 +19,6 @@ sphere::sphere(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSp
 
     node->attachObject(ent);
 
-
-    ent->setMaterial(create_material(256, 32, 191, 127));
-
     geom = dCreateSphere(space, radius);
     dMassSetSphereTotal(&this->mass, mass, radius);
     //dMassAdjust (&this->mass, 1);

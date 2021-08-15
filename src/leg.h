@@ -43,7 +43,7 @@ public:
     cube third;
 
     leg() {}
-    leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float dir_lr, float dir_fr);
+    leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float dir_lr, float dir_fr, uint32 color);
     void relocate(dReal dx, dReal dy, dReal dz, dQuaternion q);
     void SetHingeParams(float fs_low, float fs_hi, float st_low, float st_hi);
 

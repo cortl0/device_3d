@@ -21,6 +21,8 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
 
     body = cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
 
+    body.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+
     colliding_geoms.push_back(body.geom);
 
     //    body_sph0 = sphere("body_sph0", scnMgr, world, space, body_sph_mass, body_sph_r);
@@ -56,7 +58,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_fl
     {
         dQuaternion q = {f,0,f,0};
-        legs[leg_fl] = leg("leg_fl", scnMgr, world, space, -body_width / 2, 0, -body_length / 2, q, -1, 1);
+        legs[leg_fl] = leg("leg_fl", scnMgr, world, space, -body_width / 2, 0, -body_length / 2, q, -1, 1, 0x000077ff);
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -68,7 +70,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_fr
     {
         dQuaternion q = {1,0,0,0};
-        legs[leg_fr] = leg("leg_fr", scnMgr, world, space, body_width / 2, 0, -body_length / 2, q, 1, 1);
+        legs[leg_fr] = leg("leg_fr", scnMgr, world, space, body_width / 2, 0, -body_length / 2, q, 1, 1, 0x777777ff);
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -80,7 +82,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_rl
     {
         dQuaternion q = {f,0,f,0};
-        legs[leg_rl] = leg("leg_rl", scnMgr, world, space, -body_width / 2, 0, body_length / 2, q, -1, -1);
+        legs[leg_rl] = leg("leg_rl", scnMgr, world, space, -body_width / 2, 0, body_length / 2, q, -1, -1, 0x777777ff);
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -92,7 +94,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_rr
     {
         dQuaternion q = {1,0,0,0};
-        legs[leg_rr] = leg("leg_rr", scnMgr, world, space, body_width / 2, 0, body_length / 2, q, 1, -1);
+        legs[leg_rr] = leg("leg_rr", scnMgr, world, space, body_width / 2, 0, body_length / 2, q, 1, -1, 0x777777ff);
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -367,19 +369,19 @@ void creature::step()
         set_inputs(me, count_input, x_scalar, k);
         set_inputs(me, count_input, y_scalar, k);
         set_inputs(me, count_input, z_scalar, k);
-#ifdef show_debug_data
-        s += " ";
-#endif
     }
 
 #ifdef creature_sees_world
+#ifdef show_debug_data
+    s += "\n";
+#endif
     // I see three shapes at two coordinates
     for_each(me->input_from_world->begin(), me->input_from_world->end(), [&](uint32 value)
     {
         for(int i = 0; i < 32; i++)
         {
 #ifdef show_debug_data
-            //s += std::to_string((value >> i) & 1);
+            s += std::to_string((value >> i) & 1);
 #endif
 
             me->brn->set_in(count_input++, (value >> i) & 1);
@@ -389,6 +391,10 @@ void creature::step()
         s += " ";
 #endif
     });
+#else
+#ifdef show_debug_data
+    s += " ";
+#endif
 #endif
 
     // I can move legs

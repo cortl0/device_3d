@@ -45,7 +45,8 @@ const float f = static_cast<float>(pow(0.5, 0.5));
 #define joint_in_leg_count 2
 #define eye_count 2
 #define coordinates_count 3
-//#define creature_sees_world
+
+#define creature_sees_world
 
 struct creature
 {
@@ -62,11 +63,12 @@ struct creature
             + bits_in_byte * coordinates_count
             // I feel my orientation by the three dots on my body
             + 3 * bits_in_byte * coordinates_count
-#ifdef creature_sees_world
-            // I see three shapes at two coordinates
-            + 3 * 2 * sizeof(uint32) * bits_in_byte;
-#endif
-    ;
+        #ifdef creature_sees_world
+        #define inputs_from_world_objests (3 * eye_count * sizeof(uint32) * bits_in_byte)
+            // I see three shapes at two eyes
+            + inputs_from_world_objests
+        #endif
+            ;
 
     _word output_length =
             // I control my legs
