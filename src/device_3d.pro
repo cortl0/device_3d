@@ -12,8 +12,20 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        bnn/src/brain_friend.cpp \
+        bnn/src/brain/brain.cpp \
+        bnn/src/brain/m_sequence.cpp \
+        bnn/src/brain/neurons/binary.cpp \
+        bnn/src/brain/neurons/motor.cpp \
+        bnn/src/brain/neurons/neuron.cpp \
+        bnn/src/brain/neurons/sensor.cpp \
+        bnn/src/brain/random_put_get.cpp \
         bnn/src/brain/thread.cpp \
         creature.cpp \
+        data_processing_methods/data_processing_method_base.cpp \
+        data_processing_methods/data_processing_method_binary.cpp \
+        data_processing_methods/data_processing_method_linearly.cpp \
+        data_processing_methods/data_processing_method_linearly_single.cpp \
         leg.cpp \
         main.cpp \
         phys_obj/cube.cpp \
@@ -24,7 +36,17 @@ SOURCES += \
 
 HEADERS += \
     config.h \
+    bnn/src/brain_friend.h \
+    bnn/src/brain/brain.h \
+    bnn/src/brain/m_sequence.h \
+    bnn/src/brain/random_put_get.h \
+    bnn/src/brain/simple_math.h \
+    bnn/src/brain/config.h \
     creature.h \
+    data_processing_methods/data_processing_method_base.h \
+    data_processing_methods/data_processing_method_binary.h \
+    data_processing_methods/data_processing_method_linearly.h \
+    data_processing_methods/data_processing_method_linearly_single.h \
     leg.h \
     phys_obj/cube.h \
     phys_obj/figure.h \
@@ -39,30 +61,21 @@ INCLUDEPATH += \
 /usr/local/include/OGRE/RTShaderSystem \
 /usr/include/boost/system
 
-LIBS += -lX11 \
+LIBS += \
+-lX11 \
 -lode \
+-lstdc++fs \
+-pthread \
 -lpthread \
 -lboost_system \
 /usr/local/lib/libOgreBites.so \
-/usr/local/lib/libOgreBites.so.1.12.11 \
 /usr/local/lib/libOgreMain.so \
-/usr/local/lib/libOgreMain.so.1.12.11 \
 /usr/local/lib/libOgreMeshLodGenerator.so \
-/usr/local/lib/libOgreMeshLodGenerator.so.1.12.11 \
 /usr/local/lib/libOgreOverlay.so \
-/usr/local/lib/libOgreOverlay.so.1.12.11 \
 /usr/local/lib/libOgrePaging.so \
-/usr/local/lib/libOgrePaging.so.1.12.11 \
 /usr/local/lib/libOgreProperty.so \
-/usr/local/lib/libOgreProperty.so.1.12.11 \
 /usr/local/lib/libOgreRTShaderSystem.so \
-/usr/local/lib/libOgreRTShaderSystem.so.1.12.11 \
-/usr/local/lib/libOgreTerrain.so \
-/usr/local/lib/libOgreTerrain.so.1.12.11 \
 /usr/local/lib/libOgreVolume.so \
-/usr/local/lib/libOgreVolume.so.1.12.11 \
-/usr/local/lib/OGRE/Codec_EXR.so \
-/usr/local/lib/OGRE/Codec_FreeImage.so \
 /usr/local/lib/OGRE/Codec_STBI.so \
 /usr/local/lib/OGRE/Plugin_BSPSceneManager.so \
 /usr/local/lib/OGRE/Plugin_DotScene.so \
@@ -72,27 +85,3 @@ LIBS += -lX11 \
 /usr/local/lib/OGRE/Plugin_PCZSceneManager.so \
 /usr/local/lib/OGRE/RenderSystem_GL.so \
 /usr/local/lib/OGRE/RenderSystem_GL3Plus.so
-
-LIBS += \
-    -lstdc++fs \
-    -pthread
-
-SOURCES +=  \
-    ./bnn/src/brain_friend.cpp \
-    ./bnn/src/brain/brain.cpp \
-    ./bnn/src/brain/m_sequence.cpp \
-    ./bnn/src/brain/neurons/binary.cpp \
-    ./bnn/src/brain/neurons/motor.cpp \
-    ./bnn/src/brain/neurons/neuron.cpp \
-    ./bnn/src/brain/neurons/sensor.cpp \
-    ./bnn/src/brain/random_put_get.cpp
-
-HEADERS += \
-    ./bnn/src/brain_friend.h \
-    ./bnn/src/brain/brain.h \
-    ./bnn/src/brain/m_sequence.h \
-    ./bnn/src/brain/random_put_get.h \
-    ./bnn/src/brain/simple_math.h \
-    ./bnn/src/brain/config.h
-
-

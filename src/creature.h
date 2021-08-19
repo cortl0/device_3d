@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <experimental/filesystem>
+#include <memory>
 #include <vector>
 
 #include "ode.h"
@@ -30,6 +31,10 @@
 
 #include "leg.h"
 
+#include "data_processing_methods/data_processing_method_linearly.h"
+#include "data_processing_methods/data_processing_method_binary.h"
+#include "data_processing_methods/data_processing_method_linearly_single.h"
+
 #define body_length (200 * device_3d_SCALE)
 #define body_width (75 * device_3d_SCALE)
 #define body_height (25 * device_3d_SCALE)
@@ -41,7 +46,6 @@
 const float f = static_cast<float>(pow(0.5, 0.5));
 
 #define leg_count 4
-#define bits_in_byte 8
 #define joint_in_leg_count 2
 #define eye_count 2
 #define coordinates_count 3
@@ -50,6 +54,8 @@ const float f = static_cast<float>(pow(0.5, 0.5));
 
 struct creature
 {
+    std::unique_ptr<data_processing_method_base> data_processing_method;
+
     std::shared_ptr<std::vector<uint32>> input_from_world;
 
     _word random_array_length_in_power_of_two = 24;

@@ -11,6 +11,19 @@
 creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<std::vector<uint32>> input_from_world)
     : input_from_world(input_from_world)
 {
+    switch (1)
+    {
+    case 0:
+        data_processing_method.reset(new data_processing_method_linearly());
+        break;
+    case 1:
+        data_processing_method.reset(new data_processing_method_linearly_single());
+        break;
+    case 2:
+        data_processing_method.reset(new data_processing_method_binary());
+        break;
+    }
+
     for(int i = 0; i < force_distance_count; i++)
     {
         force[i] = 0;
@@ -111,7 +124,8 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
     brn.reset(new bnn::brain(random_array_length_in_power_of_two,
                              quantity_of_neurons_in_power_of_two,
                              input_length,
-                             output_length));
+                             output_length,
+                             2));
 
     brn_frnd.reset(new bnn::brain_friend(*brn.get()));
 
@@ -182,66 +196,7 @@ void creature::start()
     brn->start();
 }
 
-bool get_bool(float from, float to, float value, int levels_number, int level)
-{
-#if(0)
-    if(value <= from && level == 0)
-        return true;
-
-    if(value >= to && level == levels_number - 1)
-        return true;
-
-    to -= from;
-    value -= from;
-    from = 0;
-
-    float level_size = to / levels_number;
-
-    float l_low = level_size * level;
-
-    float l_high = l_low + level_size;
-
-    if(value >= l_low && value <= l_high)
-        return true;
-
-    return false;
-#else
-    to -= from;
-    value -= from;
-    from = 0;
-
-    float level_size = to / levels_number;
-
-    float l_low = level_size * level;
-
-    if(value >= l_low)
-        return true;
-
-    return false;
-#endif
-}
-
-//#define show_debug_data
-#ifdef show_debug_data
 static std::string s;
-#endif
-
-void set_inputs(creature* cr, _word& count, float value, float range)
-{
-#ifdef show_debug_data
-    std::string str;
-#endif
-    for(uint8 j = 0; j < bits_in_byte; j++)
-    {
-        cr->brn->set_in(count++, get_bool(-range, range, value, bits_in_byte, j));
-#ifdef show_debug_data
-        str += std::to_string(get_bool(-range, range, value, bits_in_byte, j));
-#endif
-    }
-#ifdef show_debug_data
-    s += str;
-#endif
-};
 
 void creature::step()
 {
@@ -278,7 +233,7 @@ void creature::step()
     // Set inputs by legs states
     for(int i = 0; i < force_distance_count; i++)
     {
-        set_inputs(me, count_input, me->distance[i], 1.0f);
+        data_processing_method->set_inputs(*me->brn, count_input, me->distance[i], 1.0f, s);
 #ifdef show_debug_data
         if(i % 2)
             s += " ";
@@ -321,9 +276,9 @@ void creature::step()
         x_scalar = ort_x_rel[1] * dbv[0] + ort_x_rel[2] * dbv[1] + ort_x_rel[3] * dbv[2];
         y_scalar = ort_y_rel[1] * dbv[0] + ort_y_rel[2] * dbv[1] + ort_y_rel[3] * dbv[2];
         z_scalar = ort_z_rel[1] * dbv[0] + ort_z_rel[2] * dbv[1] + ort_z_rel[3] * dbv[2];
-        set_inputs(me, count_input, x_scalar, k);
-        set_inputs(me, count_input, y_scalar, k);
-        set_inputs(me, count_input, z_scalar, k);
+        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
 #ifdef show_debug_data
         s += " ";
 #endif
@@ -346,9 +301,9 @@ void creature::step()
         x_scalar = ort_x_rel[1] * 1 + ort_x_rel[2] * 0 + ort_x_rel[3] * 0;
         y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 1 + ort_y_rel[3] * 0;
         z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 0 + ort_z_rel[3] * 1;
-        set_inputs(me, count_input, x_scalar, k);
-        set_inputs(me, count_input, y_scalar, k);
-        set_inputs(me, count_input, z_scalar, k);
+        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
 #ifdef show_debug_data
         s += " ";
 #endif
@@ -356,9 +311,9 @@ void creature::step()
         x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
         y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 0 + ort_y_rel[3] * 1;
         z_scalar = ort_z_rel[1] * 1 + ort_z_rel[2] * 0 + ort_z_rel[3] * 0;
-        set_inputs(me, count_input, x_scalar, k);
-        set_inputs(me, count_input, y_scalar, k);
-        set_inputs(me, count_input, z_scalar, k);
+        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
 #ifdef show_debug_data
         s += " ";
 #endif
@@ -366,9 +321,9 @@ void creature::step()
         x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
         y_scalar = ort_y_rel[1] * 1 + ort_y_rel[2] * 0 + ort_y_rel[3] * 0;
         z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 1 + ort_z_rel[3] * 0;
-        set_inputs(me, count_input, x_scalar, k);
-        set_inputs(me, count_input, y_scalar, k);
-        set_inputs(me, count_input, z_scalar, k);
+        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
+        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
     }
 
 #ifdef creature_sees_world

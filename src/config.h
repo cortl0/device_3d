@@ -9,6 +9,10 @@
 #ifndef DEVICE_3D_CONFIG_H
 #define DEVICE_3D_CONFIG_H
 
+#define bits_in_byte 8
+
+//#define show_debug_data
+
 #define device_3d_GRAVITY 9.81f // [m/s^2]
 
 #define device_3d_SCALE 0.01f
