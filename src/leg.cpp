@@ -44,6 +44,10 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
     //SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 4, +M_PI * 1 / 3);
     SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 6, +M_PI * 1 / 5);
 
+#ifdef creature_legs_knees_is_blocked
+    SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 5, +M_PI * 1 / 5);
+#endif
+
     relocate(x, y, z, q);
 
     first.node->setPosition(0, -60, 0);
@@ -72,6 +76,13 @@ void leg::SetHingeParams(float fs_low, float fs_hi, float st_low, float st_hi)
 
     dJointSetHingeParam (j_st,dParamLoStop, st_low);
     dJointSetHingeParam (j_st,dParamHiStop, st_hi);
+}
+
+void leg::move_forcibly(bool move)
+{
+    float fs = 1.0f * (first_z / 2 + second_x / 2) * (move * 2.f - 1.f);
+
+    dJointAddHingeTorque(j_fs, fs * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_fs))));
 }
 
 void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
@@ -133,10 +144,11 @@ void leg::step(float& fs, float& st)
     fs = fs * (first_z / 2 + second_x / 2);
     st = st * (second_x / 2 + third_x / 2);
 
-    float torque_coef = 16.0f;
-
     dJointAddHingeTorque(j_fs, fs * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_fs))));
+
+#ifndef creature_legs_knees_is_blocked
     dJointAddHingeTorque(j_st, st * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_st))));
+#endif
 
     fs = value_in_range(dJointGetHingeAngle (j_fs), fs_low, fs_hi);
     st = value_in_range(dJointGetHingeAngle (j_st), st_low, st_hi);

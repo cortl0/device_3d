@@ -1,6 +1,6 @@
 # device_3d
-The implementation of 3d model with the binary neurons  
-for testing Binary Neurons Network  
+This is an implementation of the 3d model with binary neurons  
+for testing the Binary Neurons Network  
 
 ## For project clone
 ```
@@ -27,8 +27,6 @@ Ilya Shishkin
 mailto: cortl@8iter.ru
 
 ## Links
-http://8iter.ru/ai.html  
-https://t.me/artificial_intelligence_bnn  
 https://github.com/cortl0/binary_neurons_network  
 https://github.com/cortl0/device_3d
 

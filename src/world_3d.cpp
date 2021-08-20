@@ -8,8 +8,15 @@
 
 #include "world_3d.h"
 
+world_3d::~world_3d()
+{
+    if(bnn::state::started == state_)
+        stop();
+}
+
 world_3d::world_3d() : OgreBites::ApplicationContext("bnn_test_app")
 {
+
 }
 
 void collide_action2(dGeomID o1, dGeomID o2)
@@ -122,9 +129,9 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
         save();
         break;
     case config::keyboard_key_x: // stop <-> start
-        if(start_flag)
+        if(bnn::state::started == state_)
             stop();
-        else
+        else if(bnn::state::stopped == state_)
             start();
         break;
     }
@@ -293,7 +300,7 @@ void world_3d::setup_ode()
 
 void world_3d::load()
 {
-    bool state = start_flag;
+    auto state = state_;
 
     stop();
 
@@ -319,13 +326,13 @@ void world_3d::load()
     else
         cout << "load error" << endl;
 
-    if(state)
+    if(bnn::state::stopped == state)
         start();
 }
 
 void world_3d::save()
 {
-    bool state = start_flag;
+    auto state = state_;
 
     stop();
 
@@ -341,27 +348,44 @@ void world_3d::save()
     else
         cout << "save error" << endl;
 
-    if(state)
+    if(bnn::state::stopped == state)
         start();
 }
 
 void world_3d::start()
 {
-    if(!start_flag)
+    if(bnn::state::stopped == state_)
     {
-        start_flag = true;
+        state_ = bnn::state::start;
+
         creature_.start();
+
         cycle();
+
+        do
+        {
+            sleep(1);
+        }
+        while (bnn::state::started != state_);
+
         cout << "started" << endl;
     }
 }
 
 void world_3d::stop()
 {
-    if(start_flag)
+    if(bnn::state::started == state_)
     {
+        state_ = bnn::state::stop;
+
         creature_.stop();
-        start_flag = false;
+
+        do
+        {
+            sleep(1);
+        }
+        while (bnn::state::stopped != state_);
+
         cout << "stopped" << endl;
     }
 }
@@ -470,7 +494,8 @@ void world_3d::fill_it_up()
     // creating creature
     {
         creature_ = creature(scnMgr, world, input_from_world);
-        creature_.set_position(0, 100 * device_3d_SCALE, 0);
+        creature_.set_position(0, 1, 0);
+        //creature_.set_position(0, 1, 20);
 
         creature_colliding_geoms.push_back(creature_.body.geom);
 
@@ -487,13 +512,20 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(creature_.legs[i].third.node);
         }
 
-//        dJointGroupID gc_body = dJointGroupCreate (0);
-//        dJointID j_body = dJointCreateFixed (world, gc_body);
-//        dJointAttach (j_body, 0, dGeomGetBody(creature_.body.geom));
-//        dJointSetFixed(j_body);
+        if(0)
+        {
+            dJointGroupID gc_body = dJointGroupCreate (0);
+            dJointID j_body = dJointCreateFixed (world, gc_body);
+            dJointAttach (j_body, 0, dGeomGetBody(creature_.body.geom));
+            dJointSetFixed(j_body);
+        }
 
         //bool ff = crtr.body.node->getShowBoundingBox();
     }
+
+    camNode->setPosition(dBodyGetPosition(creature_.body.body)[0] + 0,
+            dBodyGetPosition(creature_.body.body)[1] + 4,
+            dBodyGetPosition(creature_.body.body)[2] + 10);
 
     tripod_.reset(new tripod(world, camNode, creature_.body.body));
 }
@@ -508,12 +540,10 @@ void world_3d::cycle()
         auto time_current = std::chrono::high_resolution_clock::now();
         auto time_diff = time_current - time_old;
 
-        while(true)
+        state_ = bnn::state::started;
+
+        while(bnn::state::started == state_)
         {
-            if(!start_flag)
-                continue;
-
-
             //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
             for_each(stepping_figures.begin(), stepping_figures.end(), [&](std::unique_ptr<figure>& fig){ fig->step(); });
@@ -562,6 +592,8 @@ void world_3d::cycle()
 
         //        dWorldDestroy (world);
         //        dCloseODE();
+
+        state_ = bnn::state::stopped;
     }));
 
     cycle_thread->detach();

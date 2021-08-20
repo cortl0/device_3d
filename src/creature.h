@@ -35,6 +35,8 @@
 #include "data_processing_methods/data_processing_method_binary.h"
 #include "data_processing_methods/data_processing_method_linearly_single.h"
 
+#include "teachers/teacher_walking.h"
+
 #define body_length (200 * device_3d_SCALE)
 #define body_width (75 * device_3d_SCALE)
 #define body_height (25 * device_3d_SCALE)
@@ -55,6 +57,8 @@ const float f = static_cast<float>(pow(0.5, 0.5));
 struct creature
 {
     std::unique_ptr<data_processing_method_base> data_processing_method;
+
+    std::unique_ptr<teacher_base> teacher;
 
     std::shared_ptr<std::vector<uint32>> input_from_world;
 
@@ -102,7 +106,7 @@ struct creature
 #define leg_rl 2
 #define leg_rr 3
 
-    creature() {}
+    creature();
     creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<std::vector<uint32>> input_from_world);
     void set_position(dReal x, dReal y, dReal z);
     void start();

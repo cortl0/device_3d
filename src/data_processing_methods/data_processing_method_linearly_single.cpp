@@ -31,7 +31,7 @@ void data_processing_method_linearly_single::set_inputs(bnn::brain& brn, _word& 
     {
         brn.set_in(count++, get_bool(-range, range, value, bits_in_byte, j));
 #ifdef show_debug_data
-        str += std::to_string(get_bool1(-range, range, value, bits_in_byte, j));
+        str += std::to_string(get_bool(-range, range, value, bits_in_byte, j));
 #endif
     }
 };

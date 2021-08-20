@@ -71,9 +71,10 @@ class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputLi
     std::unique_ptr<std::thread> cycle_thread;
     std::unique_ptr<tripod> tripod_;
     dGeomID plane;
-    bool start_flag = false;
+    bnn::state state_ = bnn::state::stopped;
 
 public:
+    ~world_3d();
     world_3d();
     void collide_action();
     void fill_it_up();

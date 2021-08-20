@@ -8,21 +8,30 @@
 
 #include "creature.h"
 
+creature::creature()
+{
+
+}
+
 creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<std::vector<uint32>> input_from_world)
     : input_from_world(input_from_world)
 {
     switch (1)
     {
     case 0:
-        data_processing_method.reset(new data_processing_method_linearly());
-        break;
-    case 1:
-        data_processing_method.reset(new data_processing_method_linearly_single());
-        break;
-    case 2:
         data_processing_method.reset(new data_processing_method_binary());
         break;
+    case 1:
+        data_processing_method.reset(new data_processing_method_linearly());
+        break;
+    case 2:
+        data_processing_method.reset(new data_processing_method_linearly_single());
+        break;
     }
+
+#ifdef learning_creature
+    teacher.reset(new teacher_walking());
+#endif
 
     for(int i = 0; i < force_distance_count; i++)
     {
@@ -125,7 +134,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
                              quantity_of_neurons_in_power_of_two,
                              input_length,
                              output_length,
-                             2));
+                             1));
 
     brn_frnd.reset(new bnn::brain_friend(*brn.get()));
 
@@ -194,6 +203,9 @@ void creature::set_position(dReal x, dReal y, dReal z)
 void creature::start()
 {
     brn->start();
+#ifdef learning_creature
+    teacher->start();
+#endif
 }
 
 static std::string s;
@@ -208,12 +220,27 @@ void creature::step()
     float a;
     float b;
 
+#ifdef learning_creature
+    _word data = teacher->get_data();
+#endif
+
 #if(1)
     for(int i = 0; i < leg_count; i++)
     {
         a = force[i * 2 + 0];
         b = force[i * 2 + 1];
+
+#ifdef learning_creature
+        float c = static_cast<float>(((static_cast<int>(data) >> (i * 2)) & 1) * 2 - 1);
+        if(teacher->get_count())
+        {
+            auto k = static_cast<float>(teacher->get_count()) / static_cast<float>(teacher->get_count_max());
+            a = a * (1.f - k) + c * k;
+        }
+#endif
+
         legs[i].step(a, b);
+
         distance[i * 2 + 0] = a;
         distance[i * 2 + 1] = b;
     }
@@ -370,4 +397,7 @@ void creature::step()
 void creature::stop()
 {
     brn_frnd->stop();
+#ifdef learning_creature
+    teacher->stop();
+#endif
 }

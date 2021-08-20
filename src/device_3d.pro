@@ -31,6 +31,8 @@ SOURCES += \
         phys_obj/cube.cpp \
         phys_obj/figure.cpp \
         phys_obj/sphere.cpp \
+        teachers/teacher_base.cpp \
+        teachers/teacher_walking.cpp \
         tripod.cpp \
         world_3d.cpp
 
@@ -51,6 +53,8 @@ HEADERS += \
     phys_obj/cube.h \
     phys_obj/figure.h \
     phys_obj/sphere.h \
+    teachers/teacher_base.h \
+    teachers/teacher_walking.h \
     tripod.h \
     world_3d.h
 
