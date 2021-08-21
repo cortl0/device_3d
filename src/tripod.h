@@ -18,21 +18,22 @@ struct tripod
 {
     dBodyID target;
     dBodyID detector;
-    dBodyID upper_detector;
-    dBodyID cam_base;
+    dBodyID lower;
+    dBodyID upper;
 
-    float cam_dz;
+    const dReal* target_pos;
+    const dReal* detector_pos;
+    const dReal* detector_vel;
+    const dReal* lower_pos;
+    const dReal* lower_vel;
+    const dReal* upper_pos;
+    const dReal* upper_vel;
+    const dReal* upper_quat;
 
-    const dReal* tar ;
-    const dReal* look;
-    const dReal* look_vel;
-    const dReal* look_up;
-    const dReal* look_up_vel;
-    const dReal* bas;
-    const dReal* bas_vel;
+    float detector_dx;
+    float detector_dy;
+    float detector_dz;
 
-    const dReal velosity_ignore_coef = 1.0f;
-    const dReal force_coef = 5.0f;
     float dx;
     float dy;
     float dz;

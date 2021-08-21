@@ -11,53 +11,32 @@
 tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
     : target(target), cam_node(cam_node)
 {
-    cam_dz = cam_node->getPosition()[1] - dBodyGetPosition(target)[1];
+    detector = dBodyCreate(world);
+    upper = dBodyCreate(world);
+    lower = dBodyCreate(world);
 
-    {
-        detector = dBodyCreate(world);
-        dMass m;
-        dMassSetSphereTotal(&m, 1, 1);
-        dMassAdjust (&m, 1);
-        dBodySetMass(detector, &m);
-        dBodySetPosition(detector, dBodyGetPosition(target)[0], dBodyGetPosition(target)[1], dBodyGetPosition(target)[2]);
-    }
-
-    {
-        upper_detector = dBodyCreate(world);
-        dMass m;
-        dMassSetSphereTotal(&m, 1, 1);
-        dMassAdjust (&m, 1);
-        dBodySetMass(upper_detector, &m);
-        dBodySetPosition(upper_detector, dBodyGetPosition(target)[0], cam_node->getPosition()[1], dBodyGetPosition(target)[2]);
-    }
-
-    {
-        cam_base = dBodyCreate(world);
-        dMass m;
-        dMassSetSphereTotal(&m, 1, 1);
-        dMassAdjust (&m, 2);
-        dBodySetMass(cam_base, &m);
-        dBodySetPosition(cam_base, cam_node->getPosition()[0], cam_node->getPosition()[1], cam_node->getPosition()[2]);
-    }
+    dBodySetPosition(detector, dBodyGetPosition(target)[0], dBodyGetPosition(target)[1], dBodyGetPosition(target)[2]);
+    dBodySetPosition(upper, cam_node->getPosition()[0], cam_node->getPosition()[1], cam_node->getPosition()[2]);
+    dBodySetPosition(lower, cam_node->getPosition()[0], 2.f * dBodyGetPosition(target)[1] - cam_node->getPosition()[1], cam_node->getPosition()[2]);
 
     cam_node->lookAt(Ogre::Vector3(dBodyGetPosition(detector)[0],dBodyGetPosition(detector)[1],dBodyGetPosition(detector)[2]), Ogre::Node::TS_PARENT);
     dQuaternion q = {cam_node->getOrientation().w,
                      cam_node->getOrientation().x,
                      cam_node->getOrientation().y,
                      cam_node->getOrientation().z};
-    dBodySetQuaternion(cam_base, q);
+    dBodySetQuaternion(upper, q);
 
     {
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed(world, jg);
-        dJointAttach (j, cam_base, detector);
+        dJointAttach (j, upper, detector);
         dJointSetFixed(j);
     }
 
     {
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed(world, jg);
-        dJointAttach (j, detector, upper_detector);
+        dJointAttach (j, lower, detector);
         dJointSetFixed(j);
     }
 }
@@ -65,35 +44,47 @@ tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
 void tripod::step()
 {
     dBodyAddForce(detector, 0, device_3d_GRAVITY, 0);
-    dBodyAddForce(upper_detector, 0, device_3d_GRAVITY, 0);
-    dBodyAddForce(cam_base, 0, device_3d_GRAVITY, 0);
+    dBodyAddForce(upper, 0, device_3d_GRAVITY, 0);
+    dBodyAddForce(lower, 0, device_3d_GRAVITY, 0);
 
-    tar = dBodyGetPosition(target);
+    target_pos = dBodyGetPosition(target);
 
-    look = dBodyGetPosition(detector);
-    look_vel = dBodyGetLinearVel(detector);
-    dBodySetLinearVel(detector, look_vel[0]/2, look_vel[1]/2, look_vel[2]/2);
+    detector_pos = dBodyGetPosition(detector);
+    detector_vel = dBodyGetLinearVel(detector);
 
-    look_up = dBodyGetPosition(upper_detector);
-    look_up_vel = dBodyGetLinearVel(detector);
-    dBodySetLinearVel(detector, look_up_vel[0]/2, look_up_vel[1]/2, look_up_vel[2]/2);
+    lower_pos = dBodyGetPosition(lower);
+    lower_vel = dBodyGetLinearVel(lower);
 
-    bas = dBodyGetPosition(cam_base);
-    bas_vel = dBodyGetLinearVel(cam_base);
-    dBodySetLinearVel(cam_base, bas_vel[0]/2, bas_vel[1]/2, bas_vel[2]/2);
+    upper_pos = dBodyGetPosition(upper);
+    upper_vel = dBodyGetLinearVel(upper);
+    upper_quat = dBodyGetQuaternion(upper);
 
-    dx = (tar[0] - look[0]);
-    dy = (tar[1] - look[1]);
-    dz = (tar[2] - look[2]);
+    detector_dx = target_pos[0] - detector_pos[0];
+    detector_dy = target_pos[1] - detector_pos[1];
+    detector_dz = target_pos[2] - detector_pos[2];
 
-    if((abs(dx) - velosity_ignore_coef > 0) || (abs(dy) - velosity_ignore_coef > 0) || (abs(dz) - velosity_ignore_coef > 0))
-        dBodyAddForce(detector, dx * force_coef, dy * force_coef, dz * force_coef);
+    if(1)
+        if(abs(detector_dx) < 1.f && abs(detector_dy) < 1.f && abs(detector_dz) < 1.f)
+        {
+            detector_dx = 0.f;
+            detector_dy = 0.f;
+            detector_dz = 0.f;
+        }
 
-    dBodySetPosition(upper_detector, look[0], look[1] + cam_dz, look[2]);
+    dBodyAddForce(detector, detector_dx, detector_dy, detector_dz);
+    dBodyAddForce(detector, -detector_vel[0] / 2, -detector_vel[1] / 2, -detector_vel[2] / 2);
 
-    dBodySetPosition(cam_base, bas[0], look_up[1], bas[2]);
+    dx = upper_pos[0] - lower_pos[0];
+    dy = (upper_pos[1] + lower_pos[1]) / 2 - detector_pos[1];
+    dz = upper_pos[2] - lower_pos[2];
 
-    cam_node->setPosition(bas[0], bas[1], bas[2]);
+    dBodyAddForce(upper, -dx, -dy, -dz);
+    dBodyAddForce(upper, -upper_vel[0] / 2, -upper_vel[1] / 2, -upper_vel[2] / 2);
 
-    cam_node->setOrientation(dBodyGetQuaternion(cam_base)[0], dBodyGetQuaternion(cam_base)[1], dBodyGetQuaternion(cam_base)[2], dBodyGetQuaternion(cam_base)[3]);
+    dBodyAddForce(lower, dx, -dy, dz);
+    dBodyAddForce(lower, -lower_vel[0] / 2, -lower_vel[1] / 2, -lower_vel[2] / 2);
+
+    cam_node->setPosition(upper_pos[0], upper_pos[1], upper_pos[2]);
+
+    cam_node->setOrientation(upper_quat[0], upper_quat[1], upper_quat[2], upper_quat[3]);
 }

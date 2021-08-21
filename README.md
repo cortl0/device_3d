@@ -8,18 +8,18 @@ git clone --recursive https://github.com/cortl0/device_3d
 ```
 
 ## Project requirements
-Binary Neurons Network  
+- BNN (Binary Neurons Network)  
 https://github.com/cortl0/binary_neurons_network
 
-OGRE (Object-Oriented Graphics Rendering Engine)  
+- OGRE (Object-Oriented Graphics Rendering Engine)  
 https://www.ogre3d.org  
 https://github.com/OGRECave/ogre
 
-ODE (Open Dynamics Engine)  
+- ODE (Open Dynamics Engine)  
 http://www.ode.org  
 https://bitbucket.org/odedevs/ode
 
-Qt Creator  
+- Qt Creator  
 https://www.qt.io
 
 ## Author
@@ -27,8 +27,8 @@ Ilya Shishkin
 mailto: cortl@8iter.ru
 
 ## Links
-https://github.com/cortl0/binary_neurons_network  
-https://github.com/cortl0/device_3d
+- https://github.com/cortl0/binary_neurons_network  
+- https://github.com/cortl0/device_3d
 
 ## License
 This project is licensed under the GPL v3.0 - see the LICENSE file for details

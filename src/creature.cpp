@@ -134,7 +134,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
                              quantity_of_neurons_in_power_of_two,
                              input_length,
                              output_length,
-                             1));
+                             4));
 
     brn_frnd.reset(new bnn::brain_friend(*brn.get()));
 

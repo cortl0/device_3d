@@ -473,7 +473,7 @@ void world_3d::fill_it_up()
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space,
-                                                                          r*r*r, r)));
+                                                                          r*r*r*1000, r)));
 
             stepping_figures.back()->set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
 
@@ -523,11 +523,21 @@ void world_3d::fill_it_up()
         //bool ff = crtr.body.node->getShowBoundingBox();
     }
 
-    camNode->setPosition(dBodyGetPosition(creature_.body.body)[0] + 0,
-            dBodyGetPosition(creature_.body.body)[1] + 4,
-            dBodyGetPosition(creature_.body.body)[2] + 10);
+    auto body = creature_.body.body;
 
-    tripod_.reset(new tripod(world, camNode, creature_.body.body));
+    if(0)
+    {
+        auto it = stepping_figures.begin();
+        std::advance(it, 7);
+        //std::advance(it, 4);
+        body = (*it)->body;
+    }
+
+    camNode->setPosition(dBodyGetPosition(body)[0] + 0,
+            dBodyGetPosition(body)[1] + 4,
+            dBodyGetPosition(body)[2] + 10);
+
+    tripod_.reset(new tripod(world, camNode, body));
 }
 
 void world_3d::cycle()
