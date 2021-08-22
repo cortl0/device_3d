@@ -79,7 +79,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
     if(leg_count > 0)
         // leg_fl
     {
-        dQuaternion q = {f,0,f,0};
+        dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
         legs[leg_fl] = leg("leg_fl", scnMgr, world, space, -body_width / 2, 0, -body_length / 2, q, -1, 1, 0x000077ff);
 
         dJointGroupID jg = dJointGroupCreate (0);
@@ -103,7 +103,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
     if(leg_count > 2)
         // leg_rl
     {
-        dQuaternion q = {f,0,f,0};
+        dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
         legs[leg_rl] = leg("leg_rl", scnMgr, world, space, -body_width / 2, 0, body_length / 2, q, -1, -1, 0x777777ff);
 
         dJointGroupID jg = dJointGroupCreate (0);
@@ -208,17 +208,24 @@ void creature::start()
 #endif
 }
 
-static std::string s;
-
 void creature::step()
 {
-#ifdef show_debug_data
-    s = "";
-#endif
-    body.step();
+    float fs;
+    float st;
 
-    float a;
-    float b;
+    static float range = 1.0f;
+
+    static const Ogre::Quaternion ort_x(0, 1, 0, 0);
+    static const Ogre::Quaternion ort_y(0, 0, 1, 0);
+    static const Ogre::Quaternion ort_z(0, 0, 0, 1);
+
+    float x_scalar;
+    float y_scalar;
+    float z_scalar;
+
+    std::string debug_str;
+
+    body.step();
 
 #ifdef learning_creature
     _word data = teacher->get_data();
@@ -227,155 +234,122 @@ void creature::step()
 #if(1)
     for(int i = 0; i < leg_count; i++)
     {
-        a = force[i * 2 + 0];
-        b = force[i * 2 + 1];
+        fs = force[i * 2 + 0];
+        st = force[i * 2 + 1];
 
 #ifdef learning_creature
         float c = static_cast<float>(((static_cast<int>(data) >> (i * 2)) & 1) * 2 - 1);
         if(teacher->get_count())
         {
             auto k = static_cast<float>(teacher->get_count()) / static_cast<float>(teacher->get_count_max());
-            a = a * (1.f - k) + c * k;
+            fs = fs * (1.f - k) + c * k;
         }
 #endif
 
-        legs[i].step(a, b);
+        legs[i].step(fs, st);
 
-        distance[i * 2 + 0] = a;
-        distance[i * 2 + 1] = b;
+        distance[i * 2 + 0] = fs;
+        distance[i * 2 + 1] = st;
     }
 #else
+    // random movements
     for(int i = 0; i < leg_count; i++)
     {
-        a = ((float)rand() / RAND_MAX) * 2 - 1;
-        b = ((float)rand() / RAND_MAX) * 2 - 1;
-        legs[i].step(a, b);
+        fs = ((float)rand() / RAND_MAX) * 2 - 1;
+        st = ((float)rand() / RAND_MAX) * 2 - 1;
+        legs[i].step(fs, st);
     }
 #endif
-
-    auto me = this;
 
     _word count_input = 0;
 
     // Set inputs by legs states
     for(int i = 0; i < force_distance_count; i++)
     {
-        data_processing_method->set_inputs(*me->brn, count_input, me->distance[i], 1.0f, s);
+        data_processing_method->set_inputs(*brn, count_input, distance[i], 1.0f, debug_str);
 #ifdef show_debug_data
         if(i % 2)
-            s += " ";
+            debug_str += " ";
 #endif
     }
 
-    static const Ogre::Quaternion ort_x(0, 1, 0, 0);
-    static const Ogre::Quaternion ort_y(0, 0, 1, 0);
-    static const Ogre::Quaternion ort_z(0, 0, 0, 1);
-
-    static Ogre::Quaternion ort_x_rel;
-    static Ogre::Quaternion ort_y_rel;
-    static Ogre::Quaternion ort_z_rel;
-
-    static Ogre::Quaternion dbr_rot;
-    static Ogre::Quaternion dbr_rot_inv;
-
-    static float x_scalar;
-    static float y_scalar;
-    static float z_scalar;
-
-    auto dbr = dBodyGetQuaternion(me->body.body);
-
-    auto dbv = dBodyGetLinearVel(me->body.body);
-
-    dbr_rot = Ogre::Quaternion(dbr[0], dbr[1], dbr[2], dbr[3]);
-    dbr_rot_inv = dbr_rot.Inverse();
+    const dReal* body_q = dBodyGetQuaternion(body.body);
+    Ogre::Quaternion body_quat = Ogre::Quaternion(body_q[0], body_q[1], body_q[2], body_q[3]);
+    Ogre::Quaternion body_quat_inv = body_quat.Inverse();
 
     // Relative ort vectors
-    ort_x_rel = dbr_rot * ort_x * dbr_rot_inv;
-    ort_y_rel = dbr_rot * ort_y * dbr_rot_inv;
-    ort_z_rel = dbr_rot * ort_z * dbr_rot_inv;
-
-    static float k;
+    Ogre::Quaternion ort_x_rel = body_quat * ort_x * body_quat_inv;
+    Ogre::Quaternion ort_y_rel = body_quat * ort_y * body_quat_inv;
+    Ogre::Quaternion ort_z_rel = body_quat * ort_z * body_quat_inv;
 
     {
-        k = 1.0f;
-
         // Set inputs by velosity
-        x_scalar = ort_x_rel[1] * dbv[0] + ort_x_rel[2] * dbv[1] + ort_x_rel[3] * dbv[2];
-        y_scalar = ort_y_rel[1] * dbv[0] + ort_y_rel[2] * dbv[1] + ort_y_rel[3] * dbv[2];
-        z_scalar = ort_z_rel[1] * dbv[0] + ort_z_rel[2] * dbv[1] + ort_z_rel[3] * dbv[2];
-        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
+        auto vel = dBodyGetLinearVel(body.body);
+
+        x_scalar = ort_x_rel[1] * vel[0] + ort_x_rel[2] * vel[1] + ort_x_rel[3] * vel[2];
+        y_scalar = ort_y_rel[1] * vel[0] + ort_y_rel[2] * vel[1] + ort_y_rel[3] * vel[2];
+        z_scalar = ort_z_rel[1] * vel[0] + ort_z_rel[2] * vel[1] + ort_z_rel[3] * vel[2];
+        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
 #ifdef show_debug_data
-        s += " ";
+        debug_str += " ";
 #endif
     }
 
-    if(1)
     {
-        k = 1.0f;
-
-        auto dbr_vel = dBodyGetAngularVel(me->body.body);
-
-        auto dbr_rot = Ogre::Quaternion(dbr_vel[0], dbr_vel[1], dbr_vel[2], dbr_vel[3]);
-        auto dbr_rot_inv = dbr_rot.Inverse();
-
-        auto ort_x_rel = dbr_rot * ort_x * dbr_rot_inv;
-        auto ort_y_rel = dbr_rot * ort_y * dbr_rot_inv;
-        auto ort_z_rel = dbr_rot * ort_z * dbr_rot_inv;
-
         // Set inputs by direction
         x_scalar = ort_x_rel[1] * 1 + ort_x_rel[2] * 0 + ort_x_rel[3] * 0;
+        y_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
+        z_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
+        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
+#ifdef show_debug_data
+        debug_str += " ";
+#endif
+
+        x_scalar = ort_y_rel[1] * 1 + ort_y_rel[2] * 0 + ort_y_rel[3] * 0;
         y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 1 + ort_y_rel[3] * 0;
+        z_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 0 + ort_y_rel[3] * 1;
+        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
+#ifdef show_debug_data
+        debug_str += " ";
+#endif
+
+        x_scalar = ort_z_rel[1] * 1 + ort_z_rel[2] * 0 + ort_z_rel[3] * 0;
+        y_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 1 + ort_z_rel[3] * 0;
         z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 0 + ort_z_rel[3] * 1;
-        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
-#ifdef show_debug_data
-        s += " ";
-#endif
-
-        x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
-        y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 0 + ort_y_rel[3] * 1;
-        z_scalar = ort_z_rel[1] * 1 + ort_z_rel[2] * 0 + ort_z_rel[3] * 0;
-        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
-#ifdef show_debug_data
-        s += " ";
-#endif
-
-        x_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
-        y_scalar = ort_y_rel[1] * 1 + ort_y_rel[2] * 0 + ort_y_rel[3] * 0;
-        z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 1 + ort_z_rel[3] * 0;
-        data_processing_method->set_inputs(*me->brn, count_input, x_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, y_scalar, k, s);
-        data_processing_method->set_inputs(*me->brn, count_input, z_scalar, k, s);
+        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
+        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
     }
 
 #ifdef creature_sees_world
 #ifdef show_debug_data
-    s += "\n";
+    debug_str += "\n";
 #endif
-    // I see three shapes at two coordinates
-    for_each(me->input_from_world->begin(), me->input_from_world->end(), [&](uint32 value)
+    // I see figures with two eyes
+    for_each(input_from_world->begin(), input_from_world->end(), [&](uint32 value)
     {
         for(int i = 0; i < 32; i++)
         {
 #ifdef show_debug_data
-            s += std::to_string((value >> i) & 1);
+            debug_str += std::to_string((value >> i) & 1);
 #endif
 
-            me->brn->set_in(count_input++, (value >> i) & 1);
+            brn->set_in(count_input++, (value >> i) & 1);
         }
 
 #ifdef show_debug_data
-        s += " ";
+        debug_str += " ";
 #endif
     });
 #else
 #ifdef show_debug_data
-    s += " ";
+    debug_str += " ";
 #endif
 #endif
 
@@ -383,14 +357,14 @@ void creature::step()
     for(_word i = 0; i < force_distance_count; i++)
     {
 #ifdef show_debug_data
-        s += std::to_string(me->brn->get_out(i * 2)) + std::to_string(me->brn->get_out(i * 2 + 1));
+        debug_str += std::to_string(brn->get_out(i * 2)) + std::to_string(brn->get_out(i * 2 + 1));
 #endif
 
-        me->force[i] = static_cast<float>(me->brn->get_out(i * 2)) - static_cast<float>(me->brn->get_out(i * 2 + 1));
+        force[i] = static_cast<float>(brn->get_out(i * 2)) - static_cast<float>(brn->get_out(i * 2 + 1));
     }
 
 #ifdef show_debug_data
-    std::cout << s << std::endl;
+    std::cout << debug_str << std::endl;
 #endif
 }
 

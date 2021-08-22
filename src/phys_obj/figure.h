@@ -36,7 +36,7 @@ struct figure
     figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass);
 
     /**
-      @param color0, color1 - BGRA
+     * @param color0, color1 - BGRA
      */
     static MaterialPtr create_material_chess(int size, int step, uint32 color0, uint32 color1);
 

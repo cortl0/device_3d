@@ -9,14 +9,12 @@
 #ifndef CREATURE_H
 #define CREATURE_H
 
-#include <iostream>
-
-#include <vector>
-#include <stdexcept>
-#include <stdlib.h>
 #include <algorithm>
 #include <experimental/filesystem>
+#include <iostream>
 #include <memory>
+#include <stdexcept>
+#include <stdlib.h>
 #include <vector>
 
 #include "ode.h"
@@ -25,16 +23,13 @@
 #include "OgreInput.h"
 #include "OgreRTShaderSystem.h"
 
-#include "config.h"
-#include "phys_obj/cube.h"
 #include "bnn/src/brain_friend.h"
-
-#include "leg.h"
-
+#include "config.h"
 #include "data_processing_methods/data_processing_method_linearly.h"
 #include "data_processing_methods/data_processing_method_binary.h"
 #include "data_processing_methods/data_processing_method_linearly_single.h"
-
+#include "leg.h"
+#include "phys_obj/cube.h"
 #include "teachers/teacher_walking.h"
 
 #define body_length (200 * device_3d_SCALE)
@@ -42,26 +37,24 @@
 #define body_height (25 * device_3d_SCALE)
 #define body_mass (body_length * body_width * body_height * device_3d_MASS_SCALE)
 
-//#define body_sph_r 35
-//#define body_sph_mass (body_sph_r * body_sph_r * body_sph_r * mass_scale)
-
-const float f = static_cast<float>(pow(0.5, 0.5));
-
 #define leg_count 4
+#define leg_fl 0
+#define leg_fr 1
+#define leg_rl 2
+#define leg_rr 3
 #define joint_in_leg_count 2
 #define eye_count 2
 #define coordinates_count 3
-
+#define i_sees_moveable_figures_number 1
+#define force_distance_count (leg_count * 2)
 #define creature_sees_world
 
-struct creature
+#ifdef creature_sees_world
+#define inputs_from_world_objests (i_sees_moveable_figures_number * eye_count * sizeof(uint32) * bits_in_byte)
+#endif
+
+class creature
 {
-    std::unique_ptr<data_processing_method_base> data_processing_method;
-
-    std::unique_ptr<teacher_base> teacher;
-
-    std::shared_ptr<std::vector<uint32>> input_from_world;
-
     _word random_array_length_in_power_of_two = 24;
 
     _word quantity_of_neurons_in_power_of_two = 20;
@@ -74,37 +67,27 @@ struct creature
             // I feel my orientation by the three dots on my body
             + 3 * bits_in_byte * coordinates_count
         #ifdef creature_sees_world
-        #define inputs_from_world_objests (3 * eye_count * sizeof(uint32) * bits_in_byte)
-            // I see three shapes at two eyes
+            // I see figures with two eyes
             + inputs_from_world_objests
         #endif
             ;
 
-    _word output_length =
-            // I control my legs
-            leg_count * 2 * joint_in_leg_count;
-
-#define force_distance_count (leg_count * 2)
+    // I control my legs
+    _word output_length = leg_count * 2 * joint_in_leg_count;
 
     float force[force_distance_count];
     float distance[force_distance_count];
-
-    void* wrld;
-
-    std::unique_ptr<bnn::brain> brn;
-    std::unique_ptr<bnn::brain_friend> brn_frnd;
-
-    std::list<dGeomID> colliding_geoms;
-
-    cube body;
     dSpaceID space;
+    std::list<dGeomID> colliding_geoms;
+    std::shared_ptr<std::vector<uint32>> input_from_world;
+    std::unique_ptr<bnn::brain> brn;
+    std::unique_ptr<data_processing_method_base> data_processing_method;
+    std::unique_ptr<teacher_base> teacher;
 
+public:
+    std::unique_ptr<bnn::brain_friend> brn_frnd;
+    cube body;
     leg legs[leg_count];
-
-#define leg_fl 0
-#define leg_fr 1
-#define leg_rl 2
-#define leg_rr 3
 
     creature();
     creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<std::vector<uint32>> input_from_world);

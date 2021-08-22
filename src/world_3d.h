@@ -27,8 +27,6 @@
 #include "creature.h"
 #include "tripod.h"
 
-#define moveable_figures_quality 3
-
 using namespace Ogre;
 
 static dWorldID world_st;

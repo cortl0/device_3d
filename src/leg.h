@@ -47,8 +47,15 @@ public:
     void relocate(dReal dx, dReal dy, dReal dz, dQuaternion q);
     void SetHingeParams(float fs_low, float fs_hi, float st_low, float st_hi);
 
-    /// fs - input torque [-1, 1], output angle between first & second [-1, 1]
-    /// st - input torque [-1, 1], output angle between second & third [-1, 1]
+    /**
+     * @param
+     * before calling this method
+     * fs - input torque between first & second [-1, 1]
+     * st - input torque between second & third [-1, 1]
+     * after calling this method
+     * fs - output angle between first & second [-1, 1]
+     * st - output angle between second & third [-1, 1]
+    */
     void step(float& fs, float& st);
 };
 

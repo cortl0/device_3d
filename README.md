@@ -2,7 +2,7 @@
 This is an implementation of the 3d model with binary neurons  
 for testing the Binary Neurons Network  
 
-## For project clone
+## To clone the repository
 ```
 git clone --recursive https://github.com/cortl0/device_3d
 ```

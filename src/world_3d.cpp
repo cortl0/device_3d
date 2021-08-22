@@ -450,7 +450,7 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(stepping_figures.back()->node);
         }
 
-        for(int i = 0; i < 2; i++)
+        for(int i = 0; i < 0; i++)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
@@ -469,11 +469,12 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(stepping_figures.back()->node);
         }
 
+        if(0)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space,
-                                                                          r*r*r*1000, r)));
+                                                                          r*r*r, r)));
 
             stepping_figures.back()->set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
 
@@ -488,7 +489,7 @@ void world_3d::fill_it_up()
         }
     }
 
-    input_from_world.reset(new std::vector<uint32>(eye_count * moveable_figures_quality));
+    input_from_world.reset(new std::vector<uint32>(eye_count * i_sees_moveable_figures_number));
     for_each(input_from_world->begin(), input_from_world->end(), [&](uint32& i){ i = 0; });
 
     // creating creature
@@ -565,6 +566,7 @@ void world_3d::cycle()
             float coef1 = 1.0f / device_3d_SCALE;
 
             for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
+
             {
                 size_t i = 0;
                 for_each(movable_colliding_geoms.begin(), movable_colliding_geoms.end(), [&](dGeomID& g)
@@ -579,7 +581,6 @@ void world_3d::cycle()
                     (*input_from_world)[i++] = static_cast<uint32>(f * coef1);
                 });
             }
-
 
             collide_action();
 
@@ -768,5 +769,4 @@ void world_3d::setup(void)
     setup_ogre();
     setup_ode();
     fill_it_up();
-    //cycle();
 }
