@@ -1,9 +1,9 @@
 #ifndef TEACHER_WALKING_H
 #define TEACHER_WALKING_H
 
-#include "teacher_base.h"
+#include "teacher.h"
 
-class teacher_walking : public teacher_base
+class teacher_walking : public teacher
 {
     static void function(teacher_walking*);
     void inner_start() override;

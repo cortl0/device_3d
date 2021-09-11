@@ -9,7 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "world_3d.h"
+#include "scene/world_3d.h"
 
 int main()
 {

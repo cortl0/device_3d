@@ -1,11 +1,11 @@
-#ifndef TEACHER_BASE_H
-#define TEACHER_BASE_H
+#ifndef TEACHER_H
+#define TEACHER_H
 
 #include "config.h"
 #include "Ogre.h"
 #include "bnn/src/brain/brain.h"
 
-class teacher_base
+class teacher
 {
 protected:
     _word count;
@@ -16,8 +16,8 @@ protected:
     virtual void inner_start() = 0;
 
 public:
-    virtual ~teacher_base();
-    teacher_base();
+    virtual ~teacher();
+    teacher();
     _word get_count();
     _word get_count_max();
     _word get_data();
@@ -25,4 +25,4 @@ public:
     void stop();
 };
 
-#endif // TEACHER_BASE_H
+#endif // TEACHER_H

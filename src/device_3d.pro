@@ -21,22 +21,27 @@ SOURCES += \
         bnn/src/brain/neurons/sensor.cpp \
         bnn/src/brain/random_put_get.cpp \
         bnn/src/brain/thread.cpp \
-        creature.cpp \
-        data_processing_methods/data_processing_method_base.cpp \
+        conductors/conductor.cpp \
+        conductors/conductor_circle.cpp \
+        creatures/creature.cpp \
+        creatures/leg.cpp \
+        data_processing_methods/data_processing_method.cpp \
         data_processing_methods/data_processing_method_binary.cpp \
         data_processing_methods/data_processing_method_linearly.cpp \
         data_processing_methods/data_processing_method_linearly_single.cpp \
-        leg.cpp \
+        data_processing_methods/data_processing_method_logarithmic.cpp \
         main.cpp \
         phys_obj/cube.cpp \
         phys_obj/figure.cpp \
         phys_obj/sphere.cpp \
-        teachers/teacher_base.cpp \
-        teachers/teacher_walking.cpp \
-        tripod.cpp \
-        world_3d.cpp
+        scene/tripod.cpp \
+        scene/world_3d.cpp \
+        teachers/teacher.cpp \
+        teachers/teacher_walking.cpp
 
 HEADERS += \
+    conductors/conductor.h \
+    conductors/conductor_circle.h \
     config.h \
     bnn/src/brain_friend.h \
     bnn/src/brain/brain.h \
@@ -44,19 +49,20 @@ HEADERS += \
     bnn/src/brain/random_put_get.h \
     bnn/src/brain/simple_math.h \
     bnn/src/brain/config.h \
-    creature.h \
-    data_processing_methods/data_processing_method_base.h \
+    creatures/creature.h \
+    creatures/leg.h \
+    data_processing_methods/data_processing_method.h \
     data_processing_methods/data_processing_method_binary.h \
     data_processing_methods/data_processing_method_linearly.h \
     data_processing_methods/data_processing_method_linearly_single.h \
-    leg.h \
+    data_processing_methods/data_processing_method_logarithmic.h \
     phys_obj/cube.h \
     phys_obj/figure.h \
     phys_obj/sphere.h \
-    teachers/teacher_base.h \
-    teachers/teacher_walking.h \
-    tripod.h \
-    world_3d.h
+    scene/tripod.h \
+    scene/world_3d.h \
+    teachers/teacher.h \
+    teachers/teacher_walking.h
 
 INCLUDEPATH += \
 /usr/local/include/ode \

@@ -28,6 +28,7 @@
 #include "data_processing_methods/data_processing_method_linearly.h"
 #include "data_processing_methods/data_processing_method_binary.h"
 #include "data_processing_methods/data_processing_method_linearly_single.h"
+#include "data_processing_methods/data_processing_method_logarithmic.h"
 #include "leg.h"
 #include "phys_obj/cube.h"
 #include "teachers/teacher_walking.h"
@@ -45,12 +46,12 @@
 #define joint_in_leg_count 2
 #define eye_count 2
 #define coordinates_count 3
-#define i_sees_moveable_figures_number 1
+#define i_sees_moveable_figures_number 2
 #define force_distance_count (leg_count * 2)
 #define creature_sees_world
 
 #ifdef creature_sees_world
-#define inputs_from_world_objests (i_sees_moveable_figures_number * eye_count * sizeof(uint32) * bits_in_byte)
+#define inputs_from_world_objests (i_sees_moveable_figures_number * eye_count * _word_bits)
 #endif
 
 class creature
@@ -62,10 +63,10 @@ class creature
     _word input_length =
             // I feel my legs
             leg_count * bits_in_byte * joint_in_leg_count
-            // I feel my velosity
-            + bits_in_byte * coordinates_count
-            // I feel my orientation by the three dots on my body
-            + 3 * bits_in_byte * coordinates_count
+            // I feel my velosity [2 bytes / coordinate]
+            + 2 * bits_in_byte * coordinates_count
+            // I feel my orientation by the three dots on my body [2 bytes / coordinate]
+            + 3 * 2 * bits_in_byte * coordinates_count
         #ifdef creature_sees_world
             // I see figures with two eyes
             + inputs_from_world_objests
@@ -80,12 +81,12 @@ class creature
     dSpaceID space;
     std::list<dGeomID> colliding_geoms;
     std::shared_ptr<std::vector<uint32>> input_from_world;
-    std::unique_ptr<bnn::brain> brn;
-    std::unique_ptr<data_processing_method_base> data_processing_method;
-    std::unique_ptr<teacher_base> teacher;
+    std::unique_ptr<data_processing_method> data_processing_method_;
+    std::unique_ptr<teacher> teacher_;
 
 public:
-    std::unique_ptr<bnn::brain_friend> brn_frnd;
+    std::unique_ptr<bnn::brain> brain_;
+    std::unique_ptr<bnn::brain_friend> brain_friend_;
     cube body;
     leg legs[leg_count];
 

@@ -12,50 +12,23 @@ data_processing_method_linearly::data_processing_method_linearly()
 
 bool data_processing_method_linearly::get_bool(float from, float to, float value, int levels_number, int level)
 {
-#if(0)
-    if(value <= from && level == 0)
-        return true;
-
-    if(value >= to && level == levels_number - 1)
-        return true;
-
     to -= from;
     value -= from;
-    from = 0;
 
-    float level_size = to / levels_number;
+    float level_size = to / (levels_number + 1);
 
-    float l_low = level_size * level;
+    float levels_size = level_size * (level + 1);
 
-    float l_high = l_low + level_size;
-
-    if(value >= l_low && value <= l_high)
-        return true;
-
-    return false;
-#else
-    to -= from;
-    value -= from;
-    from = 0;
-
-    float level_size = to / levels_number;
-
-    float l_low = level_size * level;
-
-    if(value >= l_low)
-        return true;
-
-    return false;
-#endif
+    return value >= levels_size;
 }
 
-void data_processing_method_linearly::set_inputs(bnn::brain& brn, _word& count, float value, float range, std::string& str)
+void data_processing_method_linearly::set_inputs(bnn::brain& brn, _word& count, _word length, float value, float range_from, float range_to, std::string& str)
 {
-    for(uint8_t j = 0; j < bits_in_byte; j++)
+    for(uint8_t j = 0; j < length; j++)
     {
-        brn.set_in(count++, get_bool(-range, range, value, bits_in_byte, j));
+        brn.set_in(count++, get_bool(range_from, range_to, value, length, j));
 #ifdef show_debug_data
-        str += std::to_string(get_bool(-range, range, value, bits_in_byte, j));
+        str += std::to_string(get_bool(range_from, range_to, value, length, j));
 #endif
     }
 };

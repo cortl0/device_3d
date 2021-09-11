@@ -19,13 +19,16 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
     switch (1)
     {
     case 0:
-        data_processing_method.reset(new data_processing_method_binary());
+        data_processing_method_.reset(new data_processing_method_binary());
         break;
     case 1:
-        data_processing_method.reset(new data_processing_method_linearly());
+        data_processing_method_.reset(new data_processing_method_linearly());
         break;
     case 2:
-        data_processing_method.reset(new data_processing_method_linearly_single());
+        data_processing_method_.reset(new data_processing_method_linearly_single());
+        break;
+    case 3:
+        data_processing_method_.reset(new data_processing_method_logarithmic());
         break;
     }
 
@@ -130,13 +133,13 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         colliding_geoms.push_back(legs[i].third.geom);
     }
 
-    brn.reset(new bnn::brain(random_array_length_in_power_of_two,
+    brain_.reset(new bnn::brain(random_array_length_in_power_of_two,
                              quantity_of_neurons_in_power_of_two,
                              input_length,
                              output_length,
                              4));
 
-    brn_frnd.reset(new bnn::brain_friend(*brn.get()));
+    brain_friend_.reset(new bnn::brain_friend(*brain_.get()));
 
     {
         //   dJointGroupID cg_fl = dJointGroupCreate (0);
@@ -202,7 +205,7 @@ void creature::set_position(dReal x, dReal y, dReal z)
 
 void creature::start()
 {
-    brn->start();
+    brain_->start();
 #ifdef learning_creature
     teacher->start();
 #endif
@@ -210,8 +213,14 @@ void creature::start()
 
 void creature::step()
 {
+    std::string debug_str = "legs [ ";
+
+    //dBodySetAngularVel(body.body, 0, 5, 0);
+
     float fs;
     float st;
+
+    _word legth = 2 * bits_in_byte;
 
     static float range = 1.0f;
 
@@ -222,8 +231,6 @@ void creature::step()
     float x_scalar;
     float y_scalar;
     float z_scalar;
-
-    std::string debug_str;
 
     body.step();
 
@@ -266,12 +273,11 @@ void creature::step()
     // Set inputs by legs states
     for(int i = 0; i < force_distance_count; i++)
     {
-        data_processing_method->set_inputs(*brn, count_input, distance[i], 1.0f, debug_str);
-#ifdef show_debug_data
+        data_processing_method_->set_inputs(*brain_, count_input, bits_in_byte, distance[i], -range, range, debug_str);
         if(i % 2)
             debug_str += " ";
-#endif
     }
+    debug_str += " ] vel [ ";
 
     const dReal* body_q = dBodyGetQuaternion(body.body);
     Ogre::Quaternion body_quat = Ogre::Quaternion(body_q[0], body_q[1], body_q[2], body_q[3]);
@@ -282,6 +288,10 @@ void creature::step()
     Ogre::Quaternion ort_y_rel = body_quat * ort_y * body_quat_inv;
     Ogre::Quaternion ort_z_rel = body_quat * ort_z * body_quat_inv;
 
+    ort_x_rel.normalise();
+    ort_y_rel.normalise();
+    ort_z_rel.normalise();
+
     {
         // Set inputs by velosity
         auto vel = dBodyGetLinearVel(body.body);
@@ -289,69 +299,95 @@ void creature::step()
         x_scalar = ort_x_rel[1] * vel[0] + ort_x_rel[2] * vel[1] + ort_x_rel[3] * vel[2];
         y_scalar = ort_y_rel[1] * vel[0] + ort_y_rel[2] * vel[1] + ort_y_rel[3] * vel[2];
         z_scalar = ort_z_rel[1] * vel[0] + ort_z_rel[2] * vel[1] + ort_z_rel[3] * vel[2];
-        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
-#ifdef show_debug_data
+        data_processing_method_->set_inputs(*brain_, count_input, legth, x_scalar, -range, range, debug_str);
         debug_str += " ";
-#endif
+        data_processing_method_->set_inputs(*brain_, count_input, legth, y_scalar, -range, range, debug_str);
+        debug_str += " ";
+        data_processing_method_->set_inputs(*brain_, count_input, legth, z_scalar, -range, range, debug_str);
     }
+
+    debug_str += " ]\ndir [ x: ";
 
     {
         // Set inputs by direction
         x_scalar = ort_x_rel[1] * 1 + ort_x_rel[2] * 0 + ort_x_rel[3] * 0;
         y_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
         z_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
-        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
-#ifdef show_debug_data
+        data_processing_method_->set_inputs(*brain_, count_input, legth, x_scalar, -range, range, debug_str);
         debug_str += " ";
-#endif
+        data_processing_method_->set_inputs(*brain_, count_input, legth, y_scalar, -range, range, debug_str);
+        debug_str += " ";
+        data_processing_method_->set_inputs(*brain_, count_input, legth, z_scalar, -range, range, debug_str);
+        debug_str += "  y: ";
 
         x_scalar = ort_y_rel[1] * 1 + ort_y_rel[2] * 0 + ort_y_rel[3] * 0;
         y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 1 + ort_y_rel[3] * 0;
         z_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 0 + ort_y_rel[3] * 1;
-        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
-#ifdef show_debug_data
+        data_processing_method_->set_inputs(*brain_, count_input, legth, x_scalar, -range, range, debug_str);
         debug_str += " ";
-#endif
+        data_processing_method_->set_inputs(*brain_, count_input, legth, y_scalar, -range, range, debug_str);
+        debug_str += " ";
+        data_processing_method_->set_inputs(*brain_, count_input, legth, z_scalar, -range, range, debug_str);
+        debug_str += "  z: ";
 
         x_scalar = ort_z_rel[1] * 1 + ort_z_rel[2] * 0 + ort_z_rel[3] * 0;
         y_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 1 + ort_z_rel[3] * 0;
         z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 0 + ort_z_rel[3] * 1;
-        data_processing_method->set_inputs(*brn, count_input, x_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, y_scalar, range, debug_str);
-        data_processing_method->set_inputs(*brn, count_input, z_scalar, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, legth, x_scalar, -range, range, debug_str);
+        debug_str += " ";
+        data_processing_method_->set_inputs(*brain_, count_input, legth, y_scalar, -range, range, debug_str);
+        debug_str += " ";
+        data_processing_method_->set_inputs(*brain_, count_input, legth, z_scalar, -range, range, debug_str);
+        debug_str += " ";
     }
+
+    //    std::unique_ptr<data_processing_method_base> dpm(new data_processing_method_logarithmic());
+    //std::unique_ptr<data_processing_method_base> dpm(new data_processing_method_binary());
+    std::unique_ptr<data_processing_method> dpm(new data_processing_method_linearly());
 
 #ifdef creature_sees_world
 #ifdef show_debug_data
-    debug_str += "\n";
+    debug_str += " ]\nobj [ ";
 #endif
     // I see figures with two eyes
-    for_each(input_from_world->begin(), input_from_world->end(), [&](uint32 value)
+    for_each(input_from_world->begin(), input_from_world->end(), [&](_word value)
     {
-        for(int i = 0; i < 32; i++)
+//        dpm->set_inputs(*brn, count_input, _word_bits, value, 0.f, 10.0f, debug_str);
+        if(0)
         {
-#ifdef show_debug_data
-            debug_str += std::to_string((value >> i) & 1);
-#endif
+            bool b = false;
+            for(int i = _word_bits - 1; i >= 0; i--)
+            {
+                if(!b)
+                    if(value & (1 << (i - 1)))
+                        b = true;
 
-            brn->set_in(count_input++, (value >> i) & 1);
+                value |= (b << (i - 1));
+            }
         }
 
+        if(1)
+        {
+            for(_word i = 0; i < _word_bits; i++)
+            {
 #ifdef show_debug_data
-        debug_str += " ";
+                debug_str += std::to_string((value >> i) & 1);
 #endif
+
+                brain_->set_in(count_input++, (value >> i) & 1);
+            }
+        }
+
+        debug_str += " ";
+
     });
 #else
 #ifdef show_debug_data
     debug_str += " ";
 #endif
 #endif
+
+    debug_str += " ] out [ ";
 
     // I can move legs
     for(_word i = 0; i < force_distance_count; i++)
@@ -360,17 +396,25 @@ void creature::step()
         debug_str += std::to_string(brn->get_out(i * 2)) + std::to_string(brn->get_out(i * 2 + 1));
 #endif
 
-        force[i] = static_cast<float>(brn->get_out(i * 2)) - static_cast<float>(brn->get_out(i * 2 + 1));
+        force[i] = static_cast<float>(brain_->get_out(i * 2)) - static_cast<float>(brain_->get_out(i * 2 + 1));
     }
 
+    debug_str += " ]\n";
 #ifdef show_debug_data
-    std::cout << debug_str << std::endl;
+    static _word iter = 0;
+    _word www = brn->iteration;
+    if(www > iter)
+    {
+        iter = www;
+        debug_str += std::to_string(www);
+        std::cout << debug_str << std::endl;
+    }
 #endif
 }
 
 void creature::stop()
 {
-    brn_frnd->stop();
+    brain_friend_->stop();
 #ifdef learning_creature
     teacher->stop();
 #endif

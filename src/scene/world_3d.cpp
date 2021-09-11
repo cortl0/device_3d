@@ -118,6 +118,48 @@ void world_3d::collide_action()
     });
 }
 
+bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
+{
+    float force = 25;
+    switch (evt.keysym.sym)
+    {
+    case OgreBites::SDLK_DOWN:
+    {
+        //std::cout << "SDLK_DOWN" << std::endl;
+        auto it = stepping_figures.begin();
+        std::advance(it, 4);
+        dBodyAddForce((*it)->body, 0, 0, +force);
+        break;
+    }
+    case OgreBites::SDLK_UP:
+    {
+        //std::cout << "SDLK_UP" << std::endl;
+        auto it = stepping_figures.begin();
+        std::advance(it, 4);
+        dBodyAddForce((*it)->body, 0, 0, -force);
+        break;
+    }
+    case OgreBites::SDLK_LEFT:
+    {
+        //std::cout << "SDLK_LEFT" << std::endl;
+        auto it = stepping_figures.begin();
+        std::advance(it, 4);
+        dBodyAddForce((*it)->body, -force, 0, 0);
+        break;
+    }
+    case OgreBites::SDLK_RIGHT:
+    {
+        //std::cout << "SDLK_RIGHT" << std::endl;
+        auto it = stepping_figures.begin();
+        std::advance(it, 4);
+        dBodyAddForce((*it)->body, +force, 0, 0);
+        break;
+    }
+    }
+
+    return true;
+}
+
 bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
 {
     switch (evt.keysym.sym)
@@ -317,7 +359,7 @@ void world_3d::load()
 
     std::ifstream in(fs::current_path() / l.back(), std::ios::binary);
 
-    if(creature_.brn_frnd->load(in))
+    if(creature_.brain_friend_->load(in))
     {
         cout << "loaded" << endl;
         if(l.size() > 8)
@@ -343,7 +385,7 @@ void world_3d::save()
     s += ".bnn";
     std::ofstream out(fs::current_path() / s, std::ios::binary);
 
-    if(creature_.brn_frnd->save(out))
+    if(creature_.brain_friend_->save(out))
         cout << "saved" << endl;
     else
         cout << "save error" << endl;
@@ -392,15 +434,18 @@ void world_3d::stop()
 
 void world_3d::fill_it_up()
 {
+    //conductor.reset(new conductor_circle());
+    conductor_.reset(new conductor_circle());
+
     // creating stationary objects
     {
         plane = dCreatePlane(space, 0.0f, 1.0f, 0.0f, 0.0f);
 
         stationary_colliding_geoms.push_back(plane);
 
-        float size = 2500.0f;
+        float size = 5000.0f;
         float height = 100.0f;
-        float koef_size = 25.0f;
+        float koef_size = 50.0f;
 
         for(int i = 0; i < 4; i++)
         {
@@ -469,19 +514,15 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(stepping_figures.back()->node);
         }
 
-        if(0)
+        if(1)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
-            stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space,
-                                                                          r*r*r, r)));
+            stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space, r*r*r, r)));
 
             stepping_figures.back()->set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
 
-            dBodySetPosition (stepping_figures.back()->body,
-                              -1000 * device_3d_SCALE,
-                              1000 * device_3d_SCALE,
-                              -1300 * device_3d_SCALE);
+            dBodySetPosition (stepping_figures.back()->body, 0, 1, -10);
 
             movable_colliding_geoms.push_back(stepping_figures.back()->geom);
 
@@ -553,19 +594,28 @@ void world_3d::cycle()
 
         state_ = bnn::state::started;
 
+        float f;
+        static float coef1 = 1000.0f;
+
         while(bnn::state::started == state_)
         {
             //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
             for_each(stepping_figures.begin(), stepping_figures.end(), [&](std::unique_ptr<figure>& fig){ fig->step(); });
 
-            creature_.step();
-            tripod_->step();
+            {
+                auto it = stepping_figures.begin();
+                std::advance(it, 5);
+                auto pos = dBodyGetPosition((*it)->body);
+                float x = pos[0];
+                float y = pos[1];
+                float z = pos[2];
+                conductor_->step(x, y, z);
 
-            float f;
-            float coef1 = 1.0f / device_3d_SCALE;
+                auto vel = dBodyGetLinearVel((*it)->body);
 
-            for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
+                dBodyAddForce((*it)->body, x - vel[0], y - vel[1], z - vel[2]);
+            }
 
             {
                 size_t i = 0;
@@ -576,11 +626,16 @@ void world_3d::cycle()
                     auto pos_fr = dGeomGetPosition(creature_.legs[leg_fr].first.geom);
 
                     f = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
-                    (*input_from_world)[i++] = static_cast<uint32>(f * coef1);
+                    (*input_from_world)[i++] = static_cast<_word>(f * coef1);
                     f = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
-                    (*input_from_world)[i++] = static_cast<uint32>(f * coef1);
+                    (*input_from_world)[i++] = static_cast<_word>(f * coef1);
                 });
             }
+
+            creature_.step();
+            tripod_->step();
+
+            for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
 
             collide_action();
 

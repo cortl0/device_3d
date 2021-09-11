@@ -22,10 +22,12 @@
 #include "OgreRTShaderSystem.h"
 
 #include "config.h"
+#include "creatures/creature.h"
 #include "phys_obj/cube.h"
 #include "phys_obj/sphere.h"
-#include "creature.h"
 #include "tripod.h"
+#include "conductors/conductor_circle.h"
+#include "conductors/conductor_circle.h"
 
 using namespace Ogre;
 
@@ -46,7 +48,9 @@ class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputLi
 
     std::list<std::unique_ptr<figure>> stepping_figures;
 
-    std::shared_ptr<std::vector<uint32>> input_from_world;
+    std::unique_ptr<conductor> conductor_;
+
+    std::shared_ptr<std::vector<_word>> input_from_world;
 
     creature creature_;
 
@@ -79,6 +83,7 @@ public:
     void setup(void);
     void setup_ogre();
     void setup_ode();
+    bool keyPressed(const OgreBites::KeyboardEvent& evt);
     bool keyReleased(const OgreBites::KeyboardEvent& evt);
     void cycle();
     void load();
