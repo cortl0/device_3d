@@ -15,7 +15,7 @@
 #define device_3d_MASS_SCALE 1.0f
 
 //#define show_debug_data
-//#define creature_legs_knees_is_blocked
+#define creature_legs_knees_is_blocked
 //#define learning_creature
 
 struct config
