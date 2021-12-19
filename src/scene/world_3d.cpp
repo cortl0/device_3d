@@ -162,6 +162,8 @@ bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
 
 bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
 {
+    float force = 500.0;
+
     switch (evt.keysym.sym)
     {
     case config::keyboard_key_c: // load
@@ -175,6 +177,18 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
             stop();
         else if(bnn::state::stopped == state_)
             start();
+        break;
+    case config::keyboard_key_a: // left
+        dBodyAddForce(creature_->body.body, force, 0, 0);
+        break;
+    case config::keyboard_key_d: // right
+        dBodyAddForce(creature_->body.body, -force, 0, 0);
+        break;
+    case config::keyboard_key_w: // up
+        dBodyAddForce(creature_->body.body, 0, 0, -force);
+        break;
+    case config::keyboard_key_s: // down
+        dBodyAddForce(creature_->body.body, 0, 0, force);
         break;
     }
 
@@ -359,7 +373,7 @@ void world_3d::load()
 
     std::ifstream in(fs::current_path() / l.back(), std::ios::binary);
 
-    if(creature_.brain_friend_->load(in))
+    if(creature_->brain_friend_->load(in))
     {
         cout << "loaded" << endl;
         if(l.size() > 8)
@@ -385,7 +399,7 @@ void world_3d::save()
     s += ".bnn";
     std::ofstream out(fs::current_path() / s, std::ios::binary);
 
-    if(creature_.brain_friend_->save(out))
+    if(creature_->brain_friend_->save(out))
         cout << "saved" << endl;
     else
         cout << "save error" << endl;
@@ -400,14 +414,10 @@ void world_3d::start()
     {
         state_ = bnn::state::start;
 
-        creature_.start();
+        creature_->start();
 
         cycle();
 
-        do
-        {
-            sleep(1);
-        }
         while (bnn::state::started != state_);
 
         cout << "started" << endl;
@@ -420,7 +430,7 @@ void world_3d::stop()
     {
         state_ = bnn::state::stop;
 
-        creature_.stop();
+        creature_->stop();
 
         do
         {
@@ -535,37 +545,37 @@ void world_3d::fill_it_up()
 
     // creating creature
     {
-        creature_ = creature(scnMgr, world, input_from_world);
-        creature_.set_position(0, 1, 0);
+        creature_.reset(new creature(scnMgr, world, input_from_world));
+        creature_->set_position(0, 1, 0);
         //creature_.set_position(0, 1, 20);
 
-        creature_colliding_geoms.push_back(creature_.body.geom);
+        creature_colliding_geoms.push_back(creature_->body.geom);
 
-        bounding_nodes.push_back(creature_.body.node);
+        bounding_nodes.push_back(creature_->body.node);
 
         for (int i = 0; i < leg_count; i++)
         {
-            creature_colliding_geoms.push_back(creature_.legs[i].first.geom);
-            creature_colliding_geoms.push_back(creature_.legs[i].second.geom);
-            creature_colliding_geoms.push_back(creature_.legs[i].third.geom);
+            creature_colliding_geoms.push_back(creature_->legs[i].first.geom);
+            creature_colliding_geoms.push_back(creature_->legs[i].second.geom);
+            creature_colliding_geoms.push_back(creature_->legs[i].third.geom);
 
-            bounding_nodes.push_back(creature_.legs[i].first.node);
-            bounding_nodes.push_back(creature_.legs[i].second.node);
-            bounding_nodes.push_back(creature_.legs[i].third.node);
+            bounding_nodes.push_back(creature_->legs[i].first.node);
+            bounding_nodes.push_back(creature_->legs[i].second.node);
+            bounding_nodes.push_back(creature_->legs[i].third.node);
         }
 
         if(0)
         {
             dJointGroupID gc_body = dJointGroupCreate (0);
             dJointID j_body = dJointCreateFixed (world, gc_body);
-            dJointAttach (j_body, 0, dGeomGetBody(creature_.body.geom));
+            dJointAttach (j_body, 0, dGeomGetBody(creature_->body.geom));
             dJointSetFixed(j_body);
         }
 
         //bool ff = crtr.body.node->getShowBoundingBox();
     }
 
-    auto body = creature_.body.body;
+    auto body = creature_->body.body;
 
     if(0)
     {
@@ -622,8 +632,8 @@ void world_3d::cycle()
                 for_each(movable_colliding_geoms.begin(), movable_colliding_geoms.end(), [&](dGeomID& g)
                 {
                     auto pos_fig = dGeomGetPosition(g);
-                    auto pos_fl = dGeomGetPosition(creature_.legs[leg_fl].first.geom);
-                    auto pos_fr = dGeomGetPosition(creature_.legs[leg_fr].first.geom);
+                    auto pos_fl = dGeomGetPosition(creature_->legs[leg_fl].first.geom);
+                    auto pos_fr = dGeomGetPosition(creature_->legs[leg_fr].first.geom);
 
                     f = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
                     (*input_from_world)[i++] = static_cast<_word>(f * coef1);
@@ -632,7 +642,7 @@ void world_3d::cycle()
                 });
             }
 
-            creature_.step();
+            creature_->step();
             tripod_->step();
 
             for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });

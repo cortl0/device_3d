@@ -8,11 +8,6 @@
 
 #include "creature.h"
 
-creature::creature()
-{
-
-}
-
 creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<std::vector<uint32>> input_from_world)
     : input_from_world(input_from_world)
 {
@@ -83,7 +78,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_fl
     {
         dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
-        legs[leg_fl] = leg("leg_fl", scnMgr, world, space, -body_width / 2, 0, -body_length / 2, q, -1, 1, 0x000077ff);
+        legs.push_back(leg("leg_fl", scnMgr, world, space, -body_width / 2, 0, -body_length / 2, q, -1, 0x000077ff));
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -95,7 +90,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_fr
     {
         dQuaternion q = {1,0,0,0};
-        legs[leg_fr] = leg("leg_fr", scnMgr, world, space, body_width / 2, 0, -body_length / 2, q, 1, 1, 0x777777ff);
+        legs.push_back(leg("leg_fr", scnMgr, world, space, body_width / 2, 0, -body_length / 2, q, 1, 0x777777ff));
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -107,7 +102,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_rl
     {
         dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
-        legs[leg_rl] = leg("leg_rl", scnMgr, world, space, -body_width / 2, 0, body_length / 2, q, -1, -1, 0x777777ff);
+        legs.push_back(leg("leg_rl", scnMgr, world, space, -body_width / 2, 0, body_length / 2, q, -1, 0x777777ff));
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -119,7 +114,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
         // leg_rr
     {
         dQuaternion q = {1,0,0,0};
-        legs[leg_rr] = leg("leg_rr", scnMgr, world, space, body_width / 2, 0, body_length / 2, q, 1, -1, 0x777777ff);
+        legs.push_back(leg("leg_rr", scnMgr, world, space, body_width / 2, 0, body_length / 2, q, 1, 0x777777ff));
 
         dJointGroupID jg = dJointGroupCreate (0);
         dJointID j = dJointCreateFixed (world, jg);
@@ -137,7 +132,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<s
                              quantity_of_neurons_in_power_of_two,
                              input_length,
                              output_length,
-                             4));
+                             1));
 
     brain_friend_.reset(new bnn::brain_friend(*brain_.get()));
 
@@ -209,6 +204,8 @@ void creature::start()
 #ifdef learning_creature
     teacher->start();
 #endif
+
+    brain_friend_->debug_out();
 }
 
 void creature::step()

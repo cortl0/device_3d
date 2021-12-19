@@ -52,7 +52,7 @@ class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputLi
 
     std::shared_ptr<std::vector<_word>> input_from_world;
 
-    creature creature_;
+    std::unique_ptr<creature> creature_;
 
     std::list<Ogre::SceneNode*> bounding_nodes;
 

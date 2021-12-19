@@ -88,9 +88,8 @@ public:
     std::unique_ptr<bnn::brain> brain_;
     std::unique_ptr<bnn::brain_friend> brain_friend_;
     cube body;
-    leg legs[leg_count];
+    std::vector<leg> legs;
 
-    creature();
     creature(Ogre::SceneManager* scnMgr, dWorldID world, std::shared_ptr<std::vector<uint32>> input_from_world);
     void set_position(dReal x, dReal y, dReal z);
     void start();

@@ -8,7 +8,7 @@
 
 #include "leg.h"
 
-leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float dir_lr, float dir_fr, uint32 color)
+leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float direction, uint32 color)
 {
     first = cube(name + "_first", scnMgr, world, space, first_mass, first_x, first_y, first_z);
     second = cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
@@ -20,18 +20,12 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
 
     //    dBodySetPosition (first.body, 0, 0, dir_fr * first_z / 2);
     //dBodySetPosition (first.body, 0, 0, 0);
-    dBodySetPosition (second.body, dir_lr * second_x / 2, 0, 0);
-    dBodySetPosition (third.body, dir_lr * (second_x + third_x / 2), 0, 0);
+    dBodySetPosition (second.body, direction * second_x / 2, 0, 0);
+    dBodySetPosition (third.body, direction * (second_x + third_x / 2), 0, 0);
 
-    j_fs = dJointCreateHinge (world, jg_fs);
-    dJointAttach (j_fs, dGeomGetBody(first.geom), dGeomGetBody(second.geom));
-    dJointSetHingeAnchor (j_fs, 0, 0, 0);
-    dJointSetHingeAxis (j_fs, 0, 1 * dir_lr, 0);
+    joint_fs.reset(new joint(world, dGeomGetBody(first.geom), dGeomGetBody(second.geom), 1 * direction, 0, 0, 0, 0));
 
-    j_st = dJointCreateHinge (world, jg_st);
-    dJointAttach (j_st, dGeomGetBody(second.geom), dGeomGetBody(third.geom));
-    dJointSetHingeAnchor (j_st, dir_lr * second_x, 0, 0);
-    dJointSetHingeAxis (j_st, 0, 0, dir_lr * 1);
+    joint_st.reset(new joint(world, dGeomGetBody(second.geom), dGeomGetBody(third.geom), 0, 1 * direction, direction * second_x, 0, 0));
 
     if(0)
     {
@@ -42,7 +36,7 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
 
     //SetHingeParams(-M_PI / 6, M_PI / 6, -M_PI * 1 / 2, +M_PI * 1 / 2);
     //SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 4, +M_PI * 1 / 3);
-    SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 6, +M_PI * 1 / 5);
+    set_joints_prams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 6, +M_PI * 1 / 5);
 
 #ifdef creature_legs_knees_is_blocked
     SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 5, +M_PI * 1 / 5);
@@ -64,25 +58,10 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
 
 }
 
-void leg::SetHingeParams(float fs_low, float fs_hi, float st_low, float st_hi)
+void leg::set_joints_prams(float first_start_angle, float first_end_angle, float second_start_angle, float second_end_angle)
 {
-    this->fs_low = fs_low;
-    this->fs_hi = fs_hi;
-    this->st_low = st_low;
-    this->st_hi = st_hi;
-
-    dJointSetHingeParam (j_fs,dParamLoStop, fs_low);
-    dJointSetHingeParam (j_fs,dParamHiStop, fs_hi);
-
-    dJointSetHingeParam (j_st,dParamLoStop, st_low);
-    dJointSetHingeParam (j_st,dParamHiStop, st_hi);
-}
-
-void leg::move_forcibly(bool move)
-{
-    float fs = 1.0f * (first_z / 2 + second_x / 2) * (move * 2.f - 1.f);
-
-    dJointAddHingeTorque(j_fs, fs * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_fs))));
+    joint_fs->set_params(first_start_angle, first_end_angle);
+    joint_st->set_params(second_start_angle, second_end_angle);
 }
 
 void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
@@ -138,20 +117,20 @@ float value_in_range(const float& value, const float& range_start, const float& 
 
     return default_range_start + ((value - range_start) / (range_end - range_start)) * default_range_delta;
 }
-#include <iostream>
+
 void leg::step(float& fs, float& st)
 {
     fs = fs * (first_z / 2 + second_x / 2);
     st = st * (second_x / 2 + third_x / 2);
 
-    dJointAddHingeTorque(j_fs, fs * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_fs))));
+    dJointAddHingeTorque(joint_fs->joint_id, fs * LEG_FIRST_JOINT_TORQUE_COEFFICENT / (1 + abs(dJointGetHingeAngleRate (joint_fs->joint_id))));
 
 #ifndef creature_legs_knees_is_blocked
-    dJointAddHingeTorque(j_st, st * torque_coef / (1 + abs(dJointGetHingeAngleRate (j_st))));
+    dJointAddHingeTorque(joint_st->joint_id, st * LEG_SECOND_JOINT_TORQUE_COEFFICENT / (1 + abs(dJointGetHingeAngleRate (joint_st->joint_id))));
 #endif
 
-    fs = value_in_range(dJointGetHingeAngle (j_fs), fs_low, fs_hi);
-    st = value_in_range(dJointGetHingeAngle (j_st), st_low, st_hi);
+    fs = value_in_range(dJointGetHingeAngle (joint_fs->joint_id), joint_fs->angle_start, joint_fs->angle_end);
+    st = value_in_range(dJointGetHingeAngle (joint_st->joint_id), joint_st->angle_start, joint_st->angle_end);
 
     first.step();
     second.step();

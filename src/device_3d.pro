@@ -7,7 +7,7 @@
 #
 
 TEMPLATE = app
-CONFIG += console c++11
+CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -19,12 +19,13 @@ SOURCES += \
         bnn/src/brain/neurons/motor.cpp \
         bnn/src/brain/neurons/neuron.cpp \
         bnn/src/brain/neurons/sensor.cpp \
-        bnn/src/brain/random_put_get.cpp \
+        bnn/src/brain/random/random.cpp \
         bnn/src/brain/storage.cpp \
         bnn/src/brain/thread.cpp \
         conductors/conductor.cpp \
         conductors/conductor_circle.cpp \
         creatures/creature.cpp \
+        creatures/joint.cpp \
         creatures/leg.cpp \
         data_processing_methods/data_processing_method.cpp \
         data_processing_methods/data_processing_method_binary.cpp \
@@ -49,7 +50,8 @@ HEADERS += \
     bnn/src/brain/neurons/motor.h \
     bnn/src/brain/neurons/neuron.h \
     bnn/src/brain/neurons/sensor.h \
-    bnn/src/brain/random_put_get.h \
+    bnn/src/brain/random/config.h \
+    bnn/src/brain/random/random.h \
     bnn/src/brain/simple_math.h \
     bnn/src/brain/state.h \
     bnn/src/brain/storage.h \
@@ -58,6 +60,7 @@ HEADERS += \
     conductors/conductor_circle.h \
     config.h \
     creatures/creature.h \
+    creatures/joint.h \
     creatures/leg.h \
     data_processing_methods/data_processing_method.h \
     data_processing_methods/data_processing_method_binary.h \
