@@ -18,6 +18,9 @@
 //#define creature_legs_knees_is_blocked
 //#define learning_creature
 
+#define QUANTITY_OF_JOINTS_IN_LEG 2
+#define LEGS_QUANTITY 4
+
 struct config
 {
     enum keyboard_keys

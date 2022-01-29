@@ -26,7 +26,7 @@ void data_processing_method_linearly_single::set_inputs(bnn::brain& brn, _word& 
 {
     for(uint8_t j = 0; j < length; j++)
     {
-        brn.set_in(count++, get_bool(range_from, range_to, value, length, j));
+        brn.set_input(count++, get_bool(range_from, range_to, value, length, j));
 #ifdef show_debug_data
         str += std::to_string(get_bool(range_from, range_to, value, length, j));
 #endif

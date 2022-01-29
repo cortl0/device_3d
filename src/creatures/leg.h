@@ -9,7 +9,7 @@
 #ifndef CREATURE_LEG_H
 #define CREATURE_LEG_H
 
-#include <memory>
+#include <iostream>
 
 #include "config.h"
 #include "phys_obj/cube.h"
@@ -34,22 +34,20 @@
 #define LEG_FIRST_JOINT_TORQUE_COEFFICENT 32.0f
 #define LEG_SECOND_JOINT_TORQUE_COEFFICENT 8.0f
 
+#define FIRST_JOINT 0
+#define SECOND_JOINT 1
+
 class leg
 {
-    dJointGroupID jg_fs = dJointGroupCreate (0);
-    dJointGroupID jg_st = dJointGroupCreate (0);
-
-    std::unique_ptr<joint> joint_fs;
-    std::unique_ptr<joint> joint_st;
-
 public:
     cube first;
     cube second;
     cube third;
 
-    leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dQuaternion q, float direction, uint32 color);
+    leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space,
+        dReal x, dReal y, dReal z,
+        dQuaternion q, float direction, uint32 color);
     void relocate(dReal dx, dReal dy, dReal dz, dQuaternion q);
-    void set_joints_prams(float first_start_angle, float first_end_angle, float second_start_angle, float second_end_angle);
 
     /**
      * @param
@@ -60,7 +58,13 @@ public:
      * fs - output angle between first & second [-1, 1]
      * st - output angle between second & third [-1, 1]
     */
-    void step(float& fs, float& st);
+    void step(double& fs, double& st);
+
+private:
+    dJointGroupID jg_fs = dJointGroupCreate (0);
+    dJointGroupID jg_st = dJointGroupCreate (0);
+
+    std::vector<joint> joints;
 };
 
 #endif // CREATURE_LEG_H

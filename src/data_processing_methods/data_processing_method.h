@@ -2,7 +2,6 @@
 #define DATA_PROCESSING_METHOD_H
 
 #include "config.h"
-#include "Ogre.h"
 #include "bnn/src/brain/brain.h"
 
 class data_processing_method

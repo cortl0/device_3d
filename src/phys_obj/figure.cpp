@@ -8,6 +8,8 @@
 
 #include "figure.h"
 
+#include "../bnn/src/brain/config.h"
+
 figure::~figure()
 {
     //scnMgr->destroyEntity(ent);
@@ -24,10 +26,14 @@ figure::figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal
 
 void figure::step()
 {
-    auto pos = dBodyGetPosition(body);
-    auto qrot = dBodyGetQuaternion(body);
+    auto *pos = dBodyGetPosition(body);
+    auto *qrot = dBodyGetQuaternion(body);
 
-    //node->setPosition(pos[1], pos[2], pos[0]);
+    //    float x = pos[0];
+    //    float y = pos[1];
+    //    float z = pos[2];
+
+    //    logging("x=" + std::to_string(x) + " y=" + std::to_string(y) + " z=" + std::to_string(z))
 
     node->setPosition(pos[0], pos[1], pos[2]);
     node->setOrientation(qrot[0], qrot[1], qrot[2], qrot[3]);

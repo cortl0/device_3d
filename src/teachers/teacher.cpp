@@ -1,5 +1,7 @@
 #include "teacher.h"
 
+#include <unistd.h>
+
 teacher::~teacher()
 {
     if(bnn::state::started == state_)
@@ -29,7 +31,7 @@ _word teacher::get_data()
 void teacher::start()
 {
     if(bnn::state::stopped != state_)
-        throw std::runtime_error("busines logic error in teacher_base::start()");
+        throw_error("busines logic error in teacher_base::start()");
 
     count = count_max;
 
@@ -37,23 +39,15 @@ void teacher::start()
 
     inner_start();
 
-    do
-    {
-        sleep(1);
-    }
     while (bnn::state::started != state_);
 }
 
 void teacher::stop()
 {
     if(bnn::state::started != state_)
-        throw std::runtime_error("busines logic error in teacher_base::stop()");
+        throw_error("busines logic error in teacher_base::stop()");
 
     state_ = bnn::state::stop;
 
-    do
-    {
-        sleep(1);
-    }
     while (bnn::state::stopped != state_);
 }

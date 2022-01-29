@@ -1,5 +1,7 @@
 #include "teacher_walking.h"
 
+#include <unistd.h>
+
 #include <iostream>
 
 teacher_walking::~teacher_walking()

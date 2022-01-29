@@ -76,33 +76,18 @@ HEADERS += \
     teachers/teacher_walking.h
 
 INCLUDEPATH += \
+/usr/include/boost/system \
 /usr/local/include/ode \
 /usr/local/include/OGRE \
 /usr/local/include/OGRE/Bites \
-/usr/local/include/OGRE/RTShaderSystem \
-/usr/include/boost/system
+/usr/local/include/OGRE/RTShaderSystem
 
 LIBS += \
 -lX11 \
--lode \
 -lstdc++fs \
--pthread \
 -lpthread \
 -lboost_system \
-/usr/local/lib/libOgreBites.so \
-/usr/local/lib/libOgreMain.so \
-/usr/local/lib/libOgreMeshLodGenerator.so \
-/usr/local/lib/libOgreOverlay.so \
-/usr/local/lib/libOgrePaging.so \
-/usr/local/lib/libOgreProperty.so \
-/usr/local/lib/libOgreRTShaderSystem.so \
-/usr/local/lib/libOgreVolume.so \
-/usr/local/lib/OGRE/Codec_STBI.so \
-/usr/local/lib/OGRE/Plugin_BSPSceneManager.so \
-/usr/local/lib/OGRE/Plugin_DotScene.so \
-/usr/local/lib/OGRE/Plugin_OctreeSceneManager.so \
-/usr/local/lib/OGRE/Plugin_OctreeZone.so \
-/usr/local/lib/OGRE/Plugin_ParticleFX.so \
-/usr/local/lib/OGRE/Plugin_PCZSceneManager.so \
-/usr/local/lib/OGRE/RenderSystem_GL.so \
-/usr/local/lib/OGRE/RenderSystem_GL3Plus.so
+-lode \
+-lOgreBites \
+-lOgreMain \
+-lOgreRTShaderSystem

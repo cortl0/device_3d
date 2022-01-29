@@ -23,15 +23,15 @@ _word data_processing_method_logarithmic::get_bools(float from, float to, float 
 
     _word value_log = bnn::simple_math::log2_1(static_cast<_word>(value));
 
-    return (static_cast<_word>(~0) >> (_word_bits - levels_number)) >> (levels_number - value_log - 1);
+    return (static_cast<_word>(~0) >> (QUANTITY_OF_BITS_IN_WORD - levels_number)) >> (levels_number - value_log - 1);
 }
 
 void data_processing_method_logarithmic::set_inputs(bnn::brain& brn, _word& count, _word length, float value, float range_from, float range_to, std::string& str)
 {
     _word bools = get_bools(range_from, range_to, value, length);
-    for(uint8_t j = 0; j < _word_bits; j++)
+    for(uint8_t j = 0; j < QUANTITY_OF_BITS_IN_WORD; j++)
     {
-        brn.set_in(count++, (bools >> j) & 1);
+        brn.set_input(count++, (bools >> j) & 1);
 #ifdef show_debug_data
         str += std::to_string((bools >> j) & 1);
 #endif

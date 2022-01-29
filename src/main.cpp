@@ -15,23 +15,25 @@ int main()
 {
     try
     {
+
+        //loging("msg")
+        //throw_error("aaa")
+
+
+
+
         world_3d app;
         app.initApp();
-        app.start();
         app.getRoot()->startRendering();
         app.closeApp();
     }
     catch (const std::exception& e)
     {
-        std::cout << "Caught exception: " << e.what() << std::endl;
-    }
-    catch (const char* c)
-    {
-        std::cout << "Caught exception: " << c << std::endl;
+        std::cout << "Caught std::exception&: " << e.what() << std::endl;
     }
     catch (...)
     {
-        std::cout << "unknown error" << std::endl;
+        std::cout << "Caught unknown error" << std::endl;
     }
 
     return 0;

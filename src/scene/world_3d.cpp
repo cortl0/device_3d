@@ -10,8 +10,10 @@
 
 world_3d::~world_3d()
 {
-    if(bnn::state::started == state_)
-        stop();
+    logging("");
+    stop();
+    //    dWorldDestroy (world);
+    //            dCloseODE();
 }
 
 world_3d::world_3d() : OgreBites::ApplicationContext("bnn_test_app")
@@ -19,7 +21,7 @@ world_3d::world_3d() : OgreBites::ApplicationContext("bnn_test_app")
 
 }
 
-void collide_action2(dGeomID o1, dGeomID o2)
+void world_3d::collide_action2(world_3d *me, dGeomID o1, dGeomID o2)
 {
     int i,n;
     const int N = 1;
@@ -74,7 +76,7 @@ void collide_action2(dGeomID o1, dGeomID o2)
         //                contact[i].surface.soft_erp = 1.0f;
         //                contact[i].surface.soft_cfm = 0.01;
 
-        dJointID c = dJointCreateContact (world_st, contactgroup_st, &contact[i]);
+        dJointID c = dJointCreateContact (world_st, me->contactgroup, &contact[i]);
         dJointAttach (c,
                       dGeomGetBody(contact[i].geom.g1),
                       dGeomGetBody(contact[i].geom.g2));
@@ -87,12 +89,12 @@ void world_3d::collide_action()
     {
         for_each(movable_colliding_geoms.begin(), movable_colliding_geoms.end(), [&](dGeomID mg)
         {
-            collide_action2(sg, mg);
+            collide_action2(this, sg, mg);
         });
 
         for_each(creature_colliding_geoms.begin(), creature_colliding_geoms.end(), [&](dGeomID cg)
         {
-            collide_action2(sg, cg);
+            collide_action2(this, sg, cg);
         });
     });
 
@@ -103,7 +105,7 @@ void world_3d::collide_action()
         it_1++;
         while (it_1 != movable_colliding_geoms.end())
         {
-            collide_action2(*it_0, *it_1);
+            collide_action2(this, *it_0, *it_1);
             it_1++;
         }
         it_0++;
@@ -113,7 +115,7 @@ void world_3d::collide_action()
     {
         for_each(movable_colliding_geoms.begin(), movable_colliding_geoms.end(), [&](dGeomID mg)
         {
-            collide_action2(sg, mg);
+            collide_action2(this, sg, mg);
         });
     });
 }
@@ -128,7 +130,7 @@ bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
         //std::cout << "SDLK_DOWN" << std::endl;
         auto it = stepping_figures.begin();
         std::advance(it, 4);
-        dBodyAddForce((*it)->body, 0, 0, +force);
+        dBodyAddForce(it->body, 0, 0, +force);
         break;
     }
     case OgreBites::SDLK_UP:
@@ -136,7 +138,7 @@ bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
         //std::cout << "SDLK_UP" << std::endl;
         auto it = stepping_figures.begin();
         std::advance(it, 4);
-        dBodyAddForce((*it)->body, 0, 0, -force);
+        dBodyAddForce(it->body, 0, 0, -force);
         break;
     }
     case OgreBites::SDLK_LEFT:
@@ -144,7 +146,7 @@ bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
         //std::cout << "SDLK_LEFT" << std::endl;
         auto it = stepping_figures.begin();
         std::advance(it, 4);
-        dBodyAddForce((*it)->body, -force, 0, 0);
+        dBodyAddForce(it->body, -force, 0, 0);
         break;
     }
     case OgreBites::SDLK_RIGHT:
@@ -152,7 +154,7 @@ bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
         //std::cout << "SDLK_RIGHT" << std::endl;
         auto it = stepping_figures.begin();
         std::advance(it, 4);
-        dBodyAddForce((*it)->body, +force, 0, 0);
+        dBodyAddForce(it->body, +force, 0, 0);
         break;
     }
     }
@@ -166,6 +168,9 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
 
     switch (evt.keysym.sym)
     {
+    case OgreBites::SDLK_ESCAPE:
+        stop();
+        break;
     case config::keyboard_key_c: // load
         load();
         break;
@@ -211,44 +216,16 @@ void world_3d::setup_ogre()
 {
     // do not forget to call the base first
     OgreBites::ApplicationContext::setup();
+
     // register for input events
     addInputListener(this);
+
     // get a pointer to the already created root
     root = getRoot();
     scnMgr = root->createSceneManager();
-    // register    //    for(int i = 0; i < 50; i++)
-    //    {
-    //        //((float)rand() / RAND_MAX) * 400;
-    //        figure_list.push_back(std::unique_ptr<sphere>(new sphere("sphere_" + std::to_string(i), scnMgr, world, space,
-    //                                                                 1.0f, ((float)rand() / RAND_MAX) * 70 + 10)));
-    //        dBodySetPosition (figure_list.back()->body,
-    //                          (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1000,
-    //                          (((float)rand() / RAND_MAX)) * 1000,
-    //                          (((float)rand() / RAND_MAX) - 0.5f) * 2 * 1000);
-    //    } our scene with the RTSS
+
     Ogre::RTShader::ShaderGenerator* shadergen = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
     shadergen->addSceneManager(scnMgr);
-
-    //dAllocateODEDataForThread(dAllocateMaskAll);
-    Ogre::ResourceGroupManager::getSingletonPtr()->createResourceGroup("name1");
-    Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation("../my_first", "FileSystem", "name1", false);
-    Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup("name1");
-    Ogre::ResourceGroupManager::getSingletonPtr()->loadResourceGroup("name1");
-
-    {
-        //**
-        //getRenderWindow()->setFullscreen(true, 1920, 1080);
-        //**
-    }
-
-    //    MyGUI::PointerManager::getInstance().setVisible(false);
-    {
-        //        Ogre::NameValuePairList opts;
-        //        opts.insert( Ogre::NameValuePairList::value_type( "resolution", "1920x1080" ) );
-        //        opts.insert( Ogre::NameValuePairList::value_type( "fullscreen", "true" ) );
-        //        opts.insert( Ogre::NameValuePairList::value_type( "vsync", "true" ) );
-        //        getRoot()->createRenderWindow("TestWin", 1920, 1080, true, &opts );
-    }
 
     create_light(scnMgr, 10000, 10000, 10000, "MainLight0");
     create_light(scnMgr, -10000, 10000, 10000, "MainLight1");
@@ -270,28 +247,16 @@ void world_3d::setup_ogre()
         break;
     }
 
-    //camNode->lookAt(Ogre::Vector3(0, 0, -1), Ogre::Node::TS_PARENT);
-
-    // create the camera
     cam = scnMgr->createCamera("myCam");
-    cam->setNearClipDistance(1); // specific to this sample
-
+    cam->setNearClipDistance(1); // (5); // specific to this sample
     cam->setAutoAspectRatio(true);
 
-    //cam->setUseRenderingDistance(false);
-    //auto dd = cam->projectSphere();
-
-    //    ogreMesh->_setBoundingSphereRadius(Ogre::Math::Sqrt(this->maxRadius)); /// this is actually squared radius
-    //    ogreMesh->_setBounds(Ogre::AxisAlignedBox(this->minCorner, this->maxCorner),false);
-
-
     camNode->attachObject(cam);
-    // and tell it to render into the main window
+
     getRenderWindow()->addViewport(cam);
 
-
-    auto ent_plane = scnMgr->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
-    auto node_plane = scnMgr->getRootSceneNode()->createChildSceneNode();
+    auto *ent_plane = scnMgr->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
+    auto *node_plane = scnMgr->getRootSceneNode()->createChildSceneNode();
     node_plane->setScale(Ogre::Vector3(1, 1, 1));
     node_plane->setDirection(0,-1,0);
     node_plane->attachObject(ent_plane);
@@ -410,41 +375,48 @@ void world_3d::save()
 
 void world_3d::start()
 {
-    if(bnn::state::stopped == state_)
-    {
-        state_ = bnn::state::start;
+    logging("world_3d::start() begin");
 
-        creature_->start();
+    if(bnn::state::stop == state_)
+        while(bnn::state::stopped != state_);
 
-        cycle();
+    if(bnn::state::start == state_ || bnn::state::started == state_ || bnn::state::stopped != state_)
+        return;
 
-        while (bnn::state::started != state_);
+    thread_.reset(new std::thread(function, this));
 
-        cout << "started" << endl;
-    }
+    thread_->detach();
+
+    state_ = bnn::state::start;
+
+    while (bnn::state::started != state_);
+
+    logging("world_3d::start() end");
 }
 
 void world_3d::stop()
 {
-    if(bnn::state::started == state_)
-    {
-        state_ = bnn::state::stop;
+    logging("world_3d::stop() begin");
 
-        creature_->stop();
+    if(bnn::state::start == state_)
+        while(bnn::state::started != state_);
 
-        do
-        {
-            sleep(1);
-        }
-        while (bnn::state::stopped != state_);
+    if(bnn::state::stop == state_ || bnn::state::stopped == state_ || bnn::state::started != state_)
+        return;
 
-        cout << "stopped" << endl;
-    }
+    getRoot()->queueEndRendering();
+
+    state_ = bnn::state::stop;
+
+    creature_->stop();
+
+    while (bnn::state::stopped != state_);
+
+    logging("world_3d::stop() end");
 }
 
 void world_3d::fill_it_up()
 {
-    //conductor.reset(new conductor_circle());
     conductor_.reset(new conductor_circle());
 
     // creating stationary objects
@@ -463,25 +435,25 @@ void world_3d::fill_it_up()
             x=(i & 1) ? size * device_3d_SCALE : size / koef_size * device_3d_SCALE;
             y=height * device_3d_SCALE;
             z=(i & 1) ? size * device_3d_SCALE / koef_size : size * device_3d_SCALE;
-            stepping_figures.push_back(std::unique_ptr<cube>(new cube("wall_" + std::to_string(i) + std::to_string(i),
-                                                                      scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
-                                                                      x, y, z)));
+            stepping_figures.push_back(cube("wall_" + std::to_string(i) + std::to_string(i),
+                                            scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
+                                            x, y, z));
 
-            stepping_figures.back()->set_material(figure::create_material_chess(128, 32, 0x000000ff, 0xbbbbbbff));
+            stepping_figures.back().set_material(figure::create_material_chess(128, 32, 0x000000ff, 0xbbbbbbff));
 
-            dBodySetPosition(stepping_figures.back()->body,
+            dBodySetPosition(stepping_figures.back().body,
                              !(i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1) * device_3d_SCALE,
                              (height / 2 + 1) * device_3d_SCALE,
                              (i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1) * device_3d_SCALE);
 
             dJointGroupID jg = dJointGroupCreate (0);
             dJointID j = dJointCreateFixed (world, jg);
-            dJointAttach (j, nullptr, dGeomGetBody(stepping_figures.back()->geom));
+            dJointAttach (j, nullptr, dGeomGetBody(stepping_figures.back().geom));
             dJointSetFixed(j);
 
-            stationary_colliding_geoms.push_back(stepping_figures.back()->geom);
+            stationary_colliding_geoms.push_back(stepping_figures.back().geom);
 
-            bounding_nodes.push_back(stepping_figures.back()->node);
+            bounding_nodes.push_back(stepping_figures.back().node);
         }
     }
 
@@ -490,70 +462,70 @@ void world_3d::fill_it_up()
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
 
-            stepping_figures.push_back(std::unique_ptr<cube>(new cube("cube_qqq", scnMgr, world, space,
-                                                                      r*r*r * device_3d_MASS_SCALE, r, r, r)));
+            stepping_figures.push_back(cube("cube_qqq", scnMgr, world, space,
+                                            r*r*r * device_3d_MASS_SCALE, r, r, r));
 
-            stepping_figures.back()->set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+            stepping_figures.back().set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
-            dBodySetPosition (stepping_figures.back()->body,
+            dBodySetPosition (stepping_figures.back().body,
                               ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
                               ((static_cast<float>(rand()) / RAND_MAX)) * 500 * device_3d_SCALE,
                               ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE);
 
-            movable_colliding_geoms.push_back(stepping_figures.back()->geom);
+            movable_colliding_geoms.push_back(stepping_figures.back().geom);
 
-            bounding_nodes.push_back(stepping_figures.back()->node);
-        }
-
-        for(int i = 0; i < 0; i++)
-        {
-            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
-
-            stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_" + std::to_string(i), scnMgr, world, space,
-                                                                          r*r*r * device_3d_MASS_SCALE, r)));
-
-            stepping_figures.back()->set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
-
-            dBodySetPosition (stepping_figures.back()->body,
-                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
-                              ((static_cast<float>(rand()) / RAND_MAX)) * 1500 * device_3d_SCALE,
-                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE);
-
-            movable_colliding_geoms.push_back(stepping_figures.back()->geom);
-
-            bounding_nodes.push_back(stepping_figures.back()->node);
+            bounding_nodes.push_back(stepping_figures.back().node);
         }
 
         if(1)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
-            stepping_figures.push_back(std::unique_ptr<sphere>(new sphere("sphere_ssss", scnMgr, world, space, r*r*r, r)));
+            stepping_figures.push_back(sphere("sphere_ssss", scnMgr, world, space, r*r*r, r));
 
-            stepping_figures.back()->set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
+            stepping_figures.back().set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
 
-            dBodySetPosition (stepping_figures.back()->body, 0, 1, -10);
+            dBodySetPosition(stepping_figures.back().body, 0, 1, -10);
 
-            movable_colliding_geoms.push_back(stepping_figures.back()->geom);
+            movable_colliding_geoms.push_back(stepping_figures.back().geom);
 
-            bounding_nodes.push_back(stepping_figures.back()->node);
+            bounding_nodes.push_back(stepping_figures.back().node);
+        }
+
+        for(int i = 0; i <0; i++)
+        {
+            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
+
+            stepping_figures.push_back(sphere("sphere_" + std::to_string(i), scnMgr, world, space,
+                                              r*r*r * device_3d_MASS_SCALE, r));
+
+            stepping_figures.back().set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
+
+            dBodySetPosition (stepping_figures.back().body,
+                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
+                              ((static_cast<float>(rand()) / RAND_MAX)) * 1500 * device_3d_SCALE,
+                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE);
+
+            movable_colliding_geoms.push_back(stepping_figures.back().geom);
+
+            bounding_nodes.push_back(stepping_figures.back().node);
         }
     }
 
-    input_from_world.reset(new std::vector<uint32>(eye_count * i_sees_moveable_figures_number));
-    for_each(input_from_world->begin(), input_from_world->end(), [&](uint32& i){ i = 0; });
+    input_from_world = std::vector<uint32>(QUANTITY_OF_EYES * QUANTITY_OF_SHAPES_WHICH_I_SEE);
+    for_each(input_from_world.begin(), input_from_world.end(), [](uint32& i){ i = 1; });
 
     // creating creature
     {
         creature_.reset(new creature(scnMgr, world, input_from_world));
+
         creature_->set_position(0, 1, 0);
-        //creature_.set_position(0, 1, 20);
 
         creature_colliding_geoms.push_back(creature_->body.geom);
 
         bounding_nodes.push_back(creature_->body.node);
 
-        for (int i = 0; i < leg_count; i++)
+        for (size_t i = 0; i < creature_->legs.size(); i++)
         {
             creature_colliding_geoms.push_back(creature_->legs[i].first.geom);
             creature_colliding_geoms.push_back(creature_->legs[i].second.geom);
@@ -566,23 +538,23 @@ void world_3d::fill_it_up()
 
         if(0)
         {
-            dJointGroupID gc_body = dJointGroupCreate (0);
-            dJointID j_body = dJointCreateFixed (world, gc_body);
+            dJointGroupID gc_body = dJointGroupCreate(0);
+            dJointID j_body = dJointCreateFixed(world, gc_body);
             dJointAttach (j_body, 0, dGeomGetBody(creature_->body.geom));
             dJointSetFixed(j_body);
         }
 
-        //bool ff = crtr.body.node->getShowBoundingBox();
+        //bool ff = creature_->body.node->getShowBoundingBox();
     }
 
-    auto body = creature_->body.body;
+    auto *body = creature_->body.body;
 
     if(0)
     {
         auto it = stepping_figures.begin();
         std::advance(it, 7);
         //std::advance(it, 4);
-        body = (*it)->body;
+        body = it->body;
     }
 
     camNode->setPosition(dBodyGetPosition(body)[0] + 0,
@@ -592,9 +564,9 @@ void world_3d::fill_it_up()
     tripod_.reset(new tripod(world, camNode, body));
 }
 
-void world_3d::cycle()
+void world_3d::function(world_3d *me)
 {
-    cycle_thread.reset(new std::thread([&]()
+    try
     {
         double frame_length = 1.0 / 60.0; // [seconds]
 
@@ -602,56 +574,72 @@ void world_3d::cycle()
         auto time_current = std::chrono::high_resolution_clock::now();
         auto time_diff = time_current - time_old;
 
-        state_ = bnn::state::started;
+        while(bnn::state::start != me->state_);
+
+        me->creature_->start();
+
+        //while(bnn::state::started != me->creature_->brain_friend_->state_);
+
+        //me->state_ = bnn::state::start;
+
+        me->state_ = bnn::state::started;
+
+        logging("world_3d::function() started");
 
         float f;
         static float coef1 = 1000.0f;
 
-        while(bnn::state::started == state_)
+        while(bnn::state::started == me->state_)
         {
             //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
-            for_each(stepping_figures.begin(), stepping_figures.end(), [&](std::unique_ptr<figure>& fig){ fig->step(); });
+            try {
+
+                for_each(me->stepping_figures.begin(), me->stepping_figures.end(), [](figure& fig){ fig.step(); });
+
+            }  catch (...) {
+
+            }
 
             {
-                auto it = stepping_figures.begin();
+                auto it = me->stepping_figures.begin();
                 std::advance(it, 5);
-                auto pos = dBodyGetPosition((*it)->body);
+                auto *pos = dBodyGetPosition(it->body);
                 float x = pos[0];
                 float y = pos[1];
                 float z = pos[2];
-                conductor_->step(x, y, z);
+                me->conductor_->step(x, y, z);
 
-                auto vel = dBodyGetLinearVel((*it)->body);
+                auto *vel = dBodyGetLinearVel(it->body);
 
-                dBodyAddForce((*it)->body, x - vel[0], y - vel[1], z - vel[2]);
+                dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
             }
 
             {
                 size_t i = 0;
-                for_each(movable_colliding_geoms.begin(), movable_colliding_geoms.end(), [&](dGeomID& g)
+                std::for_each(me->movable_colliding_geoms.begin(), me->movable_colliding_geoms.end(), [&](dGeomID& g)
                 {
-                    auto pos_fig = dGeomGetPosition(g);
-                    auto pos_fl = dGeomGetPosition(creature_->legs[leg_fl].first.geom);
-                    auto pos_fr = dGeomGetPosition(creature_->legs[leg_fr].first.geom);
+                    auto *pos_fig = dGeomGetPosition(g);
+                    auto *pos_fl = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.geom);
+                    auto *pos_fr = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.geom);
 
                     f = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
-                    (*input_from_world)[i++] = static_cast<_word>(f * coef1);
+                    (me->input_from_world)[i++] = static_cast<_word>(f * coef1);
                     f = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
-                    (*input_from_world)[i++] = static_cast<_word>(f * coef1);
+                    (me->input_from_world)[i++] = static_cast<_word>(f * coef1);
                 });
             }
 
-            creature_->step();
-            tripod_->step();
+            me->creature_->step();
+            me->tripod_->step();
 
-            for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
+            for_each(me->bounding_nodes.begin(), me->bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
 
-            collide_action();
+            me->collide_action();
 
-            dWorldStep(world, static_cast<float>(frame_length));
+            dWorldStep(me->world, static_cast<float>(frame_length));
 
-            dJointGroupEmpty (contactgroup_st);
+            dJointGroupEmpty(me->contactgroup);
 
 
             time_current = std::chrono::high_resolution_clock::now();
@@ -669,13 +657,24 @@ void world_3d::cycle()
         //        dWorldDestroy (world);
         //        dCloseODE();
 
-        state_ = bnn::state::stopped;
-    }));
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Caught std::exception: " << __FUNCTION__ << "|" << e.what() << std::endl;
+    }
+    catch (const char* c)
+    {
+        std::cout << "Caught exception: " << __FUNCTION__ << "|" << c << std::endl;
+    }
+    catch (...)
+    {
+        std::cout << "unknown error" << __FUNCTION__ << "|" << std::endl;
+    }
 
-    cycle_thread->detach();
+    me->state_ = bnn::state::stopped;
 }
 
-void nearCallback (void *data, dGeomID o1, dGeomID o2)
+void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
     //    int i,n;
     //    cout << "aaaaaaaaaaaaaaa" << endl;
@@ -770,7 +769,7 @@ void nearCallback (void *data, dGeomID o1, dGeomID o2)
                     //                    contact[i].surface.slip2 = 0.1;
                     //                    contact[i].surface.soft_erp = 0.5;
                     //                    contact[i].surface.soft_cfm = 0.3;
-                    dJointID c = dJointCreateContact (world_st,contactgroup_st,&contact[i]);
+                    dJointID c = dJointCreateContact (world_st, contactgroup_st, &contact[i]);
                     dJointAttach (c,
                                   dGeomGetBody(contact[i].geom.g1),
                                   dGeomGetBody(contact[i].geom.g2));
@@ -834,4 +833,5 @@ void world_3d::setup(void)
     setup_ogre();
     setup_ode();
     fill_it_up();
+    start();
 }

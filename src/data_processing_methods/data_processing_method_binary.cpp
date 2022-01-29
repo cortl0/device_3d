@@ -26,7 +26,7 @@ void data_processing_method_binary::set_inputs(bnn::brain& brn, _word& count, _w
     _word bools = get_bools(range_from, range_to, value, length);
     for(uint8_t j = 0; j < length; j++)
     {
-        brn.set_in(count++, (bools >> j) & 1);
+        brn.set_input(count++, (bools >> j) & 1);
 #ifdef show_debug_data
         str += std::to_string((bools >> j) & 1);
 #endif

@@ -19,7 +19,6 @@
 #include "Ogre.h"
 #include "OgreApplicationContext.h"
 #include "OgreInput.h"
-#include "OgreRTShaderSystem.h"
 
 #include "config.h"
 #include "creatures/creature.h"
@@ -36,60 +35,48 @@ static dJointGroupID contactgroup_st;
 
 class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputListener
 {
-    Ogre::Root* root;
-    Ogre::SceneManager* scnMgr;
-
-    dWorldID world;
-    dSpaceID space;
-
-    std::list<dGeomID> stationary_colliding_geoms;
-    std::list<dGeomID> movable_colliding_geoms;
-    std::list<dGeomID> creature_colliding_geoms;
-
-    std::list<std::unique_ptr<figure>> stepping_figures;
-
-    std::unique_ptr<conductor> conductor_;
-
-    std::shared_ptr<std::vector<_word>> input_from_world;
-
-    std::unique_ptr<creature> creature_;
-
-    std::list<Ogre::SceneNode*> bounding_nodes;
-
-//    std::unique_ptr<figure> ground;
-
-    Ogre::Camera* cam;
-
-//    Ogre::SceneNode* node_ogrehead;
-//    Ogre::SceneNode* node1;
-
-    dJointGroupID contactgroup;
-
-    Ogre::SceneNode* camNode;
-    Vector3 velocity = Vector3(0, 0, 0);
-
-    const float f = static_cast<float>(pow(0.5, 0.5));
-
-    std::unique_ptr<std::thread> cycle_thread;
-    std::unique_ptr<tripod> tripod_;
-    dGeomID plane;
-    bnn::state state_ = bnn::state::stopped;
-
 public:
     ~world_3d();
     world_3d();
     void collide_action();
     void fill_it_up();
-    void setup(void);
+    virtual void setup(void);
     void setup_ogre();
     void setup_ode();
     bool keyPressed(const OgreBites::KeyboardEvent& evt);
     bool keyReleased(const OgreBites::KeyboardEvent& evt);
-    void cycle();
+    static void function(world_3d *me);
     void load();
     void save();
     void start();
     void stop();
+
+private:
+    Ogre::Camera* cam;
+    Ogre::SceneNode* camNode;
+    Ogre::Root* root;
+    Ogre::SceneManager* scnMgr;
+
+    dJointGroupID contactgroup;
+    dGeomID plane;
+    dSpaceID space;
+    dWorldID world;
+
+    std::list<dGeomID> stationary_colliding_geoms;
+    std::list<dGeomID> movable_colliding_geoms;
+    std::list<dGeomID> creature_colliding_geoms;
+    std::list<figure> stepping_figures;
+    std::unique_ptr<conductor> conductor_;
+    std::vector<_word> input_from_world;
+    std::unique_ptr<creature> creature_;
+    std::list<Ogre::SceneNode*> bounding_nodes;
+    std::unique_ptr<std::thread> thread_;
+    std::unique_ptr<tripod> tripod_;
+    bnn::state state_ = bnn::state::stopped;
+
+    const float f = static_cast<float>(pow(0.5, 0.5));
+
+    static void collide_action2(world_3d *me, dGeomID o1, dGeomID o2);
 };
 
 #endif // WORLD_3D_H
