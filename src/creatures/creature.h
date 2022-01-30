@@ -23,7 +23,7 @@
 #include "OgreInput.h"
 #include "OgreRTShaderSystem.h"
 
-#include "bnn/src/brain_friend.h"
+#include "bnn/src/brain_tools.h"
 #include "config.h"
 #include "data_processing_methods/data_processing_method_linearly.h"
 #include "data_processing_methods/data_processing_method_binary.h"
@@ -56,7 +56,7 @@ class creature
 {
 public:
     cube body;
-    std::unique_ptr<bnn::brain_friend> brain_friend_;
+    std::unique_ptr<bnn::brain_tools> brain_;
     std::vector<leg> legs;
 
     ~creature();

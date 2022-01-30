@@ -13,7 +13,7 @@ CONFIG -= qt
 
 SOURCES += \
         bnn/src/brain/brain.cpp \
-        bnn/src/brain_friend.cpp \
+        bnn/src/brain_tools.cpp \
         bnn/src/brain/m_sequence.cpp \
         bnn/src/brain/neurons/binary.cpp \
         bnn/src/brain/neurons/motor.cpp \
@@ -44,7 +44,7 @@ SOURCES += \
 HEADERS += \
     bnn/src/brain/brain.h \
     bnn/src/brain/config.h \
-    bnn/src/brain_friend.h \
+    bnn/src/brain_tools.h \
     bnn/src/brain/m_sequence.h \
     bnn/src/brain/neurons/binary.h \
     bnn/src/brain/neurons/motor.h \

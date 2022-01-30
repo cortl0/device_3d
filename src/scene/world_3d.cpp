@@ -338,7 +338,7 @@ void world_3d::load()
 
     std::ifstream in(fs::current_path() / l.back(), std::ios::binary);
 
-    if(creature_->brain_friend_->load(in))
+    if(creature_->brain_->load(in))
     {
         cout << "loaded" << endl;
         if(l.size() > 8)
@@ -364,7 +364,7 @@ void world_3d::save()
     s += ".bnn";
     std::ofstream out(fs::current_path() / s, std::ios::binary);
 
-    if(creature_->brain_friend_->save(out))
+    if(creature_->brain_->save(out))
         cout << "saved" << endl;
     else
         cout << "save error" << endl;
@@ -568,38 +568,29 @@ void world_3d::function(world_3d *me)
 {
     try
     {
-        double frame_length = 1.0 / 60.0; // [seconds]
-
-        auto time_old = std::chrono::high_resolution_clock::now();
         auto time_current = std::chrono::high_resolution_clock::now();
-        auto time_diff = time_current - time_old;
+
+        auto time_old = time_current;
 
         while(bnn::state::start != me->state_);
 
         me->creature_->start();
 
-        //while(bnn::state::started != me->creature_->brain_friend_->state_);
-
-        //me->state_ = bnn::state::start;
-
         me->state_ = bnn::state::started;
 
         logging("world_3d::function() started");
 
-        float f;
+        float value;
+
         static float coef1 = 1000.0f;
 
         while(bnn::state::started == me->state_)
         {
+            dJointGroupEmpty(me->contactgroup);
+
             //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
-            try {
-
-                for_each(me->stepping_figures.begin(), me->stepping_figures.end(), [](figure& fig){ fig.step(); });
-
-            }  catch (...) {
-
-            }
+            for_each(me->stepping_figures.begin(), me->stepping_figures.end(), [](figure& fig){ fig.step(); });
 
             {
                 auto it = me->stepping_figures.begin();
@@ -623,10 +614,10 @@ void world_3d::function(world_3d *me)
                     auto *pos_fl = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.geom);
                     auto *pos_fr = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.geom);
 
-                    f = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
-                    (me->input_from_world)[i++] = static_cast<_word>(f * coef1);
-                    f = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
-                    (me->input_from_world)[i++] = static_cast<_word>(f * coef1);
+                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
+                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
+                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
+                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
                 });
             }
 
@@ -637,34 +628,15 @@ void world_3d::function(world_3d *me)
 
             me->collide_action();
 
-            dWorldStep(me->world, static_cast<float>(frame_length));
-
-            dJointGroupEmpty(me->contactgroup);
-
-
             time_current = std::chrono::high_resolution_clock::now();
 
-            time_diff = time_current - time_old;
-
-            if(frame_length * 1000000000.0 > time_diff.count())
-                usleep(static_cast<__useconds_t>((frame_length - time_diff.count() / 1000000000.0) * 1000000.0));
-
-            time_current = std::chrono::high_resolution_clock::now();
+            dWorldStep(me->world, (time_current - time_old).count() / 1000000000.0);
 
             time_old = time_current;
         }
 
         //        dWorldDestroy (world);
         //        dCloseODE();
-
-    }
-    catch (const std::exception& e)
-    {
-        std::cout << "Caught std::exception: " << __FUNCTION__ << "|" << e.what() << std::endl;
-    }
-    catch (const char* c)
-    {
-        std::cout << "Caught exception: " << __FUNCTION__ << "|" << c << std::endl;
     }
     catch (...)
     {

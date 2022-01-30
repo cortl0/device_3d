@@ -109,7 +109,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
     // (16)
     _word output_length = legs.size() * 2 * QUANTITY_OF_JOINTS_IN_LEG;
 
-    brain_friend_.reset(new bnn::brain_friend(random_array_length_in_power_of_two,
+    brain_.reset(new bnn::brain_tools(random_array_length_in_power_of_two,
                                               quantity_of_neurons_in_power_of_two,
                                               input_length,
                                               output_length,
@@ -187,7 +187,7 @@ void creature::start()
 {
     logging("creature::start() begin");
 
-    brain_friend_->start();
+    brain_->start();
 #ifdef learning_creature
     teacher->start();
 #endif
@@ -259,7 +259,7 @@ void creature::step()
     // Set inputs by legs states
     for(int i = 0; i < force_distance_count; i++)
     {
-        data_processing_method_->set_inputs(*brain_friend_, count_input, QUANTITY_OF_BITS_IN_BYTE, distance[i], -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, QUANTITY_OF_BITS_IN_BYTE, distance[i], -range, range, debug_str);
         if(i % 2)
             debug_str += " ";
     }
@@ -285,11 +285,11 @@ void creature::step()
         x_scalar = ort_x_rel[1] * vel[0] + ort_x_rel[2] * vel[1] + ort_x_rel[3] * vel[2];
         y_scalar = ort_y_rel[1] * vel[0] + ort_y_rel[2] * vel[1] + ort_y_rel[3] * vel[2];
         z_scalar = ort_z_rel[1] * vel[0] + ort_z_rel[2] * vel[1] + ort_z_rel[3] * vel[2];
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, x_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, y_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, z_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
     }
 
     debug_str += " ]\ndir [ x: ";
@@ -299,31 +299,31 @@ void creature::step()
         x_scalar = ort_x_rel[1] * 1 + ort_x_rel[2] * 0 + ort_x_rel[3] * 0;
         y_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
         z_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, x_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, y_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, z_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
         debug_str += "  y: ";
 
         x_scalar = ort_y_rel[1] * 1 + ort_y_rel[2] * 0 + ort_y_rel[3] * 0;
         y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 1 + ort_y_rel[3] * 0;
         z_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 0 + ort_y_rel[3] * 1;
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, x_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, y_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, z_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
         debug_str += "  z: ";
 
         x_scalar = ort_z_rel[1] * 1 + ort_z_rel[2] * 0 + ort_z_rel[3] * 0;
         y_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 1 + ort_z_rel[3] * 0;
         z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 0 + ort_z_rel[3] * 1;
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, x_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, y_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
         debug_str += " ";
-        data_processing_method_->set_inputs(*brain_friend_, count_input, length, z_scalar, -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
         debug_str += " ";
     }
 
@@ -360,7 +360,7 @@ void creature::step()
                 debug_str += std::to_string((value >> i) & 1);
 #endif
 
-                brain_friend_->set_input(count_input++, (value >> i) & 1);
+                brain_->set_input(count_input++, (value >> i) & 1);
             }
         }
 
@@ -382,7 +382,7 @@ void creature::step()
         debug_str += std::to_string(brn->get_out(i * 2)) + std::to_string(brn->get_out(i * 2 + 1));
 #endif
 
-        force[i] = static_cast<float>(brain_friend_->get_output(i * 2)) - static_cast<float>(brain_friend_->get_output(i * 2 + 1));
+        force[i] = static_cast<float>(brain_->get_output(i * 2)) - static_cast<float>(brain_->get_output(i * 2 + 1));
     }
 
     debug_str += " ]\n";
@@ -402,7 +402,7 @@ void creature::stop()
 {
     logging("creature::stop() begin");
 
-    brain_friend_->stop();
+    brain_->stop();
 #ifdef learning_creature
     teacher->stop();
 #endif
