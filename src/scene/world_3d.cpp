@@ -8,6 +8,8 @@
 
 #include "world_3d.h"
 
+#include <unistd.h>
+
 world_3d::~world_3d()
 {
     logging("");
@@ -492,7 +494,7 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(stepping_figures.back().node);
         }
 
-        for(int i = 0; i <0; i++)
+        for(int i = 0; i < 0; i++)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
@@ -568,10 +570,6 @@ void world_3d::function(world_3d *me)
 {
     try
     {
-        auto time_current = std::chrono::high_resolution_clock::now();
-
-        auto time_old = time_current;
-
         while(bnn::state::start != me->state_);
 
         me->creature_->start();
@@ -580,9 +578,15 @@ void world_3d::function(world_3d *me)
 
         logging("world_3d::function() started");
 
-        float value;
+        me->creature_->brain_->debug_out();
 
-        static float coef1 = 1000.0f;
+        auto time_old = std::chrono::high_resolution_clock::now();
+
+        float value, coef1 = 1000.0f;
+
+        double delta_time;
+
+        const dReal frame_length = 1.0 / 120;
 
         while(bnn::state::started == me->state_)
         {
@@ -622,17 +626,21 @@ void world_3d::function(world_3d *me)
             }
 
             me->creature_->step();
+
             me->tripod_->step();
 
             for_each(me->bounding_nodes.begin(), me->bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
 
             me->collide_action();
 
-            time_current = std::chrono::high_resolution_clock::now();
+            dWorldStep(me->world, frame_length);
 
-            dWorldStep(me->world, (time_current - time_old).count() / 1000000000.0);
+            delta_time = (std::chrono::high_resolution_clock::now() - time_old).count() / 1000000000.0;
 
-            time_old = time_current;
+            if(delta_time < frame_length)
+                usleep((frame_length - delta_time) * 1000000);
+
+            time_old = std::chrono::high_resolution_clock::now();
         }
 
         //        dWorldDestroy (world);
@@ -640,7 +648,7 @@ void world_3d::function(world_3d *me)
     }
     catch (...)
     {
-        std::cout << "unknown error" << __FUNCTION__ << "|" << std::endl;
+        logging("unknown error");
     }
 
     me->state_ = bnn::state::stopped;

@@ -67,7 +67,7 @@ public:
     void stop();
 
 private:
-    _word random_array_length_in_power_of_two = 24;
+    _word random_array_length_in_power_of_two = 27;
     _word quantity_of_neurons_in_power_of_two = 20;
     double force[force_distance_count];
     double distance[force_distance_count];

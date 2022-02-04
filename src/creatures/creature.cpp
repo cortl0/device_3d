@@ -110,10 +110,12 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
     _word output_length = legs.size() * 2 * QUANTITY_OF_JOINTS_IN_LEG;
 
     brain_.reset(new bnn::brain_tools(random_array_length_in_power_of_two,
-                                              quantity_of_neurons_in_power_of_two,
-                                              input_length,
-                                              output_length,
-                                              1));
+                                      quantity_of_neurons_in_power_of_two,
+                                      input_length,
+                                      output_length,
+                                      2));
+
+    brain_->primary_filling();
 
     {
         //   dJointGroupID cg_fl = dJointGroupCreate (0);
@@ -188,6 +190,7 @@ void creature::start()
     logging("creature::start() begin");
 
     brain_->start();
+
 #ifdef learning_creature
     teacher->start();
 #endif
@@ -224,7 +227,8 @@ void creature::step()
     _word data = teacher->get_data();
 #endif
 
-#if(1)
+//#define RANDOM_STEPS
+#ifndef RANDOM_STEPS
     for(size_t i = 0; i < legs.size(); i++)
     {
         fs = force[i * 2 + 0];
@@ -246,10 +250,11 @@ void creature::step()
     }
 #else
     // random movements
-    for(int i = 0; i < leg_count; i++)
+    for(int i = 0; i < LEGS_QUANTITY; i++)
     {
         fs = ((float)rand() / RAND_MAX) * 2 - 1;
         st = ((float)rand() / RAND_MAX) * 2 - 1;
+
         legs[i].step(fs, st);
     }
 #endif

@@ -13,7 +13,6 @@
 #include <list>
 #include <memory>
 #include <thread>
-#include <unistd.h>
 
 #include "ode.h"
 #include "Ogre.h"
