@@ -22,8 +22,8 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
 
     //    dBodySetPosition (first.body, 0, 0, dir_fr * first_z / 2);
     //dBodySetPosition (first.body, 0, 0, 0);
-    dBodySetPosition (second.body, direction * second_x / 2, 0, 0);
-    dBodySetPosition (third.body, direction * (second_x + third_x / 2), 0, 0);
+    dBodySetPosition(second.body, direction * second_x / 2, 0, 0);
+    dBodySetPosition(third.body, direction * (second_x + third_x / 2), 0, 0);
 
     joints.push_back(joint(world, dGeomGetBody(first.geom), dGeomGetBody(second.geom),
                            1 * direction, 0, 0,
@@ -49,8 +49,6 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
 
     relocate(x, y, z, q);
 
-    first.node->setPosition(0, -60, 0);
-
     //    dJointSetHinge2Param (j_st,dParamLoStop,-0.1);
     //    dJointSetHinge2Param (j_st,dParamHiStop,+0.1);
 
@@ -61,6 +59,17 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
     //    dJointSetHingeAnchor (j_st, 50, 0, 0);
     //    dJointSetHingeAxis (j_st, 0, 0, 1);
 
+}
+
+std::vector<figure *> leg::get_figures()
+{
+    std::vector<figure*> value;
+
+    value.push_back(&first);
+    value.push_back(&second);
+    value.push_back(&third);
+
+    return value;
 }
 
 void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)

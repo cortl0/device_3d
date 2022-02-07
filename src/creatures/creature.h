@@ -61,6 +61,7 @@ public:
 
     ~creature();
     creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word> &input_from_world);
+    std::vector<figure*> get_figures();
     void set_position(dReal x, dReal y, dReal z);
     void start();
     void step();

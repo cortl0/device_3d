@@ -47,6 +47,7 @@ public:
     leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space,
         dReal x, dReal y, dReal z,
         dQuaternion q, float direction, uint32 color);
+    std::vector<figure*> get_figures();
     void relocate(dReal dx, dReal dy, dReal dz, dQuaternion q);
 
     /**

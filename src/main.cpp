@@ -15,13 +15,6 @@ int main()
 {
     try
     {
-
-        //loging("msg")
-        //throw_error("aaa")
-
-
-
-
         world_3d app;
         app.initApp();
         app.getRoot()->startRendering();

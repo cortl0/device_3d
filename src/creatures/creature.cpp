@@ -149,6 +149,22 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
     }
 }
 
+std::vector<figure*> creature::get_figures()
+{
+    std::vector<figure*> value;
+
+    value.push_back(&body);
+
+    std::for_each(legs.begin(),legs.end(), [&](leg& l)
+    {
+        auto figures_of_leg = l.get_figures();
+
+        std::for_each(figures_of_leg.begin(),figures_of_leg.end(), [&](figure* f) { value.push_back(f); });
+    });
+
+    return value;
+}
+
 void creature::set_position(dReal x, dReal y, dReal z)
 {
     auto *p = dBodyGetPosition(body.body);

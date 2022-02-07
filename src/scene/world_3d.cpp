@@ -250,7 +250,7 @@ void world_3d::setup_ogre()
     }
 
     cam = scnMgr->createCamera("myCam");
-    cam->setNearClipDistance(1); // (5); // specific to this sample
+    cam->setNearClipDistance(1);
     cam->setAutoAspectRatio(true);
 
     camNode->attachObject(cam);
@@ -338,9 +338,27 @@ void world_3d::load()
 
     l.sort();
 
-    std::ifstream in(fs::current_path() / l.back(), std::ios::binary);
+    std::ifstream ifs(fs::current_path() / l.back(), std::ios::binary);
 
-    if(creature_->brain_->load(in))
+    ifs.read(reinterpret_cast<char*>(tripod_.get()), sizeof(tripod_.get()) - 8);
+
+    auto load_figure = [&ifs](dBodyID id)
+    {
+        double pos[3];
+        ifs.read(reinterpret_cast<char*>(pos), sizeof(pos));
+        dBodySetPosition(id, pos[0], pos[1], pos[2]);
+
+        double dir[4];
+        ifs.read(reinterpret_cast<char*>(dir), sizeof(dir));
+        dBodySetQuaternion(id, dir);
+    };
+
+    auto figures = creature_->get_figures();
+    for_each(figures.begin(), figures.end(), [&](const figure* f) { load_figure(f->body); });
+
+    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const figure& f) { load_figure(f.body); });
+
+    if(creature_->brain_->load(ifs))
     {
         cout << "loaded" << endl;
         if(l.size() > 8)
@@ -349,7 +367,9 @@ void world_3d::load()
     else
         cout << "load error" << endl;
 
-    if(bnn::state::stopped == state)
+    ifs.close();
+
+    if(bnn::state::started == state)
         start();
 }
 
@@ -364,26 +384,41 @@ void world_3d::save()
     std::strftime(time_buffer, 15, "%Y%m%d%H%M%S", std::localtime(&time));
     std::string s(time_buffer);
     s += ".bnn";
-    std::ofstream out(fs::current_path() / s, std::ios::binary);
+    std::ofstream ofs(fs::current_path() / s, std::ios::binary);
 
-    if(creature_->brain_->save(out))
+    ofs.write(reinterpret_cast<char*>(tripod_.get()), sizeof(tripod_.get()) - 8);
+
+    auto save_figure = [&ofs](dBodyID id)
+    {
+        auto* pos = dBodyGetPosition(id);
+        ofs.write(reinterpret_cast<const char*>(pos), sizeof(pos) * 3);
+
+        auto* dir = dBodyGetQuaternion(id);
+        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dir) * 4);
+    };
+
+    auto figures = creature_->get_figures();
+    for_each(figures.begin(), figures.end(), [&](const figure* f) { save_figure(f->body); });
+
+    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const figure& f) { save_figure(f.body); });
+
+    if(creature_->brain_->save(ofs))
         cout << "saved" << endl;
     else
         cout << "save error" << endl;
 
-    if(bnn::state::stopped == state)
+    ofs.close();
+
+    if(bnn::state::started == state)
         start();
 }
 
 void world_3d::start()
 {
-    logging("world_3d::start() begin");
-
-    if(bnn::state::stop == state_)
-        while(bnn::state::stopped != state_);
-
-    if(bnn::state::start == state_ || bnn::state::started == state_ || bnn::state::stopped != state_)
+    if(bnn::state::stopped != state_)
         return;
+
+    logging("world_3d::start() begin");
 
     thread_.reset(new std::thread(function, this));
 
@@ -398,13 +433,10 @@ void world_3d::start()
 
 void world_3d::stop()
 {
-    logging("world_3d::stop() begin");
-
-    if(bnn::state::start == state_)
-        while(bnn::state::started != state_);
-
-    if(bnn::state::stop == state_ || bnn::state::stopped == state_ || bnn::state::started != state_)
+    if(bnn::state::started != state_)
         return;
+
+    logging("world_3d::stop() begin");
 
     getRoot()->queueEndRendering();
 
@@ -469,10 +501,10 @@ void world_3d::fill_it_up()
 
             stepping_figures.back().set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
-            dBodySetPosition (stepping_figures.back().body,
-                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
-                              ((static_cast<float>(rand()) / RAND_MAX)) * 500 * device_3d_SCALE,
-                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE);
+            dBodySetPosition(stepping_figures.back().body,
+                             ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
+                             ((static_cast<float>(rand()) / RAND_MAX)) * 500 * device_3d_SCALE,
+                             ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE);
 
             movable_colliding_geoms.push_back(stepping_figures.back().geom);
 
@@ -503,10 +535,10 @@ void world_3d::fill_it_up()
 
             stepping_figures.back().set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
 
-            dBodySetPosition (stepping_figures.back().body,
-                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
-                              ((static_cast<float>(rand()) / RAND_MAX)) * 1500 * device_3d_SCALE,
-                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE);
+            dBodySetPosition(stepping_figures.back().body,
+                             ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
+                             ((static_cast<float>(rand()) / RAND_MAX)) * 1500 * device_3d_SCALE,
+                             ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE);
 
             movable_colliding_geoms.push_back(stepping_figures.back().geom);
 
@@ -813,5 +845,12 @@ void world_3d::setup(void)
     setup_ogre();
     setup_ode();
     fill_it_up();
+
+//#define SAVE_LOAD_TEST
+#ifdef SAVE_LOAD_TEST
+    save();
+    load();
+#endif
+
     start();
 }

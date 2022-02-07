@@ -25,7 +25,7 @@ sphere::sphere(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSp
     dBodySetMass(body, &this->mass);
     dGeomSetBody(geom, body);
 
-    dBodySetPosition (body, 0, 0, 0);
+    dBodySetPosition(body, 0, 0, 0);
     //dBodySetQuaternion (body, dQuaternion{1,0,0,0});
 
     //dSpaceAdd (space, geom);
