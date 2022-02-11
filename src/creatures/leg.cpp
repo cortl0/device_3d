@@ -28,12 +28,12 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
     joints.push_back(joint(world, dGeomGetBody(first.geom), dGeomGetBody(second.geom),
                            1 * direction, 0, 0,
                            0, 0,
-                           -M_PI / 24, M_PI / 24,
+                           -M_PI / 12, M_PI / 12,
                            LEG_FIRST_JOINT_TORQUE_COEFFICENT));
     joints.push_back(joint(world, dGeomGetBody(second.geom), dGeomGetBody(third.geom),
                            0, 1 * direction, direction * second_x,
                            0, 0,
-                           +M_PI * 1 / 6, +M_PI * 1 / 5,
+                           +M_PI * 1 / 6, +M_PI * 2 / 6,
                            LEG_SECOND_JOINT_TORQUE_COEFFICENT));
 
     if(0)

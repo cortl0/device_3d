@@ -14,6 +14,8 @@ world_3d::~world_3d()
 {
     logging("");
     stop();
+    if(!shutdown)
+        getRoot()->queueEndRendering();
     //    dWorldDestroy (world);
     //            dCloseODE();
 }
@@ -172,6 +174,8 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
     {
     case OgreBites::SDLK_ESCAPE:
         stop();
+        shutdown = true;
+        getRoot()->queueEndRendering();
         break;
     case config::keyboard_key_c: // load
         load();
@@ -340,8 +344,6 @@ void world_3d::load()
 
     std::ifstream ifs(fs::current_path() / l.back(), std::ios::binary);
 
-    ifs.read(reinterpret_cast<char*>(tripod_.get()), sizeof(tripod_.get()) - 8);
-
     auto load_figure = [&ifs](dBodyID id)
     {
         double pos[3];
@@ -352,6 +354,10 @@ void world_3d::load()
         ifs.read(reinterpret_cast<char*>(dir), sizeof(dir));
         dBodySetQuaternion(id, dir);
     };
+
+    load_figure(tripod_->detector);
+    load_figure(tripod_->upper);
+    load_figure(tripod_->lower);
 
     auto figures = creature_->get_figures();
     for_each(figures.begin(), figures.end(), [&](const figure* f) { load_figure(f->body); });
@@ -386,8 +392,6 @@ void world_3d::save()
     s += ".bnn";
     std::ofstream ofs(fs::current_path() / s, std::ios::binary);
 
-    ofs.write(reinterpret_cast<char*>(tripod_.get()), sizeof(tripod_.get()) - 8);
-
     auto save_figure = [&ofs](dBodyID id)
     {
         auto* pos = dBodyGetPosition(id);
@@ -396,6 +400,10 @@ void world_3d::save()
         auto* dir = dBodyGetQuaternion(id);
         ofs.write(reinterpret_cast<const char*>(dir), sizeof(dir) * 4);
     };
+
+    save_figure(tripod_->detector);
+    save_figure(tripod_->upper);
+    save_figure(tripod_->lower);
 
     auto figures = creature_->get_figures();
     for_each(figures.begin(), figures.end(), [&](const figure* f) { save_figure(f->body); });
@@ -437,8 +445,6 @@ void world_3d::stop()
         return;
 
     logging("world_3d::stop() begin");
-
-    getRoot()->queueEndRendering();
 
     state_ = bnn::state::stop;
 

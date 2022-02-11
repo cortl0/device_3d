@@ -51,6 +51,7 @@ public:
     void stop();
 
 private:
+    bool shutdown = false;
     Ogre::Camera* cam;
     Ogre::SceneNode* camNode;
     Ogre::Root* root;
