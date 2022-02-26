@@ -8,6 +8,9 @@
 
 #include "tripod.h"
 
+namespace bnn_device_3d
+{
+
 tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
     : target(target), cam_node(cam_node)
 {
@@ -88,3 +91,5 @@ void tripod::step()
 
     cam_node->setOrientation(upper_quat[0], upper_quat[1], upper_quat[2], upper_quat[3]);
 }
+
+} // bnn_device_3d

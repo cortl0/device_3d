@@ -10,6 +10,9 @@
 
 #include "../bnn/src/brain/config.h"
 
+namespace bnn_device_3d::creatures
+{
+
 joint::joint(dWorldID world, dBodyID first_body_id, dBodyID second_body_id,
              double dir_y, double dir_z, double anchor_x,
              double anchor_y, double anchor_z,
@@ -46,3 +49,5 @@ void joint::set_torque(double torque)
 {
     dJointAddHingeTorque(joint_id, torque * torque_coefficient / (1 + abs(dJointGetHingeAngleRate(joint_id))));
 }
+
+} // bnn_device_3d::creatures

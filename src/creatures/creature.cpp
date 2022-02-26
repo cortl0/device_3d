@@ -10,14 +10,16 @@
 
 #include <unistd.h>
 
+namespace bnn_device_3d::creatures
+{
+
 creature::~creature()
 {
     logging("");
     stop();
 }
 
-creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word> &input_from_world)
-    : input_from_world(input_from_world)
+creature::creature(Ogre::SceneManager* scnMgr, dWorldID world)
 {
     switch (1)
     {
@@ -39,22 +41,48 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
     teacher.reset(new teacher_walking());
 #endif
 
+    auto make_fixed_joint = [&](dGeomID g)
+    {
+        dJointGroupID jg = dJointGroupCreate (0);
+        dJointID j = dJointCreateFixed (world, jg);
+        dJointAttach(j, dGeomGetBody(body.geom), dGeomGetBody(g));
+        dJointSetFixed(j);
+    };
+
     space = dSimpleSpaceCreate(nullptr);
 
-    body = cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
+    {
+        body = cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
 
-    body.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+        body.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
-    colliding_geoms.push_back(body.geom);
+        colliding_geoms.push_back(body.geom);
+    }
 
+    {
+        body_sign = cube("body_sign", scnMgr, world, space, 0.00001, body_width * 0.95, body_height, body_width * 0.95);
+        //body_sign = cube("body_sign", scnMgr, world, space, 0.00001, body_length * 2, body_length * 2, body_length * 2);
+
+        auto *p = dBodyGetPosition(body.body);
+
+        dBodySetPosition(body_sign.body, p[0], p[1] + body_height / 50.0, p[2]);
+        //dBodySetPosition(body_sign.body, p[0], p[1] + body_height * 5.0, p[2]);
+
+        body_sign.set_material(body_sign.create_material_body_sign(256));
+
+        make_fixed_joint(body_sign.geom);
+    }
+
+    if(1)
     {
         // leg_fl
         dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
         legs.push_back(leg("leg_fl", scnMgr, world, space,
                            -body_width / 2, 0, -body_length / 2,
-                           q, -1, 0x000077ff));
+                           q, -1, 0x0000ffff));
     }
 
+    if(1)
     {
         // leg_fr
         dQuaternion q = {1, 0, 0, 0};
@@ -63,6 +91,25 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
                            q, 1, 0x777777ff));
     }
 
+    if(1)
+    {
+        // middle_l
+        dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
+        legs.push_back(leg("middle_l", scnMgr, world, space,
+                           -body_width / 2 + 25 * device_3d_SCALE, 0, 0,
+                           q, -1, 0x777777ff));
+    }
+
+    if(1)
+    {
+        // middle_r
+        dQuaternion q = {1, 0, 0, 0};
+        legs.push_back(leg("middle_r", scnMgr, world, space,
+                           body_width / 2 - 25 * device_3d_SCALE, 0, 0,
+                           q, 1, 0x777777ff));
+    }
+
+    if(1)
     {
         // leg_rl
         dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
@@ -71,6 +118,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
                            q, -1, 0x777777ff));
     }
 
+    if(1)
     {
         // leg_rr
         dQuaternion q = {1, 0, 0, 0};
@@ -84,20 +132,17 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
         colliding_geoms.push_back(legs[i].second.geom);
         colliding_geoms.push_back(legs[i].third.geom);
 
-        dJointGroupID jg = dJointGroupCreate (0);
-        dJointID j = dJointCreateFixed (world, jg);
-        dJointAttach(j, dGeomGetBody(body.geom), dGeomGetBody(legs[i].first.geom));
-        dJointSetFixed(j);
+        make_fixed_joint(legs[i].first.geom);
     }
 
-    // I feel my legs (128)
-    _word input_length = legs.size() * QUANTITY_OF_BITS_IN_BYTE * QUANTITY_OF_JOINTS_IN_LEG * 2;
+    // I feel my legs (32)
+    input_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
 
     // I feel my velosity [2 bytes / coordinate] (48)
     input_length += 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
 
-    // I feel my orientation by the three dots on my body [2 bytes / coordinate] (144)
-    input_length += 3 * 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
+    // I feel my orientation [2 bytes / coordinate] (48)
+    input_length += 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
 
 #ifdef creature_sees_world
     // I see figures with two eyes (128)
@@ -107,13 +152,17 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
     // input_length = 448
 
     // (16)
-    _word output_length = legs.size() * 2 * QUANTITY_OF_JOINTS_IN_LEG;
+    output_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
+
+    force.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG);
+
+    distance.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG);
 
     brain_.reset(new bnn::brain_tools(random_array_length_in_power_of_two,
                                       quantity_of_neurons_in_power_of_two,
                                       input_length,
                                       output_length,
-                                      2));
+                                      threads_count_in_power_of_two));
 
     brain_->primary_filling();
 
@@ -142,7 +191,7 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world, std::vector<_word
         //        c = dJointCreateTransmission (world, cg_fl);
     }
 
-    for(int i = 0; i < force_distance_count; i++)
+    for(size_t i = 0; i < force.size(); i++)
     {
         force[i] = 0;
         distance[i] = 0;
@@ -216,7 +265,7 @@ void creature::start()
     logging("creature::start() end");
 }
 
-void creature::step()
+void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
 {
     std::string debug_str = "legs [ ";
 
@@ -233,22 +282,20 @@ void creature::step()
     static const Ogre::Quaternion ort_y(0, 0, 1, 0);
     static const Ogre::Quaternion ort_z(0, 0, 0, 1);
 
-    dReal x_scalar;
-    dReal y_scalar;
-    dReal z_scalar;
-
     body.step();
+
+    body_sign.step();
 
 #ifdef learning_creature
     _word data = teacher->get_data();
 #endif
 
-//#define RANDOM_STEPS
+    //#define RANDOM_STEPS
 #ifndef RANDOM_STEPS
     for(size_t i = 0; i < legs.size(); i++)
     {
-        fs = force[i * 2 + 0];
-        st = force[i * 2 + 1];
+        fs = force[i * QUANTITY_OF_JOINTS_IN_LEG + 0];
+        st = force[i * QUANTITY_OF_JOINTS_IN_LEG + 1];
 
 #ifdef learning_creature
         float c = static_cast<float>(((static_cast<int>(data) >> (i * 2)) & 1) * 2 - 1);
@@ -259,10 +306,19 @@ void creature::step()
         }
 #endif
 
+        //#define REAR_LEGS_OFF
+#ifdef REAR_LEGS_OFF
+        if(NUMBER_OF_REAR_LEFT_LEG == i || NUMBER_OF_REAR_RIGHT_LEG == i)
+        {
+            fs = 0;
+            st = 0;
+        }
+#endif
+
         legs[i].step(fs, st);
 
-        distance[i * 2 + 0] = fs;
-        distance[i * 2 + 1] = st;
+        distance[i * QUANTITY_OF_JOINTS_IN_LEG + 0] = fs;
+        distance[i * QUANTITY_OF_JOINTS_IN_LEG + 1] = st;
     }
 #else
     // random movements
@@ -278,143 +334,76 @@ void creature::step()
     _word count_input = 0;
 
     // Set inputs by legs states
-    for(int i = 0; i < force_distance_count; i++)
+    for(size_t i = 0; i < distance.size(); i++)
     {
-        data_processing_method_->set_inputs(*brain_, count_input, QUANTITY_OF_BITS_IN_BYTE, distance[i], -range, range, debug_str);
+        data_processing_method_->set_inputs(*brain_, count_input, QUANTITY_BITS_PER_JOINT, distance[i], -range, range, debug_str);
         if(i % 2)
             debug_str += " ";
     }
-    debug_str += " ] vel [ ";
 
-    const dReal* body_q = dBodyGetQuaternion(body.body);
-    Ogre::Quaternion body_quat = Ogre::Quaternion(body_q[0], body_q[1], body_q[2], body_q[3]);
-    Ogre::Quaternion body_quat_inv = body_quat.Inverse();
+    debug_str += "]\nvel [ ";
+    speedometer_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str);
 
-    // Relative ort vectors
-    Ogre::Quaternion ort_x_rel = body_quat * ort_x * body_quat_inv;
-    Ogre::Quaternion ort_y_rel = body_quat * ort_y * body_quat_inv;
-    Ogre::Quaternion ort_z_rel = body_quat * ort_z * body_quat_inv;
-
-    ort_x_rel.normalise();
-    ort_y_rel.normalise();
-    ort_z_rel.normalise();
-
-    {
-        // Set inputs by velosity
-        auto *vel = dBodyGetLinearVel(body.body);
-
-        x_scalar = ort_x_rel[1] * vel[0] + ort_x_rel[2] * vel[1] + ort_x_rel[3] * vel[2];
-        y_scalar = ort_y_rel[1] * vel[0] + ort_y_rel[2] * vel[1] + ort_y_rel[3] * vel[2];
-        z_scalar = ort_z_rel[1] * vel[0] + ort_z_rel[2] * vel[1] + ort_z_rel[3] * vel[2];
-        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
-    }
-
-    debug_str += " ]\ndir [ x: ";
-
-    {
-        // Set inputs by direction
-        x_scalar = ort_x_rel[1] * 1 + ort_x_rel[2] * 0 + ort_x_rel[3] * 0;
-        y_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 1 + ort_x_rel[3] * 0;
-        z_scalar = ort_x_rel[1] * 0 + ort_x_rel[2] * 0 + ort_x_rel[3] * 1;
-        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
-        debug_str += "  y: ";
-
-        x_scalar = ort_y_rel[1] * 1 + ort_y_rel[2] * 0 + ort_y_rel[3] * 0;
-        y_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 1 + ort_y_rel[3] * 0;
-        z_scalar = ort_y_rel[1] * 0 + ort_y_rel[2] * 0 + ort_y_rel[3] * 1;
-        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
-        debug_str += "  z: ";
-
-        x_scalar = ort_z_rel[1] * 1 + ort_z_rel[2] * 0 + ort_z_rel[3] * 0;
-        y_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 1 + ort_z_rel[3] * 0;
-        z_scalar = ort_z_rel[1] * 0 + ort_z_rel[2] * 0 + ort_z_rel[3] * 1;
-        data_processing_method_->set_inputs(*brain_, count_input, length, x_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, y_scalar, -range, range, debug_str);
-        debug_str += " ";
-        data_processing_method_->set_inputs(*brain_, count_input, length, z_scalar, -range, range, debug_str);
-        debug_str += " ";
-    }
-
-    //    std::unique_ptr<data_processing_method_base> dpm(new data_processing_method_logarithmic());
-    //std::unique_ptr<data_processing_method_base> dpm(new data_processing_method_binary());
-    //std::unique_ptr<data_processing_method> dpm(new data_processing_method_linearly());
+    debug_str += " ]\ndir [ ";
+    gyroscope_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str);
 
 #ifdef creature_sees_world
 #ifdef show_debug_data
     debug_str += " ]\nobj [ ";
 #endif
     // I see figures with two eyes
-    for_each(input_from_world.begin(), input_from_world.end(), [&](_word value)
+    for_each(distance_geoms.begin(), distance_geoms.end(), [&](dGeomID& value)
     {
-        //        dpm->set_inputs(*brn, count_input, _word_bits, value, 0.f, 10.0f, debug_str);
-        if(0)
-        {
-            bool b = false;
-            for(int i = QUANTITY_OF_BITS_IN_WORD - 1; i >= 0; i--)
-            {
-                if(!b)
-                    if(value & (1 << (i - 1)))
-                        b = true;
-
-                value |= (b << (i - 1));
-            }
-        }
-
-        if(1)
-        {
-            for(_word i = 0; i < QUANTITY_OF_BITS_IN_WORD; i++)
-            {
-#ifdef show_debug_data
-                debug_str += std::to_string((value >> i) & 1);
-#endif
-
-                brain_->set_input(count_input++, (value >> i) & 1);
-            }
-        }
+#define MAX_DISTANCE_TO_OBJECT 100
+        distance_.set_inputs(legs[NUMBER_OF_FRONT_LEFT_LEG].first.body, value, *brain_.get(), count_input, 32, MAX_DISTANCE_TO_OBJECT, debug_str);
+        distance_.set_inputs(legs[NUMBER_OF_FRONT_RIGHT_LEG].first.body, value, *brain_.get(), count_input, 32, MAX_DISTANCE_TO_OBJECT, debug_str);
 
         debug_str += " ";
-
     });
 #else
+
 #ifdef show_debug_data
     debug_str += " ";
 #endif
 #endif
 
-    debug_str += " ] out [ ";
+    debug_str += "]\nout [ ";
 
     // I can move legs
-    for(_word i = 0; i < force_distance_count; i++)
+    for(_word i = 0; i < force.size(); i++)
     {
+        force[i] = 0;
+
+        for(size_t j = 0; j < QUANTITY_BITS_PER_JOINT; j++)
+        {
+            force[i] += static_cast<float>(brain_->get_output(i * QUANTITY_BITS_PER_JOINT + j) * 2 - 1);
+
 #ifdef show_debug_data
-        debug_str += std::to_string(brn->get_out(i * 2)) + std::to_string(brn->get_out(i * 2 + 1));
+            debug_str += std::to_string(brain_->get_output(i * QUANTITY_BITS_PER_JOINT + j));
+#endif
+        }
+
+#ifdef show_debug_data
+            debug_str += " ";
 #endif
 
-        force[i] = static_cast<float>(brain_->get_output(i * 2)) - static_cast<float>(brain_->get_output(i * 2 + 1));
+        force[i] /= QUANTITY_BITS_PER_JOINT;
     }
 
     debug_str += " ]\n";
 #ifdef show_debug_data
     static _word iter = 0;
-    _word www = brn->iteration;
+    _word www = brain_->get_iteration();
     if(www > iter)
     {
         iter = www;
         debug_str += std::to_string(www);
-        std::cout << debug_str << std::endl;
+
+        if(verbose)
+        {
+            verbose = false;
+            std::cout << debug_str << std::endl;
+        }
     }
 #endif
 }
@@ -430,3 +419,5 @@ void creature::stop()
 
     logging("creature::stop() end");
 }
+
+} // bnn_device_3d::creatures

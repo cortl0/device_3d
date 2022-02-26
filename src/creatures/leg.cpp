@@ -8,6 +8,9 @@
 
 #include "leg.h"
 
+namespace bnn_device_3d::creatures
+{
+
 leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space,
          dReal x, dReal y, dReal z,
          dQuaternion q, float direction, uint32 color)
@@ -30,10 +33,12 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
                            0, 0,
                            -M_PI / 12, M_PI / 12,
                            LEG_FIRST_JOINT_TORQUE_COEFFICENT));
+
     joints.push_back(joint(world, dGeomGetBody(second.geom), dGeomGetBody(third.geom),
                            0, 1 * direction, direction * second_x,
                            0, 0,
-                           +M_PI * 1 / 6, +M_PI * 2 / 6,
+                           //+M_PI * 1 / 6, +M_PI * 2 / 6,
+                           +M_PI * -1 / 6, +M_PI * 2 / 6,
                            LEG_SECOND_JOINT_TORQUE_COEFFICENT));
 
     if(0)
@@ -135,3 +140,5 @@ void leg::step(double& fs, double& st)
     second.step();
     third.step();
 }
+
+} // bnn_device_3d::creatures

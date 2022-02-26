@@ -14,6 +14,9 @@
 
 #include "config.h"
 
+namespace bnn_device_3d
+{
+
 struct tripod
 {
     dBodyID target;
@@ -44,5 +47,7 @@ struct tripod
 
     void step();
 };
+
+} // bnn_device_3d
 
 #endif // TRIPOD_H

@@ -14,7 +14,7 @@
 #define device_3d_SCALE 0.01f
 #define device_3d_MASS_SCALE 1.0f
 
-//#define show_debug_data
+#define show_debug_data
 //#define creature_legs_knees_is_blocked
 //#define learning_creature
 
@@ -28,6 +28,7 @@ struct config
         keyboard_key_c = 0x63,
         keyboard_key_x = 0x78,
         keyboard_key_z = 0x7A,
+        keyboard_key_v = 0x76,
         keyboard_key_a = 0x61,
         keyboard_key_d = 0x64,
         keyboard_key_w = 0x77,

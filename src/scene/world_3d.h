@@ -32,6 +32,9 @@ using namespace Ogre;
 static dWorldID world_st;
 static dJointGroupID contactgroup_st;
 
+namespace bnn_device_3d
+{
+
 class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputListener
 {
 public:
@@ -67,8 +70,7 @@ private:
     std::list<dGeomID> creature_colliding_geoms;
     std::list<figure> stepping_figures;
     std::unique_ptr<conductor> conductor_;
-    std::vector<_word> input_from_world;
-    std::unique_ptr<creature> creature_;
+    std::unique_ptr<creatures::creature> creature_;
     std::list<Ogre::SceneNode*> bounding_nodes;
     std::unique_ptr<std::thread> thread_;
     std::unique_ptr<tripod> tripod_;
@@ -76,7 +78,11 @@ private:
 
     const float f = static_cast<float>(pow(0.5, 0.5));
 
+    bool verbose = false;
+
     static void collide_action2(world_3d *me, dGeomID o1, dGeomID o2);
 };
+
+} // bnn_device_3d
 
 #endif // WORLD_3D_H

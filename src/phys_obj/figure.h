@@ -40,6 +40,8 @@ struct figure
      */
     static MaterialPtr create_material_chess(int size, int step, uint32 color0, uint32 color1);
 
+    static MaterialPtr create_material_body_sign(size_t size);
+
     void set_material(MaterialPtr materialPtr);
     void step();
 };

@@ -31,11 +31,16 @@
 #define third_z (30 * device_3d_SCALE)
 #define third_mass (third_x * third_y * third_z * device_3d_MASS_SCALE)
 
+//#define LEG_FIRST_JOINT_TORQUE_COEFFICENT 32.0f
+//#define LEG_SECOND_JOINT_TORQUE_COEFFICENT 8.0f
 #define LEG_FIRST_JOINT_TORQUE_COEFFICENT 32.0f
-#define LEG_SECOND_JOINT_TORQUE_COEFFICENT 8.0f
+#define LEG_SECOND_JOINT_TORQUE_COEFFICENT 32.0f
 
 #define FIRST_JOINT 0
 #define SECOND_JOINT 1
+
+namespace bnn_device_3d::creatures
+{
 
 class leg
 {
@@ -67,5 +72,7 @@ private:
 
     std::vector<joint> joints;
 };
+
+} // bnn_device_3d::creatures
 
 #endif // CREATURE_LEG_H

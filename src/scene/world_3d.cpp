@@ -10,6 +10,9 @@
 
 #include <unistd.h>
 
+namespace bnn_device_3d
+{
+
 world_3d::~world_3d()
 {
     logging("");
@@ -126,7 +129,7 @@ void world_3d::collide_action()
 
 bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
 {
-    float force = 25;
+    float force = 100;
     switch (evt.keysym.sym)
     {
     case OgreBites::SDLK_DOWN:
@@ -188,6 +191,9 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
             stop();
         else if(bnn::state::stopped == state_)
             start();
+        break;
+    case config::keyboard_key_v: // verbose
+        verbose = !verbose;
         break;
     case config::keyboard_key_a: // left
         dBodyAddForce(creature_->body.body, force, 0, 0);
@@ -500,7 +506,7 @@ void world_3d::fill_it_up()
     // creating movable objects
     {
         {
-            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
+            float r = 120.0 * device_3d_SCALE;// ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
 
             stepping_figures.push_back(cube("cube_qqq", scnMgr, world, space,
                                             r*r*r * device_3d_MASS_SCALE, r, r, r));
@@ -532,9 +538,10 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(stepping_figures.back().node);
         }
 
+        //rand();rand();
         for(int i = 0; i < 0; i++)
         {
-            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
+            float r = ((static_cast<float>(rand()) / RAND_MAX) * 50 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(sphere("sphere_" + std::to_string(i), scnMgr, world, space,
                                               r*r*r * device_3d_MASS_SCALE, r));
@@ -552,18 +559,17 @@ void world_3d::fill_it_up()
         }
     }
 
-    input_from_world = std::vector<uint32>(QUANTITY_OF_EYES * QUANTITY_OF_SHAPES_WHICH_I_SEE);
-    for_each(input_from_world.begin(), input_from_world.end(), [](uint32& i){ i = 1; });
-
     // creating creature
     {
-        creature_.reset(new creature(scnMgr, world, input_from_world));
+        creature_.reset(new creatures::creature(scnMgr, world));
 
         creature_->set_position(0, 1, 0);
 
         creature_colliding_geoms.push_back(creature_->body.geom);
 
         bounding_nodes.push_back(creature_->body.node);
+
+        bounding_nodes.push_back(creature_->body_sign.node);
 
         for (size_t i = 0; i < creature_->legs.size(); i++)
         {
@@ -648,22 +654,22 @@ void world_3d::function(world_3d *me)
                 dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
             }
 
-            {
-                size_t i = 0;
-                std::for_each(me->movable_colliding_geoms.begin(), me->movable_colliding_geoms.end(), [&](dGeomID& g)
-                {
-                    auto *pos_fig = dGeomGetPosition(g);
-                    auto *pos_fl = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.geom);
-                    auto *pos_fr = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.geom);
+//            {
+//                size_t i = 0;
+//                std::for_each(me->movable_colliding_geoms.begin(), me->movable_colliding_geoms.end(), [&](dGeomID& g)
+//                {
+//                    auto *pos_fig = dGeomGetPosition(g);
+//                    auto *pos_fl = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.geom);
+//                    auto *pos_fr = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.geom);
 
-                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
-                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
-                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
-                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
-                });
-            }
+//                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
+//                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
+//                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
+//                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
+//                });
+//            }
 
-            me->creature_->step();
+            me->creature_->step(me->movable_colliding_geoms, me->verbose);
 
             me->tripod_->step();
 
@@ -860,3 +866,5 @@ void world_3d::setup(void)
 
     start();
 }
+
+} // bnn_device_3d

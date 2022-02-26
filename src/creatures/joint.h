@@ -11,6 +11,9 @@
 
 #include "ode.h"
 
+namespace bnn_device_3d::creatures
+{
+
 class joint
 {
 public:
@@ -28,5 +31,7 @@ private:
     double angle_start ,angle_end;
     double torque_coefficient;
 };
+
+} // bnn_device_3d::creatures
 
 #endif // CREATURE_LEG_JOINT_H

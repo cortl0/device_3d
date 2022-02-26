@@ -27,6 +27,10 @@ SOURCES += \
         creatures/creature.cpp \
         creatures/joint.cpp \
         creatures/leg.cpp \
+        creatures/sensors/acceleration.cpp \
+        creatures/sensors/distance.cpp \
+        creatures/sensors/gyroscope.cpp \
+        creatures/sensors/veloсity.cpp \
         data_processing_methods/data_processing_method.cpp \
         data_processing_methods/data_processing_method_binary.cpp \
         data_processing_methods/data_processing_method_linearly.cpp \
@@ -62,6 +66,10 @@ HEADERS += \
     creatures/creature.h \
     creatures/joint.h \
     creatures/leg.h \
+    creatures/sensors/acceleration.h \
+    creatures/sensors/distance.h \
+    creatures/sensors/gyroscope.h \
+    creatures/sensors/veloсity.h \
     data_processing_methods/data_processing_method.h \
     data_processing_methods/data_processing_method_binary.h \
     data_processing_methods/data_processing_method_linearly.h \

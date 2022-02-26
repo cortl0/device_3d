@@ -15,7 +15,7 @@ int main()
 {
     try
     {
-        world_3d app;
+        bnn_device_3d::world_3d app;
         app.initApp();
         app.getRoot()->startRendering();
         app.closeApp();
