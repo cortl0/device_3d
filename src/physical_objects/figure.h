@@ -2,12 +2,13 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
-#ifndef FIGURE_H
-#define FIGURE_H
+#ifndef BNN_DEVICE_3D_PHYSICAL_OBJECTS_FIGURE_H
+#define BNN_DEVICE_3D_PHYSICAL_OBJECTS_FIGURE_H
 
 #include "ode.h"
 #include "Ogre.h"
@@ -15,8 +16,8 @@
 #include "OgreInput.h"
 #include "OgreRTShaderSystem.h"
 
-using namespace std;
-using namespace Ogre;
+namespace bnn_device_3d::physical_objects
+{
 
 struct figure
 {
@@ -32,18 +33,20 @@ struct figure
     dQuaternion q;
 
     ~figure();
-    figure() {}
+    figure();
     figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass);
 
     /**
      * @param color0, color1 - BGRA
      */
-    static MaterialPtr create_material_chess(int size, int step, uint32 color0, uint32 color1);
+    static Ogre::MaterialPtr create_material_chess(int size, int step, Ogre::uint32 color0, Ogre::uint32 color1);
 
-    static MaterialPtr create_material_body_sign(size_t size);
+    static Ogre::MaterialPtr create_material_body_sign(size_t size);
 
-    void set_material(MaterialPtr materialPtr);
+    void set_material(Ogre::MaterialPtr materialPtr);
     void step();
 };
 
-#endif // FIGURE_H
+} // namespace bnn_device_3d::physical_objects
+
+#endif // BNN_DEVICE_3D_PHYSICAL_OBJECTS_FIGURE_H

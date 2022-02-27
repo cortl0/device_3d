@@ -1,4 +1,16 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #include "conductor_circle.h"
+
+namespace bnn_device_3d::conductors
+{
 
 conductor_circle::~conductor_circle()
 {
@@ -63,3 +75,5 @@ void conductor_circle::step(float& x, float& y, float& z)
     y += y2;
     z += z2;
 }
+
+} // namespace bnn_device_3d::conductors

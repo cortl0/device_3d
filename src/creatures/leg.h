@@ -2,18 +2,19 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
-#ifndef CREATURE_LEG_H
-#define CREATURE_LEG_H
+#ifndef BNN_DEVICE_3D_CREATURES_LEG_H
+#define BNN_DEVICE_3D_CREATURES_LEG_H
 
 #include <iostream>
 
 #include "config.h"
-#include "phys_obj/cube.h"
-#include "phys_obj/sphere.h"
+#include "physical_objects/cube.h"
+#include "physical_objects/sphere.h"
 #include "joint.h"
 
 #define first_x (45 * device_3d_SCALE)
@@ -45,14 +46,14 @@ namespace bnn_device_3d::creatures
 class leg
 {
 public:
-    cube first;
-    cube second;
-    cube third;
+    physical_objects::cube first;
+    physical_objects::cube second;
+    physical_objects::cube third;
 
     leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space,
         dReal x, dReal y, dReal z,
-        dQuaternion q, float direction, uint32 color);
-    std::vector<figure*> get_figures();
+        dQuaternion q, float direction, uint32_t color);
+    std::vector<physical_objects::figure*> get_figures();
     void relocate(dReal dx, dReal dy, dReal dz, dQuaternion q);
 
     /**
@@ -73,6 +74,6 @@ private:
     std::vector<joint> joints;
 };
 
-} // bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures
 
-#endif // CREATURE_LEG_H
+#endif // BNN_DEVICE_3D_CREATURES_LEG_H

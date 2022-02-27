@@ -1,8 +1,20 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #include "teacher_walking.h"
 
 #include <unistd.h>
 
 #include <iostream>
+
+namespace bnn_device_3d::teachers
+{
 
 teacher_walking::~teacher_walking()
 {
@@ -16,7 +28,7 @@ teacher_walking::teacher_walking()
 
 void teacher_walking::function(teacher_walking* t)
 {
-    _word data;
+    u_word data;
 
     t->state_ = bnn::state::started;
 
@@ -66,3 +78,5 @@ void teacher_walking::inner_start()
 
     thread_ = std::thread(function, this);
 }
+
+} // namespace bnn_device_3d::teachers

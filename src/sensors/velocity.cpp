@@ -2,21 +2,22 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
-#include "veloсity.h"
+#include "velocity.h"
 
-namespace bnn_device_3d::creatures::sensors
+namespace bnn_device_3d::sensors
 {
 
-veloсity::veloсity()
+velocity::velocity()
 {
-    data_processing_method_.reset(new data_processing_method_linearly());
+    data_processing_method_.reset(new dpm::data_processing_method_linearly());
 }
 
-void veloсity::set_inputs(dBodyID body, bnn::brain& brain_, _word& count_input, _word length, float range_from, float range_to, std::string& debug_str)
+void velocity::set_inputs(dBodyID body, bnn::brain& brain_, u_word& count_input, u_word length, float range_from, float range_to, std::string& debug_str)
 {
     static const Ogre::Quaternion ort_x(0, 1, 0, 0);
     static const Ogre::Quaternion ort_y(0, 0, 1, 0);
@@ -51,4 +52,4 @@ void veloсity::set_inputs(dBodyID body, bnn::brain& brain_, _word& count_input,
     data_processing_method_->set_inputs(brain_, count_input, length, z_scalar, range_from, range_to, debug_str);
 }
 
-} // bnn_device_3d::creatures::sensors
+} // namespace bnn_device_3d::sensors

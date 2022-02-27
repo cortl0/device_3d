@@ -2,19 +2,20 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
-#ifndef TRIPOD_H
-#define TRIPOD_H
+#ifndef BNN_DEVICE_3D_SCENE_TRIPOD_H
+#define BNN_DEVICE_3D_SCENE_TRIPOD_H
 
 #include "ode.h"
 #include "Ogre.h"
 
 #include "config.h"
 
-namespace bnn_device_3d
+namespace bnn_device_3d::scene
 {
 
 struct tripod
@@ -48,6 +49,6 @@ struct tripod
     void step();
 };
 
-} // bnn_device_3d
+} // namespace bnn_device_3d::scene
 
-#endif // TRIPOD_H
+#endif // BNN_DEVICE_3D_SCENE_TRIPOD_H

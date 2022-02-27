@@ -1,7 +1,19 @@
-#ifndef CONDUCTOR_CIRCLE_H
-#define CONDUCTOR_CIRCLE_H
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
+#ifndef BNN_DEVICE_3D_CONDUCTORS_CONDUCTOR_CIRCLE_H
+#define BNN_DEVICE_3D_CONDUCTORS_CONDUCTOR_CIRCLE_H
 
 #include "conductor.h"
+
+namespace bnn_device_3d::conductors
+{
 
 class conductor_circle : public conductor
 {
@@ -14,4 +26,6 @@ public:
     virtual void step(float& x, float& y, float& z) override;
 };
 
-#endif // CONDUCTOR_CIRCLE_H
+} // namespace bnn_device_3d::conductors
+
+#endif // BNN_DEVICE_3D_CONDUCTORS_CONDUCTOR_CIRCLE_H

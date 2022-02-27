@@ -2,6 +2,7 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
@@ -10,8 +11,12 @@
 
 #include <unistd.h>
 
-namespace bnn_device_3d
+namespace bnn_device_3d::scene
 {
+
+static dWorldID world_st;
+
+static dJointGroupID contactgroup_st;
 
 world_3d::~world_3d()
 {
@@ -272,7 +277,7 @@ void world_3d::setup_ogre()
     node_plane->setScale(Ogre::Vector3(1, 1, 1));
     node_plane->setDirection(0,-1,0);
     node_plane->attachObject(ent_plane);
-    ent_plane->setMaterial(figure::create_material_chess(1024, 8, 0x777777ff, 0xbbbbbbff));
+    ent_plane->setMaterial(pho::figure::create_material_chess(1024, 8, 0x777777ff, 0xbbbbbbff));
 }
 
 void world_3d::setup_ode()
@@ -366,18 +371,18 @@ void world_3d::load()
     load_figure(tripod_->lower);
 
     auto figures = creature_->get_figures();
-    for_each(figures.begin(), figures.end(), [&](const figure* f) { load_figure(f->body); });
+    for_each(figures.begin(), figures.end(), [&](const pho::figure* f) { load_figure(f->body); });
 
-    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const figure& f) { load_figure(f.body); });
+    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const pho::figure& f) { load_figure(f.body); });
 
     if(creature_->brain_->load(ifs))
     {
-        cout << "loaded" << endl;
+        std::cout << "loaded" << std::endl;
         if(l.size() > 8)
             fs::remove_all(fs::current_path() / l.front());
     }
     else
-        cout << "load error" << endl;
+        std::cout << "load error" << std::endl;
 
     ifs.close();
 
@@ -412,14 +417,14 @@ void world_3d::save()
     save_figure(tripod_->lower);
 
     auto figures = creature_->get_figures();
-    for_each(figures.begin(), figures.end(), [&](const figure* f) { save_figure(f->body); });
+    for_each(figures.begin(), figures.end(), [&](const pho::figure* f) { save_figure(f->body); });
 
-    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const figure& f) { save_figure(f.body); });
+    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const pho::figure& f) { save_figure(f.body); });
 
     if(creature_->brain_->save(ofs))
-        cout << "saved" << endl;
+        std::cout << "saved" << std::endl;
     else
-        cout << "save error" << endl;
+        std::cout << "save error" << std::endl;
 
     ofs.close();
 
@@ -463,7 +468,7 @@ void world_3d::stop()
 
 void world_3d::fill_it_up()
 {
-    conductor_.reset(new conductor_circle());
+    conductor_.reset(new cond::conductor_circle());
 
     // creating stationary objects
     {
@@ -481,11 +486,11 @@ void world_3d::fill_it_up()
             x=(i & 1) ? size * device_3d_SCALE : size / koef_size * device_3d_SCALE;
             y=height * device_3d_SCALE;
             z=(i & 1) ? size * device_3d_SCALE / koef_size : size * device_3d_SCALE;
-            stepping_figures.push_back(cube("wall_" + std::to_string(i) + std::to_string(i),
+            stepping_figures.push_back(pho::cube("wall_" + std::to_string(i) + std::to_string(i),
                                             scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
                                             x, y, z));
 
-            stepping_figures.back().set_material(figure::create_material_chess(128, 32, 0x000000ff, 0xbbbbbbff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, 0x000000ff, 0xbbbbbbff));
 
             dBodySetPosition(stepping_figures.back().body,
                              !(i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1) * device_3d_SCALE,
@@ -508,10 +513,10 @@ void world_3d::fill_it_up()
         {
             float r = 120.0 * device_3d_SCALE;// ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
 
-            stepping_figures.push_back(cube("cube_qqq", scnMgr, world, space,
+            stepping_figures.push_back(pho::cube("cube_qqq", scnMgr, world, space,
                                             r*r*r * device_3d_MASS_SCALE, r, r, r));
 
-            stepping_figures.back().set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
             dBodySetPosition(stepping_figures.back().body,
                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
@@ -527,9 +532,9 @@ void world_3d::fill_it_up()
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
 
-            stepping_figures.push_back(sphere("sphere_ssss", scnMgr, world, space, r*r*r, r));
+            stepping_figures.push_back(pho::sphere("sphere_ssss", scnMgr, world, space, r*r*r, r));
 
-            stepping_figures.back().set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
 
             dBodySetPosition(stepping_figures.back().body, 0, 1, -10);
 
@@ -543,10 +548,10 @@ void world_3d::fill_it_up()
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 50 + 50) * device_3d_SCALE;
 
-            stepping_figures.push_back(sphere("sphere_" + std::to_string(i), scnMgr, world, space,
+            stepping_figures.push_back(pho::sphere("sphere_" + std::to_string(i), scnMgr, world, space,
                                               r*r*r * device_3d_MASS_SCALE, r));
 
-            stepping_figures.back().set_material(figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
 
             dBodySetPosition(stepping_figures.back().body,
                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
@@ -638,7 +643,7 @@ void world_3d::function(world_3d *me)
 
             //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
 
-            for_each(me->stepping_figures.begin(), me->stepping_figures.end(), [](figure& fig){ fig.step(); });
+            for_each(me->stepping_figures.begin(), me->stepping_figures.end(), [](pho::figure& fig){ fig.step(); });
 
             {
                 auto it = me->stepping_figures.begin();
@@ -731,7 +736,7 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
     // TODO
     if (dGeomIsSpace (o1) || dGeomIsSpace (o2)) {
-        cout << "bbbbbbbbbbb" << endl;
+        std::cout << "bbbbbbbbbbb" << std::endl;
         // colliding a space with something :
         dSpaceCollide2 (o1, o2, data, &nearCallback);
 
@@ -756,7 +761,7 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
         //dContactGeom cg[5];
         //        cg->g1 = o1;
         //        cg->g2 = o2;
-        cout << "ccccccccccccc" << endl;
+        std::cout << "ccccccccccccc" << std::endl;
         // colliding two non-space geoms, so generate contact
         // points between o1 and o2
         //return;
@@ -768,8 +773,8 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
 
             int n = dCollide (o1, o2, N, &(contact[0].geom), sizeof(dContact));
-            cout << "fffffffffffff" << endl;
-            cout << to_string(n) << endl;
+            std::cout << "fffffffffffff" << std::endl;
+            std::cout << std::to_string(n) << std::endl;
             if (n > 0)
             {
                 for (int i=0; i<1; i++) {
@@ -844,10 +849,10 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
             }
 
         } catch (...) {
-            cout << "try" << endl;
+            std::cout << "try" << std::endl;
         }
         // add these contact points to the simulation ...
-        cout << "ccccccccccccc12" << endl;
+        std::cout << "ccccccccccccc12" << std::endl;
         //cout << to_string(num_contact) << endl;
     }
 }
@@ -867,4 +872,4 @@ void world_3d::setup(void)
     start();
 }
 
-} // bnn_device_3d
+} // namespace bnn_device_3d::scene

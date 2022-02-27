@@ -2,6 +2,7 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
@@ -21,6 +22,9 @@
 #define QUANTITY_OF_JOINTS_IN_LEG 2
 #define LEGS_QUANTITY 4
 
+namespace bnn_device_3d
+{
+
 struct config
 {
     enum keyboard_keys
@@ -38,5 +42,7 @@ struct config
 public:
     config(){}
 };
+
+} // namespace bnn_device_3d
 
 #endif // DEVICE_3D_CONFIG_H

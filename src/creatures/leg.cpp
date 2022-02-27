@@ -2,6 +2,7 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
@@ -13,15 +14,15 @@ namespace bnn_device_3d::creatures
 
 leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space,
          dReal x, dReal y, dReal z,
-         dQuaternion q, float direction, uint32 color)
+         dQuaternion q, float direction, uint32_t color)
 {
-    first = cube(name + "_first", scnMgr, world, space, first_mass, first_x, first_y, first_z);
-    second = cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
-    third = cube(name + "_third", scnMgr, world, space, third_mass, third_x, third_y, third_z);
+    first = physical_objects::cube(name + "_first", scnMgr, world, space, first_mass, first_x, first_y, first_z);
+    second = physical_objects::cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
+    third = physical_objects::cube(name + "_third", scnMgr, world, space, third_mass, third_x, third_y, third_z);
 
-    first.set_material(figure::create_material_chess(128, 32, color, 0x333333ff));
-    second.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
-    third.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+    first.set_material(physical_objects::figure::create_material_chess(128, 32, color, 0x333333ff));
+    second.set_material(physical_objects::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+    third.set_material(physical_objects::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
     //    dBodySetPosition (first.body, 0, 0, dir_fr * first_z / 2);
     //dBodySetPosition (first.body, 0, 0, 0);
@@ -66,9 +67,9 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
 
 }
 
-std::vector<figure *> leg::get_figures()
+std::vector<physical_objects::figure*> leg::get_figures()
 {
-    std::vector<figure*> value;
+    std::vector<physical_objects::figure*> value;
 
     value.push_back(&first);
     value.push_back(&second);
@@ -141,4 +142,4 @@ void leg::step(double& fs, double& st)
     third.step();
 }
 
-} // bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures

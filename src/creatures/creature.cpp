@@ -2,6 +2,7 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
@@ -9,6 +10,12 @@
 #include "creature.h"
 
 #include <unistd.h>
+
+namespace pho = bnn_device_3d::physical_objects;
+
+namespace sens = bnn_device_3d::sensors;
+
+namespace tch = bnn_device_3d::teachers;
 
 namespace bnn_device_3d::creatures
 {
@@ -24,16 +31,16 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world)
     switch (1)
     {
     case 0:
-        data_processing_method_.reset(new data_processing_method_binary());
+        data_processing_method_.reset(new dpm::data_processing_method_binary());
         break;
     case 1:
-        data_processing_method_.reset(new data_processing_method_linearly());
+        data_processing_method_.reset(new dpm::data_processing_method_linearly());
         break;
     case 2:
-        data_processing_method_.reset(new data_processing_method_linearly_single());
+        data_processing_method_.reset(new dpm::data_processing_method_linearly_single());
         break;
     case 3:
-        data_processing_method_.reset(new data_processing_method_logarithmic());
+        data_processing_method_.reset(new dpm::data_processing_method_logarithmic());
         break;
     }
 
@@ -52,15 +59,15 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world)
     space = dSimpleSpaceCreate(nullptr);
 
     {
-        body = cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
+        body = pho::cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
 
-        body.set_material(figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+        body.set_material(pho::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
         colliding_geoms.push_back(body.geom);
     }
 
     {
-        body_sign = cube("body_sign", scnMgr, world, space, 0.00001, body_width * 0.95, body_height, body_width * 0.95);
+        body_sign = pho::cube("body_sign", scnMgr, world, space, 0.00001, body_width * 0.95, body_height, body_width * 0.95);
         //body_sign = cube("body_sign", scnMgr, world, space, 0.00001, body_length * 2, body_length * 2, body_length * 2);
 
         auto *p = dBodyGetPosition(body.body);
@@ -198,9 +205,9 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world)
     }
 }
 
-std::vector<figure*> creature::get_figures()
+std::vector<pho::figure*> creature::get_figures()
 {
-    std::vector<figure*> value;
+    std::vector<pho::figure*> value;
 
     value.push_back(&body);
 
@@ -208,7 +215,7 @@ std::vector<figure*> creature::get_figures()
     {
         auto figures_of_leg = l.get_figures();
 
-        std::for_each(figures_of_leg.begin(),figures_of_leg.end(), [&](figure* f) { value.push_back(f); });
+        std::for_each(figures_of_leg.begin(),figures_of_leg.end(), [&](pho::figure* f) { value.push_back(f); });
     });
 
     return value;
@@ -274,7 +281,7 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
     double fs;
     double st;
 
-    _word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
+    u_word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
 
     static double range = 1.0f;
 
@@ -331,7 +338,7 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
     }
 #endif
 
-    _word count_input = 0;
+    u_word count_input = 0;
 
     // Set inputs by legs states
     for(size_t i = 0; i < distance.size(); i++)
@@ -370,7 +377,7 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
     debug_str += "]\nout [ ";
 
     // I can move legs
-    for(_word i = 0; i < force.size(); i++)
+    for(u_word i = 0; i < force.size(); i++)
     {
         force[i] = 0;
 
@@ -392,8 +399,8 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
 
     debug_str += " ]\n";
 #ifdef show_debug_data
-    static _word iter = 0;
-    _word www = brain_->get_iteration();
+    static u_word iter = 0;
+    u_word www = brain_->get_iteration();
     if(www > iter)
     {
         iter = www;
@@ -420,4 +427,4 @@ void creature::stop()
     logging("creature::stop() end");
 }
 
-} // bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures

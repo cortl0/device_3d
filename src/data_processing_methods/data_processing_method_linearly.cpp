@@ -1,4 +1,16 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #include "data_processing_method_linearly.h"
+
+namespace bnn_device_3d::data_processing_methods
+{
 
 data_processing_method_linearly::~data_processing_method_linearly()
 {
@@ -22,13 +34,15 @@ bool data_processing_method_linearly::get_bool(float from, float to, float value
     return value >= levels_size;
 }
 
-void data_processing_method_linearly::set_inputs(bnn::brain& brn, _word& count, _word length, float value, float range_from, float range_to, std::string& str)
+void data_processing_method_linearly::set_inputs(bnn::brain& b, u_word& count, u_word length, float value, float range_from, float range_to, std::string& s)
 {
     for(uint8_t j = 0; j < length; j++)
     {
-        brn.set_input(count++, get_bool(range_from, range_to, value, length, j));
+        b.set_input(count++, get_bool(range_from, range_to, value, length, j));
 #ifdef show_debug_data
-        str += std::to_string(get_bool(range_from, range_to, value, length, j));
+        s += std::to_string(get_bool(range_from, range_to, value, length, j));
 #endif
     }
 };
+
+} // namespace bnn_device_3d::data_processing_methods

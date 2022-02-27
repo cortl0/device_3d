@@ -2,22 +2,23 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
 #include "distance.h"
 
-namespace bnn_device_3d::creatures::sensors
+namespace bnn_device_3d::sensors
 {
 
 distance::distance()
 {
-    data_processing_method_.reset(new data_processing_method_linearly());
+    data_processing_method_.reset(new dpm::data_processing_method_linearly());
     //data_processing_method_.reset(new data_processing_method_binary());
 }
 
-void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::brain& brain_, _word& count_input, _word length, float range, std::string& debug_str)
+void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::brain& brain_, u_word& count_input, u_word length, float range, std::string& debug_str)
 {
     auto *pos_first = dBodyGetPosition(body_first);
 
@@ -30,4 +31,4 @@ void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::brain& b
     debug_str += " ";
 }
 
-} // bnn_device_3d::creatures::sensors
+} // namespace bnn_device_3d::sensors

@@ -1,16 +1,28 @@
-#ifndef TEACHER_H
-#define TEACHER_H
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
+#ifndef BNN_DEVICE_3D_TEACHERS_TEACHER_H
+#define BNN_DEVICE_3D_TEACHERS_TEACHER_H
 
 #include "config.h"
 #include "Ogre.h"
 #include "bnn/src/brain/brain.h"
 
+namespace bnn_device_3d::teachers
+{
+
 class teacher
 {
 protected:
-    _word count;
-    _word count_max;
-    _word data = 0;
+    u_word count;
+    u_word count_max;
+    u_word data = 0;
     bnn::state state_ = bnn::state::stopped;
     std::thread thread_;
     virtual void inner_start() = 0;
@@ -18,11 +30,13 @@ protected:
 public:
     virtual ~teacher();
     teacher();
-    _word get_count();
-    _word get_count_max();
-    _word get_data();
+    u_word get_count();
+    u_word get_count_max();
+    u_word get_data();
     void start();
     void stop();
 };
 
-#endif // TEACHER_H
+} // namespace bnn_device_3d::teachers
+
+#endif // BNN_DEVICE_3D_TEACHERS_TEACHER_H

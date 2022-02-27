@@ -2,12 +2,13 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
-#ifndef WORLD_3D_H
-#define WORLD_3D_H
+#ifndef BNN_DEVICE_3D_SCENE_WORLD_3D_H
+#define BNN_DEVICE_3D_SCENE_WORLD_3D_H
 
 #include <iostream>
 #include <list>
@@ -21,18 +22,19 @@
 
 #include "config.h"
 #include "creatures/creature.h"
-#include "phys_obj/cube.h"
-#include "phys_obj/sphere.h"
+#include "physical_objects/cube.h"
+#include "physical_objects/sphere.h"
 #include "tripod.h"
 #include "conductors/conductor_circle.h"
 #include "conductors/conductor_circle.h"
 
 using namespace Ogre;
 
-static dWorldID world_st;
-static dJointGroupID contactgroup_st;
+namespace cond = bnn_device_3d::conductors;
 
-namespace bnn_device_3d
+namespace pho = bnn_device_3d::physical_objects;
+
+namespace bnn_device_3d::scene
 {
 
 class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputListener
@@ -68,8 +70,8 @@ private:
     std::list<dGeomID> stationary_colliding_geoms;
     std::list<dGeomID> movable_colliding_geoms;
     std::list<dGeomID> creature_colliding_geoms;
-    std::list<figure> stepping_figures;
-    std::unique_ptr<conductor> conductor_;
+    std::list<pho::figure> stepping_figures;
+    std::unique_ptr<cond::conductor> conductor_;
     std::unique_ptr<creatures::creature> creature_;
     std::list<Ogre::SceneNode*> bounding_nodes;
     std::unique_ptr<std::thread> thread_;
@@ -83,6 +85,6 @@ private:
     static void collide_action2(world_3d *me, dGeomID o1, dGeomID o2);
 };
 
-} // bnn_device_3d
+} // namespace bnn_device_3d::scene
 
-#endif // WORLD_3D_H
+#endif // BNN_DEVICE_3D_SCENE_WORLD_3D_H

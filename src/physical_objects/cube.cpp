@@ -2,11 +2,20 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
 #include "cube.h"
+
+namespace bnn_device_3d::physical_objects
+{
+
+cube::cube() : figure()
+{
+
+}
 
 cube::cube(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass, dReal lx, dReal ly, dReal lz)
     : figure(scnMgr, world, space, mass)
@@ -32,3 +41,5 @@ cube::cube(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceI
 
     //dSpaceAdd (space, geom);
 }
+
+} // namespace bnn_device_3d::physical_objects

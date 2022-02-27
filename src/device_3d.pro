@@ -2,6 +2,7 @@
 #   device_3d
 #   created by Ilya Shishkin
 #   cortl@8iter.ru
+#   http://8iter.ru/ai.html
 #   https://github.com/cortl0/device_3d
 #   licensed by GPL v3.0
 #
@@ -20,45 +21,44 @@ SOURCES += \
         bnn/src/brain/neurons/neuron.cpp \
         bnn/src/brain/neurons/sensor.cpp \
         bnn/src/brain/random/random.cpp \
-        bnn/src/brain/storage.cpp \
         bnn/src/brain/thread.cpp \
         conductors/conductor.cpp \
         conductors/conductor_circle.cpp \
         creatures/creature.cpp \
         creatures/joint.cpp \
         creatures/leg.cpp \
-        creatures/sensors/acceleration.cpp \
-        creatures/sensors/distance.cpp \
-        creatures/sensors/gyroscope.cpp \
-        creatures/sensors/veloсity.cpp \
         data_processing_methods/data_processing_method.cpp \
         data_processing_methods/data_processing_method_binary.cpp \
         data_processing_methods/data_processing_method_linearly.cpp \
         data_processing_methods/data_processing_method_linearly_single.cpp \
         data_processing_methods/data_processing_method_logarithmic.cpp \
         main.cpp \
-        phys_obj/cube.cpp \
-        phys_obj/figure.cpp \
-        phys_obj/sphere.cpp \
+        physical_objects/cube.cpp \
+        physical_objects/figure.cpp \
+        physical_objects/sphere.cpp \
         scene/tripod.cpp \
         scene/world_3d.cpp \
+        sensors/acceleration.cpp \
+        sensors/distance.cpp \
+        sensors/gyroscope.cpp \
+        sensors/velocity.cpp \
         teachers/teacher.cpp \
         teachers/teacher_walking.cpp
 
 HEADERS += \
     bnn/src/brain/brain.h \
-    bnn/src/brain/config.h \
+    bnn/src/brain/config.hpp \
+    bnn/src/brain/random/config.hpp \
+    bnn/src/brain/simple_math.hpp \
+    bnn/src/brain/state.hpp \
+    bnn/src/brain/storage.hpp \
     bnn/src/brain_tools.h \
     bnn/src/brain/m_sequence.h \
     bnn/src/brain/neurons/binary.h \
     bnn/src/brain/neurons/motor.h \
     bnn/src/brain/neurons/neuron.h \
     bnn/src/brain/neurons/sensor.h \
-    bnn/src/brain/random/config.h \
     bnn/src/brain/random/random.h \
-    bnn/src/brain/simple_math.h \
-    bnn/src/brain/state.h \
-    bnn/src/brain/storage.h \
     bnn/src/brain/thread.h \
     conductors/conductor.h \
     conductors/conductor_circle.h \
@@ -66,20 +66,20 @@ HEADERS += \
     creatures/creature.h \
     creatures/joint.h \
     creatures/leg.h \
-    creatures/sensors/acceleration.h \
-    creatures/sensors/distance.h \
-    creatures/sensors/gyroscope.h \
-    creatures/sensors/veloсity.h \
     data_processing_methods/data_processing_method.h \
     data_processing_methods/data_processing_method_binary.h \
     data_processing_methods/data_processing_method_linearly.h \
     data_processing_methods/data_processing_method_linearly_single.h \
     data_processing_methods/data_processing_method_logarithmic.h \
-    phys_obj/cube.h \
-    phys_obj/figure.h \
-    phys_obj/sphere.h \
+    physical_objects/cube.h \
+    physical_objects/figure.h \
+    physical_objects/sphere.h \
     scene/tripod.h \
     scene/world_3d.h \
+    sensors/acceleration.h \
+    sensors/distance.h \
+    sensors/gyroscope.h \
+    sensors/velocity.h \
     teachers/teacher.h \
     teachers/teacher_walking.h
 

@@ -1,6 +1,18 @@
+/*
+ *   device_3d
+ *   created by Ilya Shishkin
+ *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
+ *   https://github.com/cortl0/device_3d
+ *   licensed by GPL v3.0
+ */
+
 #include "teacher.h"
 
 #include <unistd.h>
+
+namespace bnn_device_3d::teachers
+{
 
 teacher::~teacher()
 {
@@ -13,17 +25,17 @@ teacher::teacher()
 
 }
 
-_word teacher::get_count()
+u_word teacher::get_count()
 {
     return count;
 }
 
-_word teacher::get_count_max()
+u_word teacher::get_count_max()
 {
     return count_max;
 }
 
-_word teacher::get_data()
+u_word teacher::get_data()
 {
     return data;
 }
@@ -51,3 +63,5 @@ void teacher::stop()
 
     while (bnn::state::stopped != state_);
 }
+
+} // namespace bnn_device_3d::teachers

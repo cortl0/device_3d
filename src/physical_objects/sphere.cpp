@@ -2,11 +2,20 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
 #include "sphere.h"
+
+namespace bnn_device_3d::physical_objects
+{
+
+sphere::sphere() : figure()
+{
+
+}
 
 sphere::sphere(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass, dReal radius)
     : figure(scnMgr, world, space, mass)
@@ -30,3 +39,5 @@ sphere::sphere(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSp
 
     //dSpaceAdd (space, geom);
 }
+
+} // namespace bnn_device_3d::physical_objects

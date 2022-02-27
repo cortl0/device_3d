@@ -2,12 +2,13 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
-#ifndef CREATURE_LEG_JOINT_H
-#define CREATURE_LEG_JOINT_H
+#ifndef BNN_DEVICE_3D_CREATURES_JOINT_H
+#define BNN_DEVICE_3D_CREATURES_JOINT_H
 
 #include "ode.h"
 
@@ -32,6 +33,6 @@ private:
     double torque_coefficient;
 };
 
-} // bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures
 
-#endif // CREATURE_LEG_JOINT_H
+#endif // BNN_DEVICE_3D_CREATURES_JOINT_H

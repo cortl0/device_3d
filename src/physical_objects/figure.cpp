@@ -2,17 +2,26 @@
  *   device_3d
  *   created by Ilya Shishkin
  *   cortl@8iter.ru
+ *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
 #include "figure.h"
 
-#include "../bnn/src/brain/config.h"
+#include "../bnn/src/brain/config.hpp"
+
+namespace bnn_device_3d::physical_objects
+{
 
 figure::~figure()
 {
     //scnMgr->destroyEntity(ent);
+}
+
+figure::figure()
+{
+
 }
 
 figure::figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass)
@@ -39,7 +48,7 @@ void figure::step()
     node->setOrientation(qrot[0], qrot[1], qrot[2], qrot[3]);
 }
 
-void figure::set_material(MaterialPtr materialPtr)
+void figure::set_material(Ogre::MaterialPtr materialPtr)
 {
     ent->setMaterial(materialPtr);
 }
@@ -48,41 +57,41 @@ static int count_name = 5;
 
 union conv
 {
-    uint32 ui32;
-    uint8 ui8[4];
+    Ogre::uint32 ui32;
+    Ogre::uint8 ui8[4];
 };
 
 /**
   @param color0, color1 - BGRA
  */
-MaterialPtr figure::create_material_chess(int size, int step, uint32 color0, uint32 color1)
+Ogre::MaterialPtr figure::create_material_chess(int size, int step, Ogre::uint32 color0, Ogre::uint32 color1)
 {
     // Create the texture
-    TexturePtr texture = TextureManager::getSingleton().createManual(
-                "DynamicTexture" + to_string(count_name), // name
-                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-                TEX_TYPE_2D,      // type
+    Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().createManual(
+                "DynamicTexture" + std::to_string(count_name), // name
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+                Ogre::TEX_TYPE_2D,      // type
                 size, size,         // width & height
                 0,                // number of mipmaps
-                PF_BYTE_BGRA,     // pixel format
-                TU_DEFAULT);      // usage; should be TU_DYNAMIC_WRITE_ONLY_DISCARDABLE for
+                Ogre::PF_BYTE_BGRA,     // pixel format
+                Ogre::TU_DEFAULT);      // usage; should be TU_DYNAMIC_WRITE_ONLY_DISCARDABLE for
     // textures updated very often (e.g. each frame)
 
     // Get the pixel buffer
-    HardwarePixelBufferSharedPtr pixelBuffer = texture->getBuffer();
+    Ogre::HardwarePixelBufferSharedPtr pixelBuffer = texture->getBuffer();
 
     // Lock the pixel buffer and get a pixel box
-    pixelBuffer->lock(HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
-    const PixelBox& pixelBox = pixelBuffer->getCurrentLock();
+    pixelBuffer->lock(Ogre::HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
+    const Ogre::PixelBox& pixelBox = pixelBuffer->getCurrentLock();
 
-    uint8* pDest = static_cast<uint8*>(pixelBox.data);
+    Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pixelBox.data);
 
     // Fill in some pixel data. This will give a semi-transparent blue,
     // but this is of course dependent on the chosen pixel format.
 
-    uint32 g1 = color0;
-    uint32 g2 = color1;
-    uint32 current = g1;
+    Ogre::uint32 g1 = color0;
+    Ogre::uint32 g2 = color1;
+    Ogre::uint32 current = g1;
 
     conv converter_;
 
@@ -111,12 +120,12 @@ MaterialPtr figure::create_material_chess(int size, int step, uint32 color0, uin
     pixelBuffer->unlock();
 
     // Create a material using the texture
-    MaterialPtr material = MaterialManager::getSingleton().create(
-                "DynamicTextureMaterial" + to_string(count_name), // name
-                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().create(
+                "DynamicTextureMaterial" + std::to_string(count_name), // name
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
-    material->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture" + to_string(count_name));
-    material->getTechnique(0)->getPass(0)->setSceneBlending(SBT_TRANSPARENT_ALPHA);
+    material->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture" + std::to_string(count_name));
+    material->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
 
     count_name++;
 
@@ -124,20 +133,20 @@ MaterialPtr figure::create_material_chess(int size, int step, uint32 color0, uin
 
 }
 
-MaterialPtr figure::create_material_body_sign(size_t size)
+Ogre::MaterialPtr figure::create_material_body_sign(size_t size)
 {
-    uint32 color_white = 0xffffffff;
-    uint32 color_black = 0x000000ff;
-    uint32 color_yellow = 0x00ffffff;
-    uint32 color_transparent = 0x00000000;
+    Ogre::uint32 color_white = 0xffffffff;
+    Ogre::uint32 color_black = 0x000000ff;
+    Ogre::uint32 color_yellow = 0x00ffffff;
+    Ogre::uint32 color_transparent = 0x00000000;
 
-    vector<vector<uint32>> v(size, vector<uint32>(size));
+    std::vector<std::vector<Ogre::uint32>> v(size, std::vector<Ogre::uint32>(size));
 
     for(auto& y : v)
         for(auto& x : y)
             x = color_transparent;
 
-    auto circle = [&](uint32 color, int center_x, int center_y, int radius)
+    auto circle = [&](Ogre::uint32 color, int center_x, int center_y, int radius)
     {
         for(int y = -radius; y < radius; y++)
             for(int x = -radius; x < radius; x++)
@@ -145,7 +154,7 @@ MaterialPtr figure::create_material_body_sign(size_t size)
                     v[center_y + y][center_x + x] = color;
     };
 
-    auto line = [&](uint32 color, int x0, int y0, int x1, int y1, int half_thickness)
+    auto line = [&](Ogre::uint32 color, int x0, int y0, int x1, int y1, int half_thickness)
     {
         Ogre::Vector3 v1(0, 0, 1);
         Ogre::Vector3 v2(x1 - x0, y1 - y0, 0);
@@ -183,7 +192,7 @@ MaterialPtr figure::create_material_body_sign(size_t size)
             }
     };
 
-    auto triangle = [&](uint32 color, int x0, int y0, int x1, int y1, int x2, int y2)
+    auto triangle = [&](Ogre::uint32 color, int x0, int y0, int x1, int y1, int x2, int y2)
     {
         std::vector<Ogre::Vector3> absolut
         {
@@ -276,27 +285,27 @@ MaterialPtr figure::create_material_body_sign(size_t size)
               temp);
 
     // Create the texture
-    TexturePtr texture = TextureManager::getSingleton().createManual(
-                "DynamicTexture" + to_string(count_name), // name
-                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-                TEX_TYPE_2D,      // type
+    Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().createManual(
+                "DynamicTexture" + std::to_string(count_name), // name
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+                Ogre::TEX_TYPE_2D,      // type
                 size, size,         // width & height
                 0,                // number of mipmaps
-                PF_BYTE_BGRA,     // pixel format
-                TU_DEFAULT);      // usage; should be TU_DYNAMIC_WRITE_ONLY_DISCARDABLE for
+                Ogre::PF_BYTE_BGRA,     // pixel format
+                Ogre::TU_DEFAULT);      // usage; should be TU_DYNAMIC_WRITE_ONLY_DISCARDABLE for
     // textures updated very often (e.g. each frame)
 
     // Get the pixel buffer
-    HardwarePixelBufferSharedPtr pixelBuffer = texture->getBuffer();
+    Ogre::HardwarePixelBufferSharedPtr pixelBuffer = texture->getBuffer();
 
     // Lock the pixel buffer and get a pixel box
-    pixelBuffer->lock(HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
-    const PixelBox& pixelBox = pixelBuffer->getCurrentLock();
+    pixelBuffer->lock(Ogre::HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
+    const Ogre::PixelBox& pixelBox = pixelBuffer->getCurrentLock();
 
     conv converter_;
 
     {
-        uint8* pDest = static_cast<uint8*>(pixelBox.data);
+        Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pixelBox.data);
 
         for (size_t y = 0; y < size; y++)
         {
@@ -318,15 +327,17 @@ MaterialPtr figure::create_material_body_sign(size_t size)
     pixelBuffer->unlock();
 
     // Create a material using the texture
-    MaterialPtr material = MaterialManager::getSingleton().create(
-                "DynamicTextureMaterial" + to_string(count_name), // name
-                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().create(
+                "DynamicTextureMaterial" + std::to_string(count_name), // name
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
-    material->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture" + to_string(count_name));
-    material->getTechnique(0)->getPass(0)->setSceneBlending(SBT_TRANSPARENT_ALPHA);
+    material->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture" + std::to_string(count_name));
+    material->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
 
     count_name++;
 
     return material;
 
 }
+
+} // namespace bnn_device_3d::physical_objects
