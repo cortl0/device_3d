@@ -16,8 +16,6 @@
 #include "bnn/src/brain_tools.h"
 #include "data_processing_methods/data_processing_method_linearly.h"
 
-namespace dpm = bnn_device_3d::data_processing_methods;
-
 namespace bnn_device_3d::sensors
 {
 
@@ -28,7 +26,7 @@ struct acceleration
     void set_inputs(dBodyID, bnn::brain&, u_word& count, u_word length, float range_from, float range_to, std::string& str);
 
 private:
-    std::unique_ptr<dpm::data_processing_method> data_processing_method_;
+    std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
 };
 
 } // namespace bnn_device_3d::sensors

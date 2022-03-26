@@ -29,7 +29,7 @@ struct distance
     void set_inputs(dBodyID, dGeomID, bnn::brain&, u_word& count, u_word length, float range, std::string& str);
 
 private:
-    std::unique_ptr<dpm::data_processing_method> data_processing_method_;
+    std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
 };
 
 } // namespace bnn_device_3d::sensors

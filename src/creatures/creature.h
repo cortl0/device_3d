@@ -25,7 +25,7 @@
 #include "OgreRTShaderSystem.h"
 
 #include "bnn/src/brain_tools.h"
-#include "config.h"
+#include "config.hpp"
 #include "data_processing_methods/data_processing_method_linearly.h"
 #include "data_processing_methods/data_processing_method_binary.h"
 #include "data_processing_methods/data_processing_method_linearly_single.h"
@@ -33,6 +33,7 @@
 #include "sensors/distance.h"
 #include "sensors/gyroscope.h"
 #include "sensors/velocity.h"
+#include "sensors/video.h"
 #include "leg.h"
 #include "physical_objects/cube.h"
 #include "teachers/teacher_walking.h"
@@ -59,36 +60,30 @@
 #define inputs_from_world_objests (QUANTITY_OF_SHAPES_WHICH_I_SEE * QUANTITY_OF_EYES * QUANTITY_OF_BITS_IN_WORD)
 #endif
 
-namespace dpm = bnn_device_3d::data_processing_methods;
-
-namespace pho = bnn_device_3d::physical_objects;
-
-namespace tch = bnn_device_3d::teachers;
-
 namespace bnn_device_3d::creatures
 {
 
 class creature
 {
 public:
-    pho::cube body;
-    pho::cube body_sign;
+    bnn_device_3d::physical_objects::cube body;
+    bnn_device_3d::physical_objects::cube body_sign;
     std::unique_ptr<bnn::brain_tools> brain_;
     std::vector<leg> legs;
     sensors::distance distance_;
     sensors::gyroscope gyroscope_;
     sensors::velocity speedometer_;
+    std::unique_ptr<sensors::video> video_;
 
     ~creature();
-    creature(Ogre::SceneManager* scnMgr, dWorldID world);
-    std::vector<pho::figure*> get_figures();
+    creature(Ogre::RenderWindow*, Ogre::SceneManager*, dWorldID);
+    std::vector<bnn_device_3d::physical_objects::figure*> get_figures();
     void set_position(dReal x, dReal y, dReal z);
     void start();
     void step(std::list<dGeomID>& distance_geoms, bool& verbose);
     void stop();
 
 private:
-    u_word random_array_length_in_power_of_two = 27;
     u_word quantity_of_neurons_in_power_of_two = 20;
     u_word threads_count_in_power_of_two = 2;
     u_word input_length;
@@ -97,8 +92,8 @@ private:
     std::vector<double> distance;
     dSpaceID space;
     std::list<dGeomID> colliding_geoms;
-    std::unique_ptr<dpm::data_processing_method> data_processing_method_;
-    std::unique_ptr<tch::teacher> teacher_;
+    std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
+    std::unique_ptr<bnn_device_3d::teachers::teacher> teacher_;
 };
 
 } // namespace bnn_device_3d::creatures

@@ -20,7 +20,7 @@
 #include "OgreApplicationContext.h"
 #include "OgreInput.h"
 
-#include "config.h"
+#include "config.hpp"
 #include "creatures/creature.h"
 #include "physical_objects/cube.h"
 #include "physical_objects/sphere.h"
@@ -51,14 +51,18 @@ public:
     bool keyReleased(const OgreBites::KeyboardEvent& evt);
     static void function(world_3d *me);
     void load();
+    void render_go();
     void save();
+    void save_random();
     void start();
     void stop();
 
 private:
     bool shutdown = false;
-    Ogre::Camera* cam;
-    Ogre::SceneNode* camNode;
+    Ogre::Camera* third_person_camera;
+    Ogre::Camera* creature_camera;
+    Ogre::SceneNode* third_person_camera_node;
+    Ogre::SceneNode* creature_camera_node;
     Ogre::Root* root;
     Ogre::SceneManager* scnMgr;
 

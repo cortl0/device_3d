@@ -191,6 +191,9 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
     case config::keyboard_key_z: // save
         save();
         break;
+    case config::keyboard_key_r: // save random
+        save_random();
+        break;
     case config::keyboard_key_x: // stop <-> start
         if(bnn::state::started == state_)
             stop();
@@ -198,7 +201,9 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
             start();
         break;
     case config::keyboard_key_v: // verbose
-        verbose = !verbose;
+        //getRenderWindow()->writeContentsToFile("filename8.png");
+        if(!verbose)
+            verbose = true;
         break;
     case config::keyboard_key_a: // left
         dBodyAddForce(creature_->body.body, force, 0, 0);
@@ -251,26 +256,35 @@ void world_3d::setup_ogre()
     create_light(scnMgr, 0, -10000, 0, "MainLight4");
 
     // also need to tell where we are
-    camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
+    third_person_camera_node = scnMgr->getRootSceneNode()->createChildSceneNode();
+    creature_camera_node = scnMgr->getRootSceneNode()->createChildSceneNode();
 
     switch (0)
     {
     case 0:
-        camNode->setPosition(0, 400 * device_3d_SCALE, 1000 * device_3d_SCALE);
+        third_person_camera_node->setPosition(0, 400 * device_3d_SCALE, 1000 * device_3d_SCALE);
         break;
     case 1:
-        camNode->setPosition(0, 800, 0);
-        camNode->setOrientation(Quaternion(-f, f, 0, 0));
+        third_person_camera_node->setPosition(0, 800, 0);
+        third_person_camera_node->setOrientation(Quaternion(-f, f, 0, 0));
         break;
     }
 
-    cam = scnMgr->createCamera("myCam");
-    cam->setNearClipDistance(1);
-    cam->setAutoAspectRatio(true);
+    creature_camera_node->setPosition(0, 400 * device_3d_SCALE, 0);
+    //third_person_camera_node->setOrientation(Quaternion(-f, f, 0, 0));
 
-    camNode->attachObject(cam);
+    third_person_camera = scnMgr->createCamera("myCam");
+    third_person_camera->setNearClipDistance(1);
+    third_person_camera->setAutoAspectRatio(true);
+    third_person_camera_node->attachObject(third_person_camera);
 
-    getRenderWindow()->addViewport(cam);
+    creature_camera = scnMgr->createCamera("myCam1");
+    creature_camera->setNearClipDistance(1);
+    creature_camera->setAutoAspectRatio(true);
+    creature_camera_node->attachObject(creature_camera);
+
+    getRenderWindow()->addViewport(third_person_camera, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+    getRenderWindow()->addViewport(creature_camera, 1, 0.0f, 0.0f, 0.25f, 0.25f);
 
     auto *ent_plane = scnMgr->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
     auto *node_plane = scnMgr->getRootSceneNode()->createChildSceneNode();
@@ -361,7 +375,7 @@ void world_3d::load()
         ifs.read(reinterpret_cast<char*>(pos), sizeof(pos));
         dBodySetPosition(id, pos[0], pos[1], pos[2]);
 
-        double dir[4];
+        dReal dir[4];
         ifs.read(reinterpret_cast<char*>(dir), sizeof(dir));
         dBodySetQuaternion(id, dir);
     };
@@ -388,6 +402,32 @@ void world_3d::load()
 
     if(bnn::state::started == state)
         start();
+}
+
+void world_3d::render_go()
+{
+    //getRoot()->mActiveRenderer->_initRenderTargets();
+
+    getRoot()->clearEventTimes();
+
+    auto w = getRenderWindow()->getWidth();
+    auto h = getRenderWindow()->getHeight();
+
+    while(!shutdown)
+    {
+        getRoot()->renderOneFrame();
+
+        static Image img(getRenderWindow()->suggestPixelFormat(), w, h);
+        static PixelBox pb = img.getPixelBox();
+
+        getRenderWindow()->copyContentsToMemory(pb, pb);
+
+        Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pb.data);
+        creature_->video_->data = pDest;
+        creature_->video_->calculate_data();
+
+        //img.save("filename5.png");
+    }
 }
 
 void world_3d::save()
@@ -427,6 +467,28 @@ void world_3d::save()
         std::cout << "save error" << std::endl;
 
     ofs.close();
+
+    if(bnn::state::started == state)
+        start();
+}
+
+void world_3d::save_random()
+{
+    auto state = state_;
+
+    stop();
+
+    //std::ofstream ofs(fs::current_path() / "random.rnd", std::ios::binary);
+
+    creature_->brain_->save_random();
+
+    //ofs.close();
+
+    //    std::ofstream ofs_csv(fs::current_path() / "random.csv", std::ios::binary);
+
+    //    creature_->brain_->save_random_csv(ofs_csv);
+
+    //    ofs_csv.close();
 
     if(bnn::state::started == state)
         start();
@@ -487,8 +549,8 @@ void world_3d::fill_it_up()
             y=height * device_3d_SCALE;
             z=(i & 1) ? size * device_3d_SCALE / koef_size : size * device_3d_SCALE;
             stepping_figures.push_back(pho::cube("wall_" + std::to_string(i) + std::to_string(i),
-                                            scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
-                                            x, y, z));
+                                                 scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
+                                                 x, y, z));
 
             stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, 0x000000ff, 0xbbbbbbff));
 
@@ -514,7 +576,7 @@ void world_3d::fill_it_up()
             float r = 120.0 * device_3d_SCALE;// ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
 
             stepping_figures.push_back(pho::cube("cube_qqq", scnMgr, world, space,
-                                            r*r*r * device_3d_MASS_SCALE, r, r, r));
+                                                 r*r*r * device_3d_MASS_SCALE, r, r, r));
 
             stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
 
@@ -543,13 +605,12 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(stepping_figures.back().node);
         }
 
-        //rand();rand();
         for(int i = 0; i < 0; i++)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 50 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(pho::sphere("sphere_" + std::to_string(i), scnMgr, world, space,
-                                              r*r*r * device_3d_MASS_SCALE, r));
+                                                   r*r*r * device_3d_MASS_SCALE, r));
 
             stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
 
@@ -566,7 +627,7 @@ void world_3d::fill_it_up()
 
     // creating creature
     {
-        creature_.reset(new creatures::creature(scnMgr, world));
+        creature_.reset(new creatures::creature(getRenderWindow(), scnMgr, world));
 
         creature_->set_position(0, 1, 0);
 
@@ -608,11 +669,11 @@ void world_3d::fill_it_up()
         body = it->body;
     }
 
-    camNode->setPosition(dBodyGetPosition(body)[0] + 0,
+    third_person_camera_node->setPosition(dBodyGetPosition(body)[0] + 0,
             dBodyGetPosition(body)[1] + 4,
             dBodyGetPosition(body)[2] + 10);
 
-    tripod_.reset(new tripod(world, camNode, body));
+    tripod_.reset(new tripod(world, third_person_camera_node, body));
 }
 
 void world_3d::function(world_3d *me)
@@ -659,24 +720,14 @@ void world_3d::function(world_3d *me)
                 dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
             }
 
-//            {
-//                size_t i = 0;
-//                std::for_each(me->movable_colliding_geoms.begin(), me->movable_colliding_geoms.end(), [&](dGeomID& g)
-//                {
-//                    auto *pos_fig = dGeomGetPosition(g);
-//                    auto *pos_fl = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.geom);
-//                    auto *pos_fr = dGeomGetPosition(me->creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.geom);
-
-//                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fl[0], 2) + pow(pos_fig[1] - pos_fl[1], 2) + pow(pos_fig[2] - pos_fl[2], 2), 0.5));
-//                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
-//                    value = static_cast<float>(pow(pow(pos_fig[0] - pos_fr[0], 2) + pow(pos_fig[1] - pos_fr[1], 2) + pow(pos_fig[2] - pos_fr[2], 2), 0.5));
-//                    (me->input_from_world)[i++] = static_cast<_word>(value * coef1);
-//                });
-//            }
-
             me->creature_->step(me->movable_colliding_geoms, me->verbose);
 
             me->tripod_->step();
+
+            const dReal* pos = dBodyGetPosition(me->creature_->body.body);
+            const dReal* dir = dBodyGetQuaternion(me->creature_->body.body);
+            me->creature_camera_node->setPosition(static_cast<Ogre::Real>(pos[0]), static_cast<Ogre::Real>(pos[1]), static_cast<Ogre::Real>(pos[2]));
+            me->creature_camera_node->setOrientation(static_cast<Ogre::Real>(dir[0]), static_cast<Ogre::Real>(dir[1]), static_cast<Ogre::Real>(dir[2]), static_cast<Ogre::Real>(dir[3]));
 
             for_each(me->bounding_nodes.begin(), me->bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
 

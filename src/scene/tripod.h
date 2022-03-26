@@ -13,7 +13,7 @@
 #include "ode.h"
 #include "Ogre.h"
 
-#include "config.h"
+#include "config.hpp"
 
 namespace bnn_device_3d::scene
 {

@@ -18,14 +18,15 @@ int main()
     {
         bnn_device_3d::scene::world_3d app;
         app.initApp();
-        app.getRoot()->startRendering();
+        //app.getRoot()->startRendering();
+        app.render_go();
         app.closeApp();
     }
-    catch (const std::exception& e)
+    catch(const std::exception& e)
     {
         std::cout << "Caught std::exception&: " << e.what() << std::endl;
     }
-    catch (...)
+    catch(...)
     {
         std::cout << "Caught unknown error" << std::endl;
     }

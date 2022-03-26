@@ -42,6 +42,7 @@ SOURCES += \
         sensors/distance.cpp \
         sensors/gyroscope.cpp \
         sensors/velocity.cpp \
+        sensors/video.cpp \
         teachers/teacher.cpp \
         teachers/teacher_walking.cpp
 
@@ -62,7 +63,7 @@ HEADERS += \
     bnn/src/brain/thread.h \
     conductors/conductor.h \
     conductors/conductor_circle.h \
-    config.h \
+    config.hpp \
     creatures/creature.h \
     creatures/joint.h \
     creatures/leg.h \
@@ -80,6 +81,7 @@ HEADERS += \
     sensors/distance.h \
     sensors/gyroscope.h \
     sensors/velocity.h \
+    sensors/video.h \
     teachers/teacher.h \
     teachers/teacher_walking.h
 

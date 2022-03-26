@@ -7,8 +7,8 @@
  *   licensed by GPL v3.0
  */
 
-#ifndef DEVICE_3D_CONFIG_H
-#define DEVICE_3D_CONFIG_H
+#ifndef DEVICE_3D_CONFIG_HPP
+#define DEVICE_3D_CONFIG_HPP
 
 #define device_3d_GRAVITY 9.81f // [m/s^2]
 
@@ -36,6 +36,7 @@ struct config
         keyboard_key_a = 0x61,
         keyboard_key_d = 0x64,
         keyboard_key_w = 0x77,
+        keyboard_key_r = 0x72,
         keyboard_key_s = 0x73
     };
 
@@ -45,4 +46,4 @@ public:
 
 } // namespace bnn_device_3d
 
-#endif // DEVICE_3D_CONFIG_H
+#endif // DEVICE_3D_CONFIG_HPP

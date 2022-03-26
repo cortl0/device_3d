@@ -11,6 +11,8 @@
 
 #include <unistd.h>
 
+namespace dpm = bnn_device_3d::data_processing_methods;
+
 namespace pho = bnn_device_3d::physical_objects;
 
 namespace sens = bnn_device_3d::sensors;
@@ -26,7 +28,7 @@ creature::~creature()
     stop();
 }
 
-creature::creature(Ogre::SceneManager* scnMgr, dWorldID world)
+creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorldID world)
 {
     switch (1)
     {
@@ -165,11 +167,19 @@ creature::creature(Ogre::SceneManager* scnMgr, dWorldID world)
 
     distance.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG);
 
-    brain_.reset(new bnn::brain_tools(random_array_length_in_power_of_two,
-                                      quantity_of_neurons_in_power_of_two,
+    auto step = 16;
+    video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth(), render_window->getHeight(),
+                                                   render_window->getWidth() / 4, render_window->getHeight() / 4,
+                                                   step));
+
+    input_length += QUANTITY_OF_BITS_IN_BYTE * video_->calc_data.size();
+
+    brain_.reset(new bnn::brain_tools(quantity_of_neurons_in_power_of_two,
                                       input_length,
                                       output_length,
                                       threads_count_in_power_of_two));
+
+    //brain_->save_random();
 
     brain_->primary_filling();
 
@@ -210,6 +220,8 @@ std::vector<pho::figure*> creature::get_figures()
     std::vector<pho::figure*> value;
 
     value.push_back(&body);
+
+    value.push_back(&body_sign);
 
     std::for_each(legs.begin(),legs.end(), [&](leg& l)
     {
@@ -281,7 +293,7 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
     double fs;
     double st;
 
-    u_word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
+    const u_word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
 
     static double range = 1.0f;
 
@@ -373,6 +385,9 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
     debug_str += " ";
 #endif
 #endif
+
+    debug_str += " ]\nvideo [\n";
+    video_->set_inputs(*brain_.get(), count_input, QUANTITY_OF_BITS_IN_BYTE, range, debug_str);
 
     debug_str += "]\nout [ ";
 

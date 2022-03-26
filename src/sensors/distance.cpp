@@ -9,6 +9,8 @@
 
 #include "distance.h"
 
+namespace dpm = bnn_device_3d::data_processing_methods;
+
 namespace bnn_device_3d::sensors
 {
 

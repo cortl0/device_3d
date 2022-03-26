@@ -35,17 +35,17 @@ figure::figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal
 
 void figure::step()
 {
-    auto *pos = dBodyGetPosition(body);
-    auto *qrot = dBodyGetQuaternion(body);
+    const dReal* pos = dBodyGetPosition(body);
+    const dReal* qrot = dBodyGetQuaternion(body);
 
-    //    float x = pos[0];
-    //    float y = pos[1];
-    //    float z = pos[2];
+    //float x = pos[0];
+    //float y = pos[1];
+    //float z = pos[2];
 
-    //    logging("x=" + std::to_string(x) + " y=" + std::to_string(y) + " z=" + std::to_string(z))
+    //logging("x=" + std::to_string(x) + " y=" + std::to_string(y) + " z=" + std::to_string(z))
 
-    node->setPosition(pos[0], pos[1], pos[2]);
-    node->setOrientation(qrot[0], qrot[1], qrot[2], qrot[3]);
+    node->setPosition(static_cast<Ogre::Real>(pos[0]), static_cast<Ogre::Real>(pos[1]), static_cast<Ogre::Real>(pos[2]));
+    node->setOrientation(static_cast<Ogre::Real>(qrot[0]), static_cast<Ogre::Real>(qrot[1]), static_cast<Ogre::Real>(qrot[2]), static_cast<Ogre::Real>(qrot[3]));
 }
 
 void figure::set_material(Ogre::MaterialPtr materialPtr)
