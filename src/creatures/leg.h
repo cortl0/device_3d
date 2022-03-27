@@ -12,7 +12,6 @@
 
 #include <iostream>
 
-#include "config.hpp"
 #include "physical_objects/cube.h"
 #include "physical_objects/sphere.h"
 #include "joint.h"

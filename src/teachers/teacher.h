@@ -10,7 +10,6 @@
 #ifndef BNN_DEVICE_3D_TEACHERS_TEACHER_H
 #define BNN_DEVICE_3D_TEACHERS_TEACHER_H
 
-#include "config.hpp"
 #include "Ogre.h"
 #include "bnn/src/brain/brain.h"
 

@@ -20,7 +20,10 @@
 //#define learning_creature
 
 #define QUANTITY_OF_JOINTS_IN_LEG 2
-#define LEGS_QUANTITY 4
+#define COLOR_BLACK 0x222222ff
+#define COLOR_DARK 0x555555ff
+#define COLOR_LIGHT 0xbbbbbbff
+#define COLOR_MEDIUM 0x777777ff
 
 namespace bnn_device_3d
 {

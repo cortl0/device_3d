@@ -22,15 +22,15 @@ struct video
 {
     video() = delete;
 
-    video(uint32_t w, uint32_t h, uint32_t w2, uint32_t h2, uint32_t step);
+    video(uint32_t width, uint32_t height, uint32_t step);
 
-    void calculate_data();
+    void calculate_data(uint8_t* data, uint32_t full_width, uint32_t full_heigth);
 
     void set_inputs(bnn::brain&, u_word& count, u_word length, float range_ignored, std::string& str);
 
-    uint8_t* data;
-    uint32_t w, h, w2, h2, step = 32;
+    uint32_t width, height, step;
     std::vector<int> calc_data;
+    static const int length = 4;
 private:
     std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
 };

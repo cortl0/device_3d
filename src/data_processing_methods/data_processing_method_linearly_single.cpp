@@ -9,6 +9,8 @@
 
 #include "data_processing_method_linearly_single.h"
 
+#include "config.hpp"
+
 namespace bnn_device_3d::data_processing_methods
 {
 

@@ -9,6 +9,8 @@
 
 #include "tripod.h"
 
+#include "config.hpp"
+
 namespace bnn_device_3d::scene
 {
 

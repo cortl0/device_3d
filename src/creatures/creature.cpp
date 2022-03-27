@@ -11,6 +11,8 @@
 
 #include <unistd.h>
 
+#include "config.hpp"
+
 namespace dpm = bnn_device_3d::data_processing_methods;
 
 namespace pho = bnn_device_3d::physical_objects;
@@ -63,7 +65,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
     {
         body = pho::cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
 
-        body.set_material(pho::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+        body.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
 
         colliding_geoms.push_back(body.geom);
     }
@@ -97,7 +99,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
         dQuaternion q = {1, 0, 0, 0};
         legs.push_back(leg("leg_fr", scnMgr, world, space,
                            body_width / 2, 0, -body_length / 2,
-                           q, 1, 0x777777ff));
+                           q, 1, COLOR_LIGHT));
     }
 
     if(1)
@@ -106,7 +108,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
         dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
         legs.push_back(leg("middle_l", scnMgr, world, space,
                            -body_width / 2 + 25 * device_3d_SCALE, 0, 0,
-                           q, -1, 0x777777ff));
+                           q, -1, COLOR_LIGHT));
     }
 
     if(1)
@@ -115,7 +117,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
         dQuaternion q = {1, 0, 0, 0};
         legs.push_back(leg("middle_r", scnMgr, world, space,
                            body_width / 2 - 25 * device_3d_SCALE, 0, 0,
-                           q, 1, 0x777777ff));
+                           q, 1, COLOR_LIGHT));
     }
 
     if(1)
@@ -124,7 +126,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
         dQuaternion q = {M_SQRT1_2, 0, M_SQRT1_2, 0};
         legs.push_back(leg("leg_rl", scnMgr, world, space,
                            -body_width / 2, 0, body_length / 2,
-                           q, -1, 0x777777ff));
+                           q, -1, COLOR_LIGHT));
     }
 
     if(1)
@@ -133,7 +135,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
         dQuaternion q = {1, 0, 0, 0};
         legs.push_back(leg("leg_rr", scnMgr, world, space,
                            body_width / 2, 0, body_length / 2,
-                           q, 1, 0x777777ff));
+                           q, 1, COLOR_LIGHT));
     }
 
     for (size_t i = 0; i < legs.size(); i++)
@@ -168,11 +170,9 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
     distance.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG);
 
     auto step = 16;
-    video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth(), render_window->getHeight(),
-                                                   render_window->getWidth() / 4, render_window->getHeight() / 4,
-                                                   step));
+    video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth() / 4, render_window->getHeight() / 4, step));
 
-    input_length += QUANTITY_OF_BITS_IN_BYTE * video_->calc_data.size();
+    input_length += bnn_device_3d::sensors::video::length * video_->calc_data.size();
 
     brain_.reset(new bnn::brain_tools(quantity_of_neurons_in_power_of_two,
                                       input_length,
@@ -387,7 +387,7 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
 #endif
 
     debug_str += " ]\nvideo [\n";
-    video_->set_inputs(*brain_.get(), count_input, QUANTITY_OF_BITS_IN_BYTE, range, debug_str);
+    video_->set_inputs(*brain_.get(), count_input, bnn_device_3d::sensors::video::length, range, debug_str);
 
     debug_str += "]\nout [ ";
 

@@ -11,6 +11,8 @@
 
 #include <unistd.h>
 
+#include "config.hpp"
+
 namespace bnn_device_3d::scene
 {
 
@@ -270,28 +272,28 @@ void world_3d::setup_ogre()
         break;
     }
 
-    creature_camera_node->setPosition(0, 400 * device_3d_SCALE, 0);
-    //third_person_camera_node->setOrientation(Quaternion(-f, f, 0, 0));
-
     third_person_camera = scnMgr->createCamera("myCam");
     third_person_camera->setNearClipDistance(1);
     third_person_camera->setAutoAspectRatio(true);
     third_person_camera_node->attachObject(third_person_camera);
 
     creature_camera = scnMgr->createCamera("myCam1");
-    creature_camera->setNearClipDistance(1);
+    creature_camera->setNearClipDistance(0.1);
     creature_camera->setAutoAspectRatio(true);
     creature_camera_node->attachObject(creature_camera);
 
     getRenderWindow()->addViewport(third_person_camera, 0, 0.0f, 0.0f, 1.0f, 1.0f);
     getRenderWindow()->addViewport(creature_camera, 1, 0.0f, 0.0f, 0.25f, 0.25f);
 
+    getRenderWindow()->getViewport(0)->setBackgroundColour(Ogre::ColourValue::White);
+    getRenderWindow()->getViewport(1)->setBackgroundColour(Ogre::ColourValue::White);
+
     auto *ent_plane = scnMgr->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
     auto *node_plane = scnMgr->getRootSceneNode()->createChildSceneNode();
     node_plane->setScale(Ogre::Vector3(1, 1, 1));
     node_plane->setDirection(0,-1,0);
     node_plane->attachObject(ent_plane);
-    ent_plane->setMaterial(pho::figure::create_material_chess(1024, 8, 0x777777ff, 0xbbbbbbff));
+    ent_plane->setMaterial(pho::figure::create_material_chess(1024, 8, COLOR_BLACK, COLOR_DARK));
 }
 
 void world_3d::setup_ode()
@@ -423,8 +425,7 @@ void world_3d::render_go()
         getRenderWindow()->copyContentsToMemory(pb, pb);
 
         Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pb.data);
-        creature_->video_->data = pDest;
-        creature_->video_->calculate_data();
+        creature_->video_->calculate_data(pDest, w, h);
 
         //img.save("filename5.png");
     }
@@ -542,6 +543,7 @@ void world_3d::fill_it_up()
         float height = 100.0f;
         float koef_size = 50.0f;
 
+        // creating walls
         for(int i = 0; i < 4; i++)
         {
             float x,y,z;
@@ -552,7 +554,7 @@ void world_3d::fill_it_up()
                                                  scnMgr, world, space, x * y * z * device_3d_MASS_SCALE,
                                                  x, y, z));
 
-            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, 0x000000ff, 0xbbbbbbff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
 
             dBodySetPosition(stepping_figures.back().body,
                              !(i & 1) * ((i >> 1) * 2 - 1) * (size / 2 + size / koef_size/2 + 1) * device_3d_SCALE,
@@ -578,7 +580,7 @@ void world_3d::fill_it_up()
             stepping_figures.push_back(pho::cube("cube_qqq", scnMgr, world, space,
                                                  r*r*r * device_3d_MASS_SCALE, r, r, r));
 
-            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
 
             dBodySetPosition(stepping_figures.back().body,
                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
@@ -596,7 +598,7 @@ void world_3d::fill_it_up()
 
             stepping_figures.push_back(pho::sphere("sphere_ssss", scnMgr, world, space, r*r*r, r));
 
-            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, 0x777777ff, 0x000000ff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_LIGHT));
 
             dBodySetPosition(stepping_figures.back().body, 0, 1, -10);
 
@@ -612,7 +614,7 @@ void world_3d::fill_it_up()
             stepping_figures.push_back(pho::sphere("sphere_" + std::to_string(i), scnMgr, world, space,
                                                    r*r*r * device_3d_MASS_SCALE, r));
 
-            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, 0x777777ff, 0x333333ff));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_DARK));
 
             dBodySetPosition(stepping_figures.back().body,
                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
@@ -724,7 +726,17 @@ void world_3d::function(world_3d *me)
 
             me->tripod_->step();
 
-            const dReal* pos = dBodyGetPosition(me->creature_->body.body);
+            const dReal* pos_l = dBodyGetPosition(me->creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.body);
+            const dReal* pos_r = dBodyGetPosition(me->creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.body);
+            const dReal* pos_b = dBodyGetPosition(me->creature_->body.body);
+
+            dReal pos[3];
+            for(int i = 0; i < 3; i++)
+            {
+                pos[i] = (pos_l[i] + pos_r[i]) / 2;
+                pos[i] = (pos[i] - pos_b[i]) / 10 * 8.75 + pos_b[i];
+            }
+
             const dReal* dir = dBodyGetQuaternion(me->creature_->body.body);
             me->creature_camera_node->setPosition(static_cast<Ogre::Real>(pos[0]), static_cast<Ogre::Real>(pos[1]), static_cast<Ogre::Real>(pos[2]));
             me->creature_camera_node->setOrientation(static_cast<Ogre::Real>(dir[0]), static_cast<Ogre::Real>(dir[1]), static_cast<Ogre::Real>(dir[2]), static_cast<Ogre::Real>(dir[3]));

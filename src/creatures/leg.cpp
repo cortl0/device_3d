@@ -9,6 +9,8 @@
 
 #include "leg.h"
 
+#include "config.hpp"
+
 namespace bnn_device_3d::creatures
 {
 
@@ -20,9 +22,9 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
     second = physical_objects::cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
     third = physical_objects::cube(name + "_third", scnMgr, world, space, third_mass, third_x, third_y, third_z);
 
-    first.set_material(physical_objects::figure::create_material_chess(128, 32, color, 0x333333ff));
-    second.set_material(physical_objects::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
-    third.set_material(physical_objects::figure::create_material_chess(128, 32, 0x777777ff, 0x333333ff));
+    first.set_material(physical_objects::figure::create_material_chess(128, 32, COLOR_MEDIUM, color));
+    second.set_material(physical_objects::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
+    third.set_material(physical_objects::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
 
     //    dBodySetPosition (first.body, 0, 0, dir_fr * first_z / 2);
     //dBodySetPosition (first.body, 0, 0, 0);

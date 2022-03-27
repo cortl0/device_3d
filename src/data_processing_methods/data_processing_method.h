@@ -10,7 +10,6 @@
 #ifndef BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_H
 #define BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_H
 
-#include "config.hpp"
 #include "bnn/src/brain/brain.h"
 
 namespace bnn_device_3d::data_processing_methods

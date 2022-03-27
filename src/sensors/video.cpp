@@ -14,43 +14,43 @@ namespace dpm = bnn_device_3d::data_processing_methods;
 namespace bnn_device_3d::sensors
 {
 
-video::video(uint32_t w, uint32_t h, uint32_t w2, uint32_t h2, uint32_t step)
-    : w(w), h(h), w2(w2), h2(h2), step(step)
+video::video(uint32_t width, uint32_t height, uint32_t step)
+    : width(width), height(height), step(step)
 {
     data_processing_method_.reset(new dpm::data_processing_method_linearly());
     //data_processing_method_.reset(new data_processing_method_binary());
 
     size_t counter = 0;
-    for(int i = 0; i < h2; i += step)
-        for(int j = 0; j < w2; j += step)
+    for(uint32_t i = 0; i < width; i += step)
+        for(uint32_t j = 0; j < height; j += step)
             counter++;
 
     calc_data.resize(counter);
 }
 
-void video::calculate_data()
+void video::calculate_data(uint8_t* data, uint32_t full_width, uint32_t)
 {
     size_t counter = 0;
-    for(int i = 0; i < h2; i += step)
-        for(int j = 0; j < w2; j += step)
+    for(uint32_t i = 0; i < height; i += step)
+        for(uint32_t j = 0; j < width; j += step)
         {
             calc_data[counter] = 0;
 
 #define QUANTITY_BYTES_PER_PIXEL 3
 
             for(int k = 0; k < QUANTITY_BYTES_PER_PIXEL; k++)
-                calc_data[counter] += data[(i * w + j) * QUANTITY_BYTES_PER_PIXEL + k];
+                calc_data[counter] += data[(i * full_width + j) * QUANTITY_BYTES_PER_PIXEL + k];
 
             counter++;
         }
 }
 
-void video::set_inputs(bnn::brain& brain_, u_word& count_input, u_word length, float range, std::string& debug_str)
+void video::set_inputs(bnn::brain& brain_, u_word& count_input, u_word length, float, std::string& debug_str)
 {
     size_t counter = 0;
-    for(int i = 0; i < h2; i += step)
+    for(uint32_t i = 0; i < height; i += step)
     {
-        for(int j = 0; j < w2; j += step)
+        for(uint32_t j = 0; j < width; j += step)
         {
 #define VALUE_PER_PIXEL (255 * 3)
 

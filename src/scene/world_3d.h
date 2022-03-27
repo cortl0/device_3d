@@ -20,7 +20,6 @@
 #include "OgreApplicationContext.h"
 #include "OgreInput.h"
 
-#include "config.hpp"
 #include "creatures/creature.h"
 #include "physical_objects/cube.h"
 #include "physical_objects/sphere.h"
@@ -44,11 +43,11 @@ public:
     world_3d();
     void collide_action();
     void fill_it_up();
-    virtual void setup(void);
+    virtual void setup() override;
     void setup_ogre();
     void setup_ode();
-    bool keyPressed(const OgreBites::KeyboardEvent& evt);
-    bool keyReleased(const OgreBites::KeyboardEvent& evt);
+    bool keyPressed(const OgreBites::KeyboardEvent& evt) override;
+    bool keyReleased(const OgreBites::KeyboardEvent& evt) override;
     static void function(world_3d *me);
     void load();
     void render_go();
