@@ -30,7 +30,7 @@ struct video
 
     uint32_t width, height, step;
     std::vector<int> calc_data;
-    static const int length = 4;
+    static constexpr int length = 4;
 private:
     std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
 };

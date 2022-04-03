@@ -39,8 +39,11 @@ namespace bnn_device_3d::scene
 class world_3d : public OgreBites::ApplicationContext, public OgreBites::InputListener
 {
 public:
-    ~world_3d();
+    virtual ~world_3d();
     world_3d();
+    void run();
+
+private:
     void collide_action();
     void fill_it_up();
     virtual void setup() override;
@@ -48,16 +51,12 @@ public:
     void setup_ode();
     bool keyPressed(const OgreBites::KeyboardEvent& evt) override;
     bool keyReleased(const OgreBites::KeyboardEvent& evt) override;
-    static void function(world_3d *me);
     void load();
-    void render_go();
     void save();
     void save_random();
     void start();
     void stop();
 
-private:
-    bool shutdown = false;
     Ogre::Camera* third_person_camera;
     Ogre::Camera* creature_camera;
     Ogre::SceneNode* third_person_camera_node;
@@ -77,7 +76,6 @@ private:
     std::unique_ptr<cond::conductor> conductor_;
     std::unique_ptr<creatures::creature> creature_;
     std::list<Ogre::SceneNode*> bounding_nodes;
-    std::unique_ptr<std::thread> thread_;
     std::unique_ptr<tripod> tripod_;
     bnn::state state_ = bnn::state::stopped;
 

@@ -39,7 +39,7 @@ struct figure
     /**
      * @param color0, color1 - BGRA
      */
-    static Ogre::MaterialPtr create_material_chess(int size, int step, Ogre::uint32 color0, Ogre::uint32 color1);
+    static Ogre::MaterialPtr create_material_chess(uint size, uint step, Ogre::uint32 color0, Ogre::uint32 color1);
 
     static Ogre::MaterialPtr create_material_body_sign(size_t size);
 

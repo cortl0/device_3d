@@ -27,7 +27,7 @@ namespace bnn_device_3d::creatures
 creature::~creature()
 {
     logging("");
-    stop();
+    //stop();
 }
 
 creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorldID world)
@@ -64,9 +64,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
 
     {
         body = pho::cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
-
         body.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
-
         colliding_geoms.push_back(body.geom);
     }
 
@@ -142,7 +140,6 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
     {
         colliding_geoms.push_back(legs[i].second.geom);
         colliding_geoms.push_back(legs[i].third.geom);
-
         make_fixed_joint(legs[i].first.geom);
     }
 
@@ -155,23 +152,11 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
     // I feel my orientation [2 bytes / coordinate] (48)
     input_length += 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
 
-#ifdef creature_sees_world
-    // I see figures with two eyes (128)
-    input_length += inputs_from_world_objests;
-#endif
-
-    // input_length = 448
-
-    // (16)
     output_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
-
-    force.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG);
-
-    distance.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG);
-
+    force.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG, 0.0);
+    distance.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG, 0.0);
     auto step = 16;
     video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth() / 4, render_window->getHeight() / 4, step));
-
     input_length += bnn_device_3d::sensors::video::length * video_->calc_data.size();
 
     brain_.reset(new bnn::brain_tools(quantity_of_neurons_in_power_of_two,
@@ -206,12 +191,6 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
         //        c = dJointCreateDBall (world, cg_fl);
         //        c = dJointCreateDHinge (world, cg_fl);
         //        c = dJointCreateTransmission (world, cg_fl);
-    }
-
-    for(size_t i = 0; i < force.size(); i++)
-    {
-        force[i] = 0;
-        distance[i] = 0;
     }
 }
 
@@ -271,38 +250,26 @@ void creature::set_position(dReal x, dReal y, dReal z)
 
 void creature::start()
 {
-    logging("creature::start() begin");
-
     brain_->start();
 
 #ifdef learning_creature
     teacher->start();
 #endif
 
-    //brain_friend_->debug_out();
-
-    logging("creature::start() end");
+    brain_->debug_out();
 }
 
 void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
 {
-    std::string debug_str = "legs [ ";
-
-    //dBodySetAngularVel(body.body, 0, 5, 0);
-
-    double fs;
-    double st;
-
     const u_word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
-
-    static double range = 1.0f;
-
+    static constexpr double range = 1.0f;
     static const Ogre::Quaternion ort_x(0, 1, 0, 0);
     static const Ogre::Quaternion ort_y(0, 0, 1, 0);
     static const Ogre::Quaternion ort_z(0, 0, 0, 1);
+    double fs, st;
+    std::string debug_str = "legs [ ";
 
     body.step();
-
     body_sign.step();
 
 #ifdef learning_creature
@@ -366,26 +333,6 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
     debug_str += " ]\ndir [ ";
     gyroscope_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str);
 
-#ifdef creature_sees_world
-#ifdef show_debug_data
-    debug_str += " ]\nobj [ ";
-#endif
-    // I see figures with two eyes
-    for_each(distance_geoms.begin(), distance_geoms.end(), [&](dGeomID& value)
-    {
-#define MAX_DISTANCE_TO_OBJECT 100
-        distance_.set_inputs(legs[NUMBER_OF_FRONT_LEFT_LEG].first.body, value, *brain_.get(), count_input, 32, MAX_DISTANCE_TO_OBJECT, debug_str);
-        distance_.set_inputs(legs[NUMBER_OF_FRONT_RIGHT_LEG].first.body, value, *brain_.get(), count_input, 32, MAX_DISTANCE_TO_OBJECT, debug_str);
-
-        debug_str += " ";
-    });
-#else
-
-#ifdef show_debug_data
-    debug_str += " ";
-#endif
-#endif
-
     debug_str += " ]\nvideo [\n";
     video_->set_inputs(*brain_.get(), count_input, bnn_device_3d::sensors::video::length, range, debug_str);
 
@@ -413,13 +360,15 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
     }
 
     debug_str += " ]\n";
+
 #ifdef show_debug_data
-    static u_word iter = 0;
-    u_word www = brain_->get_iteration();
-    if(www > iter)
+    static u_word iteration = 0;
+    u_word current_iteration = brain_->get_iteration();
+
+    if(current_iteration > iteration)
     {
-        iter = www;
-        debug_str += std::to_string(www);
+        iteration = current_iteration;
+        debug_str += std::to_string(current_iteration);
 
         if(verbose)
         {
@@ -432,14 +381,10 @@ void creature::step(std::list<dGeomID>& distance_geoms, bool& verbose)
 
 void creature::stop()
 {
-    logging("creature::stop() begin");
-
     brain_->stop();
 #ifdef learning_creature
     teacher->stop();
 #endif
-
-    logging("creature::stop() end");
 }
 
 } // namespace bnn_device_3d::creatures

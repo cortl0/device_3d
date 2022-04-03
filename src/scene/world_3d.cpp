@@ -13,6 +13,10 @@
 
 #include "config.hpp"
 
+namespace sch = std::chrono;
+
+typedef sch::time_point<sch::system_clock, sch::microseconds> m_time_point;
+
 namespace bnn_device_3d::scene
 {
 
@@ -23,9 +27,11 @@ static dJointGroupID contactgroup_st;
 world_3d::~world_3d()
 {
     logging("");
-    stop();
-    if(!shutdown)
-        getRoot()->queueEndRendering();
+    //while(bnn::state::stopped != state_)
+    //    usleep(BNN_LITTLE_TIME);
+    //stop();
+//    if(!shutdown)
+//        getRoot()->queueEndRendering();
     //    dWorldDestroy (world);
     //            dCloseODE();
 }
@@ -183,8 +189,6 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
     switch (evt.keysym.sym)
     {
     case OgreBites::SDLK_ESCAPE:
-        stop();
-        shutdown = true;
         getRoot()->queueEndRendering();
         break;
     case config::keyboard_key_c: // load
@@ -406,29 +410,109 @@ void world_3d::load()
         start();
 }
 
-void world_3d::render_go()
+void world_3d::run()
 {
-    //getRoot()->mActiveRenderer->_initRenderTargets();
+    initApp();
 
-    getRoot()->clearEventTimes();
-
-    auto w = getRenderWindow()->getWidth();
-    auto h = getRenderWindow()->getHeight();
-
-    while(!shutdown)
+    try
     {
-        getRoot()->renderOneFrame();
+        start();
 
-        static Image img(getRenderWindow()->suggestPixelFormat(), w, h);
-        static PixelBox pb = img.getPixelBox();
+        auto width = getRenderWindow()->getWidth();
+        auto height = getRenderWindow()->getHeight();
+        long delta;
+        const long frame_length = 1000000 / 60;
+        const dReal frame_length_dReal = (dReal)frame_length / 1000000.0;
 
-        getRenderWindow()->copyContentsToMemory(pb, pb);
+        while(bnn::state::started != state_)
+            usleep(BNN_LITTLE_TIME);
 
-        Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pb.data);
-        creature_->video_->calculate_data(pDest, w, h);
+        m_time_point current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
+        m_time_point time_old = current_time;
 
-        //img.save("filename5.png");
+        while(!getRoot()->endRenderingQueued())
+        {
+            if(bnn::state::started == state_)
+            {
+                dJointGroupEmpty(contactgroup);
+
+                for(auto& figure : stepping_figures)
+                    figure.step();
+
+                {
+                    auto it = stepping_figures.begin();
+                    std::advance(it, 5);
+                    auto *pos = dBodyGetPosition(it->body);
+                    float x = pos[0];
+                    float y = pos[1];
+                    float z = pos[2];
+                    conductor_->step(x, y, z);
+                    auto *vel = dBodyGetLinearVel(it->body);
+                    dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
+                }
+
+                creature_->step(movable_colliding_geoms, verbose);
+
+                tripod_->step();
+
+                const dReal* pos_l = dBodyGetPosition(creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.body);
+                const dReal* pos_r = dBodyGetPosition(creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.body);
+                const dReal* pos_b = dBodyGetPosition(creature_->body.body);
+
+                dReal pos[3];
+                for(int i = 0; i < 3; i++)
+                {
+                    pos[i] = (pos_l[i] + pos_r[i]) / 2;
+                    pos[i] = (pos[i] - pos_b[i]) / 10 * 8.75 + pos_b[i];
+                }
+
+                const dReal* dir = dBodyGetQuaternion(creature_->body.body);
+                creature_camera_node->setPosition(static_cast<Ogre::Real>(pos[0]), static_cast<Ogre::Real>(pos[1]), static_cast<Ogre::Real>(pos[2]));
+                creature_camera_node->setOrientation(static_cast<Ogre::Real>(dir[0]), static_cast<Ogre::Real>(dir[1]), static_cast<Ogre::Real>(dir[2]), static_cast<Ogre::Real>(dir[3]));
+
+                for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
+
+                collide_action();
+
+                dWorldStep(world, frame_length_dReal);
+            }
+
+            //***************
+
+            getRoot()->renderOneFrame();
+
+            {
+                static Image img(getRenderWindow()->suggestPixelFormat(), width, height);
+                static PixelBox pb = img.getPixelBox();
+
+                getRenderWindow()->copyContentsToMemory(pb, pb);
+
+                Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pb.data);
+                creature_->video_->calculate_data(pDest, width, height);
+
+                //img.save("filename5.png");
+            }
+
+            current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
+            delta = (current_time - time_old).count();
+
+            if(delta < frame_length)
+                usleep(frame_length - delta);
+
+            time_old += sch::microseconds((long long int)frame_length);
+        }
+
+        stop();
+
+        //        dWorldDestroy (world);
+        //        dCloseODE();
     }
+    catch (...)
+    {
+        logging("unknown error");
+    }
+
+    closeApp();
 }
 
 void world_3d::save()
@@ -497,34 +581,32 @@ void world_3d::save_random()
 
 void world_3d::start()
 {
+    logging("world_3d::start() begin");
+
     if(bnn::state::stopped != state_)
         return;
 
-    logging("world_3d::start() begin");
-
-    thread_.reset(new std::thread(function, this));
-
-    thread_->detach();
-
     state_ = bnn::state::start;
 
-    while (bnn::state::started != state_);
+    creature_->start();
+
+    state_ = bnn::state::started;
 
     logging("world_3d::start() end");
 }
 
 void world_3d::stop()
 {
+    logging("world_3d::stop() begin");
+
     if(bnn::state::started != state_)
         return;
-
-    logging("world_3d::stop() begin");
 
     state_ = bnn::state::stop;
 
     creature_->stop();
 
-    while (bnn::state::stopped != state_);
+    state_ = bnn::state::stopped;
 
     logging("world_3d::stop() end");
 }
@@ -607,14 +689,14 @@ void world_3d::fill_it_up()
             bounding_nodes.push_back(stepping_figures.back().node);
         }
 
-        for(int i = 0; i < 0; i++)
+        for(int i = 0; i < 7; i++)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 50 + 50) * device_3d_SCALE;
 
             stepping_figures.push_back(pho::sphere("sphere_" + std::to_string(i), scnMgr, world, space,
                                                    r*r*r * device_3d_MASS_SCALE, r));
 
-            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_DARK));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_LIGHT));
 
             dBodySetPosition(stepping_figures.back().body,
                              ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 1500 * device_3d_SCALE,
@@ -676,94 +758,6 @@ void world_3d::fill_it_up()
             dBodyGetPosition(body)[2] + 10);
 
     tripod_.reset(new tripod(world, third_person_camera_node, body));
-}
-
-void world_3d::function(world_3d *me)
-{
-    try
-    {
-        while(bnn::state::start != me->state_);
-
-        me->creature_->start();
-
-        me->state_ = bnn::state::started;
-
-        logging("world_3d::function() started");
-
-        me->creature_->brain_->debug_out();
-
-        auto time_old = std::chrono::high_resolution_clock::now();
-
-        float value, coef1 = 1000.0f;
-
-        double delta_time;
-
-        const dReal frame_length = 1.0 / 120;
-
-        while(bnn::state::started == me->state_)
-        {
-            dJointGroupEmpty(me->contactgroup);
-
-            //dBodyAddForce(dGeomGetBody(movable_colliding_geoms.back()), 0, 0, -100);
-
-            for_each(me->stepping_figures.begin(), me->stepping_figures.end(), [](pho::figure& fig){ fig.step(); });
-
-            {
-                auto it = me->stepping_figures.begin();
-                std::advance(it, 5);
-                auto *pos = dBodyGetPosition(it->body);
-                float x = pos[0];
-                float y = pos[1];
-                float z = pos[2];
-                me->conductor_->step(x, y, z);
-
-                auto *vel = dBodyGetLinearVel(it->body);
-
-                dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
-            }
-
-            me->creature_->step(me->movable_colliding_geoms, me->verbose);
-
-            me->tripod_->step();
-
-            const dReal* pos_l = dBodyGetPosition(me->creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.body);
-            const dReal* pos_r = dBodyGetPosition(me->creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.body);
-            const dReal* pos_b = dBodyGetPosition(me->creature_->body.body);
-
-            dReal pos[3];
-            for(int i = 0; i < 3; i++)
-            {
-                pos[i] = (pos_l[i] + pos_r[i]) / 2;
-                pos[i] = (pos[i] - pos_b[i]) / 10 * 8.75 + pos_b[i];
-            }
-
-            const dReal* dir = dBodyGetQuaternion(me->creature_->body.body);
-            me->creature_camera_node->setPosition(static_cast<Ogre::Real>(pos[0]), static_cast<Ogre::Real>(pos[1]), static_cast<Ogre::Real>(pos[2]));
-            me->creature_camera_node->setOrientation(static_cast<Ogre::Real>(dir[0]), static_cast<Ogre::Real>(dir[1]), static_cast<Ogre::Real>(dir[2]), static_cast<Ogre::Real>(dir[3]));
-
-            for_each(me->bounding_nodes.begin(), me->bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
-
-            me->collide_action();
-
-            dWorldStep(me->world, frame_length);
-
-            delta_time = (std::chrono::high_resolution_clock::now() - time_old).count() / 1000000000.0;
-
-            if(delta_time < frame_length)
-                usleep((frame_length - delta_time) * 1000000);
-
-            time_old = std::chrono::high_resolution_clock::now();
-        }
-
-        //        dWorldDestroy (world);
-        //        dCloseODE();
-    }
-    catch (...)
-    {
-        logging("unknown error");
-    }
-
-    me->state_ = bnn::state::stopped;
 }
 
 void nearCallback(void *data, dGeomID o1, dGeomID o2)
@@ -925,14 +919,6 @@ void world_3d::setup(void)
     setup_ogre();
     setup_ode();
     fill_it_up();
-
-//#define SAVE_LOAD_TEST
-#ifdef SAVE_LOAD_TEST
-    save();
-    load();
-#endif
-
-    start();
 }
 
 } // namespace bnn_device_3d::scene

@@ -64,7 +64,7 @@ union conv
 /**
   @param color0, color1 - BGRA
  */
-Ogre::MaterialPtr figure::create_material_chess(int size, int step, Ogre::uint32 color0, Ogre::uint32 color1)
+Ogre::MaterialPtr figure::create_material_chess(uint size, uint step, Ogre::uint32 color0, Ogre::uint32 color1)
 {
     // Create the texture
     Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().createManual(

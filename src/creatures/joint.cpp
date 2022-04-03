@@ -31,9 +31,9 @@ joint::joint(dWorldID world, dBodyID first_body_id, dBodyID second_body_id,
 
 double value_in_range(const double& value, const double& range_start, const double& range_end)
 {
-    static const double default_range_start = -1;
-    static const double default_range_end = 1;
-    static const double default_range_delta = default_range_end - default_range_start;
+    static constexpr double default_range_start = -1;
+    static constexpr double default_range_end = 1;
+    static constexpr double default_range_delta = default_range_end - default_range_start;
 
     if(value < range_start - default_range_delta || value > range_end + default_range_delta)
         throw_error("");

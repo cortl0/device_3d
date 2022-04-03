@@ -53,11 +53,6 @@
 #define QUANTITY_OF_EYES 2
 #define coordinates_count 3
 #define QUANTITY_OF_SHAPES_WHICH_I_SEE  2
-#define creature_sees_world
-
-#ifdef creature_sees_world
-#define inputs_from_world_objests (QUANTITY_OF_SHAPES_WHICH_I_SEE * QUANTITY_OF_EYES * QUANTITY_OF_BITS_IN_WORD)
-#endif
 
 namespace bnn_device_3d::creatures
 {
@@ -69,7 +64,6 @@ public:
     bnn_device_3d::physical_objects::cube body_sign;
     std::unique_ptr<bnn::brain_tools> brain_;
     std::vector<leg> legs;
-    sensors::distance distance_;
     sensors::gyroscope gyroscope_;
     sensors::velocity speedometer_;
     std::unique_ptr<sensors::video> video_;

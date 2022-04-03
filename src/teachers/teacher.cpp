@@ -51,7 +51,8 @@ void teacher::start()
 
     inner_start();
 
-    while (bnn::state::started != state_);
+    while (bnn::state::started != state_)
+        usleep(BNN_LITTLE_TIME);
 }
 
 void teacher::stop()
@@ -61,7 +62,8 @@ void teacher::stop()
 
     state_ = bnn::state::stop;
 
-    while (bnn::state::stopped != state_);
+    while (bnn::state::stopped != state_)
+        usleep(BNN_LITTLE_TIME);
 }
 
 } // namespace bnn_device_3d::teachers
