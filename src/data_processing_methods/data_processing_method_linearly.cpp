@@ -36,14 +36,15 @@ bool data_processing_method_linearly::get_bool(float from, float to, float value
     return value >= levels_size;
 }
 
-void data_processing_method_linearly::set_inputs(bnn::brain& b, u_word& count, u_word length, float value, float range_from, float range_to, std::string& s)
+void data_processing_method_linearly::set_inputs(bnn::brain& b, u_word& count, u_word length, float value,
+                                                 float range_from, float range_to, std::string& s, bool verbose)
 {
     for(uint8_t j = 0; j < length; j++)
     {
         b.set_input(count++, get_bool(range_from, range_to, value, length, j));
-#ifdef show_debug_data
-        s += std::to_string(get_bool(range_from, range_to, value, length, j));
-#endif
+
+        if(verbose)
+            s += std::to_string(get_bool(range_from, range_to, value, length, j));
     }
 };
 

@@ -17,7 +17,8 @@ conductor_circle::~conductor_circle()
 
 }
 
-conductor_circle::conductor_circle()
+conductor_circle::conductor_circle(float r)
+    : r(r)
 {
 
 }
@@ -63,9 +64,9 @@ void conductor_circle::step(float& x, float& y, float& z)
 
     normalize(x3, y3, z3);
 
-    x -= x3 * 10;
-    y -= y3 * 10;
-    z -= z3 * 10;
+    x -= x3 * r;
+    y -= y3 * r;
+    z -= z3 * r;
 
     float coef = 0.25f;
 

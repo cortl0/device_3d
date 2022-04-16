@@ -49,8 +49,8 @@ private:
     virtual void setup() override;
     void setup_ogre();
     void setup_ode();
-    bool keyPressed(const OgreBites::KeyboardEvent& evt) override;
-    bool keyReleased(const OgreBites::KeyboardEvent& evt) override;
+    bool keyPressed(const OgreBites::KeyboardEvent&) override;
+    bool keyReleased(const OgreBites::KeyboardEvent&) override;
     void load();
     void save();
     void save_random();
@@ -64,7 +64,7 @@ private:
     Ogre::Root* root;
     Ogre::SceneManager* scnMgr;
 
-    dJointGroupID contactgroup;
+    dJointGroupID contact_group;
     dGeomID plane;
     dSpaceID space;
     dWorldID world;
@@ -73,7 +73,7 @@ private:
     std::list<dGeomID> movable_colliding_geoms;
     std::list<dGeomID> creature_colliding_geoms;
     std::list<pho::figure> stepping_figures;
-    std::unique_ptr<cond::conductor> conductor_;
+    std::vector<unique_ptr<cond::conductor>> conductors;
     std::unique_ptr<creatures::creature> creature_;
     std::list<Ogre::SceneNode*> bounding_nodes;
     std::unique_ptr<tripod> tripod_;
@@ -81,7 +81,7 @@ private:
 
     const float f = static_cast<float>(pow(0.5, 0.5));
 
-    bool verbose = false;
+    bool verbose = true;
 
     static void collide_action2(world_3d *me, dGeomID o1, dGeomID o2);
 };

@@ -20,9 +20,10 @@ class conductor_circle : public conductor
     const float c_x = 0.f;
     const float c_y = 0.f;
     const float c_z = 0.f;
+    const float r = 10.f;
 public:
     virtual ~conductor_circle();
-    conductor_circle();
+    conductor_circle(float r);
     virtual void step(float& x, float& y, float& z) override;
 };
 

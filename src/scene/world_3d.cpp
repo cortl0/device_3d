@@ -26,14 +26,12 @@ static dJointGroupID contactgroup_st;
 
 world_3d::~world_3d()
 {
-    logging("");
-    //while(bnn::state::stopped != state_)
-    //    usleep(BNN_LITTLE_TIME);
-    //stop();
-//    if(!shutdown)
-//        getRoot()->queueEndRendering();
-    //    dWorldDestroy (world);
-    //            dCloseODE();
+    logging("world_3d::~world_3d() begin");
+    stop();
+//    dJointGroupDestroy(contact_group);
+//    dWorldDestroy(world);
+    dCloseODE();
+    logging("world_3d::~world_3d() end");
 }
 
 world_3d::world_3d() : OgreBites::ApplicationContext("bnn_test_app")
@@ -96,7 +94,7 @@ void world_3d::collide_action2(world_3d *me, dGeomID o1, dGeomID o2)
         //                contact[i].surface.soft_erp = 1.0f;
         //                contact[i].surface.soft_cfm = 0.01;
 
-        dJointID c = dJointCreateContact (world_st, me->contactgroup, &contact[i]);
+        dJointID c = dJointCreateContact (world_st, me->contact_group, &contact[i]);
         dJointAttach (c,
                       dGeomGetBody(contact[i].geom.g1),
                       dGeomGetBody(contact[i].geom.g2));
@@ -189,16 +187,20 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
     switch (evt.keysym.sym)
     {
     case OgreBites::SDLK_ESCAPE:
-        getRoot()->queueEndRendering();
+        std::thread([&]()
+        {
+            stop();
+            getRoot()->queueEndRendering();
+        }).detach();
         break;
     case config::keyboard_key_c: // load
-        load();
+        std::thread([&](){ load(); }).detach();
         break;
     case config::keyboard_key_z: // save
-        save();
+        std::thread([&](){ save(); }).detach();
         break;
     case config::keyboard_key_r: // save random
-        save_random();
+        std::thread([&](){ save_random(); }).detach();
         break;
     case config::keyboard_key_x: // stop <-> start
         if(bnn::state::started == state_)
@@ -207,15 +209,13 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
             start();
         break;
     case config::keyboard_key_v: // verbose
-        //getRenderWindow()->writeContentsToFile("filename8.png");
-        if(!verbose)
-            verbose = true;
+        verbose = !verbose;
         break;
     case config::keyboard_key_a: // left
-        dBodyAddForce(creature_->body.body, force, 0, 0);
+        dBodyAddForce(creature_->body.body, -force, 0, 0);
         break;
     case config::keyboard_key_d: // right
-        dBodyAddForce(creature_->body.body, -force, 0, 0);
+        dBodyAddForce(creature_->body.body, force, 0, 0);
         break;
     case config::keyboard_key_w: // up
         dBodyAddForce(creature_->body.body, 0, 0, -force);
@@ -308,8 +308,8 @@ void world_3d::setup_ode()
 
     space = dSimpleSpaceCreate(nullptr);
 
-    contactgroup = dJointGroupCreate (0);
-    contactgroup_st = contactgroup;
+    contact_group = dJointGroupCreate (0);
+    contactgroup_st = contact_group;
     world_st = world;
 
     {
@@ -359,9 +359,7 @@ void world_3d::setup_ode()
 void world_3d::load()
 {
     auto state = state_;
-
     stop();
-
     std::list<std::string> l;
 
     for (auto & p : fs::directory_iterator(fs::current_path()))
@@ -372,28 +370,27 @@ void world_3d::load()
         return;
 
     l.sort();
-
     std::ifstream ifs(fs::current_path() / l.back(), std::ios::binary);
 
-    auto load_figure = [&ifs](dBodyID id)
+    auto load_figure = [&ifs](dBodyID body_id)
     {
-        double pos[3];
-        ifs.read(reinterpret_cast<char*>(pos), sizeof(pos));
-        dBodySetPosition(id, pos[0], pos[1], pos[2]);
-
+        dReal pos[3];
         dReal dir[4];
+        ifs.read(reinterpret_cast<char*>(pos), sizeof(pos));
         ifs.read(reinterpret_cast<char*>(dir), sizeof(dir));
-        dBodySetQuaternion(id, dir);
+        dBodySetPosition(body_id, pos[0], pos[1], pos[2]);
+        dBodySetQuaternion(body_id, dir);
     };
 
     load_figure(tripod_->detector);
     load_figure(tripod_->upper);
     load_figure(tripod_->lower);
 
-    auto figures = creature_->get_figures();
-    for_each(figures.begin(), figures.end(), [&](const pho::figure* f) { load_figure(f->body); });
+    for(const auto& figure : creature_->get_figures())
+        load_figure(figure->body);
 
-    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const pho::figure& f) { load_figure(f.body); });
+    for(const auto& figure : stepping_figures)
+        load_figure(figure.body);
 
     if(creature_->brain_->load(ifs))
     {
@@ -416,25 +413,33 @@ void world_3d::run()
 
     try
     {
-        start();
+        { std::thread([&](){ start(); }).detach(); }
 
         auto width = getRenderWindow()->getWidth();
         auto height = getRenderWindow()->getHeight();
         long delta;
         const long frame_length = 1000000 / 60;
         const dReal frame_length_dReal = (dReal)frame_length / 1000000.0;
-
-        while(bnn::state::started != state_)
-            usleep(BNN_LITTLE_TIME);
-
         m_time_point current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
         m_time_point time_old = current_time;
 
         while(!getRoot()->endRenderingQueued())
         {
-            if(bnn::state::started == state_)
+            if(bnn::state::stop == state_)
+                state_ = bnn::state::stopped;
+
+            if(bnn::state::start == state_)
+                state_ = bnn::state::started;
+
+            if(bnn::state::started != state_)
             {
-                dJointGroupEmpty(contactgroup);
+                usleep(BNN_LITTLE_TIME);
+                time_old = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
+                continue;
+            }
+
+            {
+                dJointGroupEmpty(contact_group);
 
                 for(auto& figure : stepping_figures)
                     figure.step();
@@ -446,31 +451,39 @@ void world_3d::run()
                     float x = pos[0];
                     float y = pos[1];
                     float z = pos[2];
-                    conductor_->step(x, y, z);
+                    conductors[0]->step(x, y, z);
                     auto *vel = dBodyGetLinearVel(it->body);
                     dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
                 }
 
-                creature_->step(movable_colliding_geoms, verbose);
-
-                tripod_->step();
-
-                const dReal* pos_l = dBodyGetPosition(creature_->legs[NUMBER_OF_FRONT_LEFT_LEG].first.body);
-                const dReal* pos_r = dBodyGetPosition(creature_->legs[NUMBER_OF_FRONT_RIGHT_LEG].first.body);
-                const dReal* pos_b = dBodyGetPosition(creature_->body.body);
-
-                dReal pos[3];
-                for(int i = 0; i < 3; i++)
                 {
-                    pos[i] = (pos_l[i] + pos_r[i]) / 2;
-                    pos[i] = (pos[i] - pos_b[i]) / 10 * 8.75 + pos_b[i];
+                    auto it = stepping_figures.begin();
+                    std::advance(it, 6);
+                    auto *pos = dBodyGetPosition(it->body);
+                    float x = pos[0];
+                    float y = pos[1];
+                    float z = pos[2];
+                    conductors[1]->step(x, y, z);
+                    auto *vel = dBodyGetLinearVel(it->body);
+                    dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
                 }
 
+                bool verbose = this->verbose;
+                std::string debug_str;
+                creature_->step(debug_str, verbose);
+                tripod_->step();
+
+                if(verbose)
+                    std::cout << debug_str << std::endl;
+
+                auto pl = creature_->get_camera_place();
+                creature_camera_node->setPosition(static_cast<Ogre::Real>(pl[0]), static_cast<Ogre::Real>(pl[1]), static_cast<Ogre::Real>(pl[2]));
+
                 const dReal* dir = dBodyGetQuaternion(creature_->body.body);
-                creature_camera_node->setPosition(static_cast<Ogre::Real>(pos[0]), static_cast<Ogre::Real>(pos[1]), static_cast<Ogre::Real>(pos[2]));
                 creature_camera_node->setOrientation(static_cast<Ogre::Real>(dir[0]), static_cast<Ogre::Real>(dir[1]), static_cast<Ogre::Real>(dir[2]), static_cast<Ogre::Real>(dir[3]));
 
-                for_each(bounding_nodes.begin(), bounding_nodes.end(), [&](Ogre::SceneNode* node){ node->_updateBounds(); });
+                for(auto& node : bounding_nodes)
+                    node->_updateBounds();
 
                 collide_action();
 
@@ -503,9 +516,6 @@ void world_3d::run()
         }
 
         stop();
-
-        //        dWorldDestroy (world);
-        //        dCloseODE();
     }
     catch (...)
     {
@@ -518,9 +528,7 @@ void world_3d::run()
 void world_3d::save()
 {
     auto state = state_;
-
     stop();
-
     static char time_buffer[15];
     std::time_t time = std::time(nullptr);
     std::strftime(time_buffer, 15, "%Y%m%d%H%M%S", std::localtime(&time));
@@ -528,12 +536,11 @@ void world_3d::save()
     s += ".bnn";
     std::ofstream ofs(fs::current_path() / s, std::ios::binary);
 
-    auto save_figure = [&ofs](dBodyID id)
+    auto save_figure = [&ofs](dBodyID body_id)
     {
-        auto* pos = dBodyGetPosition(id);
+        const dReal* pos = dBodyGetPosition(body_id);
+        const dReal* dir = dBodyGetQuaternion(body_id);
         ofs.write(reinterpret_cast<const char*>(pos), sizeof(pos) * 3);
-
-        auto* dir = dBodyGetQuaternion(id);
         ofs.write(reinterpret_cast<const char*>(dir), sizeof(dir) * 4);
     };
 
@@ -541,10 +548,11 @@ void world_3d::save()
     save_figure(tripod_->upper);
     save_figure(tripod_->lower);
 
-    auto figures = creature_->get_figures();
-    for_each(figures.begin(), figures.end(), [&](const pho::figure* f) { save_figure(f->body); });
+    for(const auto& figure : creature_->get_figures())
+         save_figure(figure->body);
 
-    for_each(stepping_figures.begin(), stepping_figures.end(), [&](const pho::figure& f) { save_figure(f.body); });
+    for(const auto& figure : stepping_figures)
+        save_figure(figure.body);
 
     if(creature_->brain_->save(ofs))
         std::cout << "saved" << std::endl;
@@ -586,11 +594,12 @@ void world_3d::start()
     if(bnn::state::stopped != state_)
         return;
 
-    state_ = bnn::state::start;
-
     creature_->start();
 
-    state_ = bnn::state::started;
+    state_ = bnn::state::start;
+
+    while(bnn::state::started != state_)
+        usleep(BNN_LITTLE_TIME);
 
     logging("world_3d::start() end");
 }
@@ -604,16 +613,21 @@ void world_3d::stop()
 
     state_ = bnn::state::stop;
 
-    creature_->stop();
+    if(getRoot()->endRenderingQueued())
+        state_ = bnn::state::stopped;
 
-    state_ = bnn::state::stopped;
+    while(bnn::state::stopped != state_)
+        usleep(BNN_LITTLE_TIME);
+
+    creature_->stop();
 
     logging("world_3d::stop() end");
 }
 
 void world_3d::fill_it_up()
 {
-    conductor_.reset(new cond::conductor_circle());
+    conductors.push_back(std::make_unique<cond::conductor_circle>(10));
+    conductors.push_back(std::make_unique<cond::conductor_circle>(5));
 
     // creating stationary objects
     {
@@ -677,15 +691,20 @@ void world_3d::fill_it_up()
         if(1)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
-
             stepping_figures.push_back(pho::sphere("sphere_ssss", scnMgr, world, space, r*r*r, r));
-
             stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_LIGHT));
-
             dBodySetPosition(stepping_figures.back().body, 0, 1, -10);
-
             movable_colliding_geoms.push_back(stepping_figures.back().geom);
+            bounding_nodes.push_back(stepping_figures.back().node);
+        }
 
+        if(1)
+        {
+            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
+            stepping_figures.push_back(pho::sphere("sphere_sssss", scnMgr, world, space, r*r*r, r));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_LIGHT));
+            dBodySetPosition(stepping_figures.back().body, 0, 1, -10);
+            movable_colliding_geoms.push_back(stepping_figures.back().geom);
             bounding_nodes.push_back(stepping_figures.back().node);
         }
 
@@ -713,7 +732,7 @@ void world_3d::fill_it_up()
     {
         creature_.reset(new creatures::creature(getRenderWindow(), scnMgr, world));
 
-        creature_->set_position(0, 1, 0);
+        creature_->set_position(0, 0.5, 0);
 
         creature_colliding_geoms.push_back(creature_->body.geom);
 
@@ -726,10 +745,14 @@ void world_3d::fill_it_up()
             creature_colliding_geoms.push_back(creature_->legs[i].first.geom);
             creature_colliding_geoms.push_back(creature_->legs[i].second.geom);
             creature_colliding_geoms.push_back(creature_->legs[i].third.geom);
+            creature_colliding_geoms.push_back(creature_->legs[i].foot.geom);
+            creature_colliding_geoms.push_back(creature_->legs[i].knee.geom);
 
             bounding_nodes.push_back(creature_->legs[i].first.node);
             bounding_nodes.push_back(creature_->legs[i].second.node);
             bounding_nodes.push_back(creature_->legs[i].third.node);
+            bounding_nodes.push_back(creature_->legs[i].foot.node);
+            bounding_nodes.push_back(creature_->legs[i].knee.node);
         }
 
         if(0)

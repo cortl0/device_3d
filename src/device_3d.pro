@@ -41,6 +41,7 @@ SOURCES += \
         sensors/acceleration.cpp \
         sensors/distance.cpp \
         sensors/gyroscope.cpp \
+        sensors/time.cpp \
         sensors/velocity.cpp \
         sensors/video.cpp \
         teachers/teacher.cpp \
@@ -80,6 +81,7 @@ HEADERS += \
     sensors/acceleration.h \
     sensors/distance.h \
     sensors/gyroscope.h \
+    sensors/time.h \
     sensors/velocity.h \
     sensors/video.h \
     teachers/teacher.h \

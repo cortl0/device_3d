@@ -31,6 +31,7 @@
 #include "data_processing_methods/data_processing_method_logarithmic.h"
 #include "sensors/distance.h"
 #include "sensors/gyroscope.h"
+#include "sensors/time.h"
 #include "sensors/velocity.h"
 #include "sensors/video.h"
 #include "leg.h"
@@ -65,15 +66,18 @@ public:
     std::unique_ptr<bnn::brain_tools> brain_;
     std::vector<leg> legs;
     sensors::gyroscope gyroscope_;
+    sensors::time time_;
     sensors::velocity speedometer_;
     std::unique_ptr<sensors::video> video_;
 
     ~creature();
-    creature(Ogre::RenderWindow*, Ogre::SceneManager*, dWorldID);
+    creature() = delete;
+    explicit creature(Ogre::RenderWindow*, Ogre::SceneManager*, dWorldID);
     std::vector<bnn_device_3d::physical_objects::figure*> get_figures();
+    Ogre::Vector3 get_camera_place();
     void set_position(dReal x, dReal y, dReal z);
     void start();
-    void step(std::list<dGeomID>& distance_geoms, bool& verbose);
+    void step(std::string& debug_str, bool& verbose);
     void stop();
 
 private:

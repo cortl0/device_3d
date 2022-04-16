@@ -10,6 +10,7 @@
 #include "data_processing_method_binary.h"
 
 #include "config.hpp"
+#include "../bnn/src/brain/simple_math.hpp"
 
 namespace bnn_device_3d::data_processing_methods
 {
@@ -35,15 +36,16 @@ u_word data_processing_method_binary::get_bools(float from, float to, float valu
     return value;
 }
 
-void data_processing_method_binary::set_inputs(bnn::brain& b, u_word& count, u_word length, float value, float range_from, float range_to, std::string& s)
+void data_processing_method_binary::set_inputs(bnn::brain& b, u_word& count, u_word length, float value,
+                                               float range_from, float range_to, std::string& s, bool verbose)
 {
     u_word bools = get_bools(range_from, range_to, value, length);
     for(uint8_t j = 0; j < length; j++)
     {
         b.set_input(count++, (bools >> j) & 1);
-#ifdef show_debug_data
-        s += std::to_string((bools >> j) & 1);
-#endif
+
+        if(verbose)
+            s += std::to_string((bools >> j) & 1);
     }
 };
 

@@ -19,7 +19,7 @@ gyroscope::gyroscope()
     data_processing_method_.reset(new dpm::data_processing_method_linearly());
 }
 
-void gyroscope::set_inputs(dBodyID body, bnn::brain& brain_, u_word& count_input, u_word length, float range_from, float range_to, std::string& debug_str)
+void gyroscope::set_inputs(dBodyID body, bnn::brain& brain_, u_word& count_input, u_word length, float range_from, float range_to, std::string& debug_str, bool verbose)
 {
     static const Ogre::Quaternion ort_x(0, 1, 0, 0);
     static const Ogre::Quaternion ort_y(0, 0, 1, 0);
@@ -47,11 +47,11 @@ void gyroscope::set_inputs(dBodyID body, bnn::brain& brain_, u_word& count_input
     x_scalar = ort_x_rel[1] * vel[0] + ort_x_rel[2] * vel[1] + ort_x_rel[3] * vel[2];
     y_scalar = ort_y_rel[1] * vel[0] + ort_y_rel[2] * vel[1] + ort_y_rel[3] * vel[2];
     z_scalar = ort_z_rel[1] * vel[0] + ort_z_rel[2] * vel[1] + ort_z_rel[3] * vel[2];
-    data_processing_method_->set_inputs(brain_, count_input, length, x_scalar, range_from, range_to, debug_str);
+    data_processing_method_->set_inputs(brain_, count_input, length, x_scalar, range_from, range_to, debug_str, verbose);
     debug_str += " ";
-    data_processing_method_->set_inputs(brain_, count_input, length, y_scalar, range_from, range_to, debug_str);
+    data_processing_method_->set_inputs(brain_, count_input, length, y_scalar, range_from, range_to, debug_str, verbose);
     debug_str += " ";
-    data_processing_method_->set_inputs(brain_, count_input, length, z_scalar, range_from, range_to, debug_str);
+    data_processing_method_->set_inputs(brain_, count_input, length, z_scalar, range_from, range_to, debug_str, verbose);
 }
 
 #if(0)

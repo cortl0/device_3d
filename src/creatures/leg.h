@@ -16,12 +16,13 @@
 #include "physical_objects/sphere.h"
 #include "joint.h"
 
-#define first_x (45 * device_3d_SCALE)
-#define first_y (45 * device_3d_SCALE)
-#define first_z (45 * device_3d_SCALE)
-#define first_mass (first_x * first_y * first_z * device_3d_MASS_SCALE)
+#define first_r (30 * device_3d_SCALE)
+#define first_mass (4.0 / 3.0 * M_PI * first_r * first_r * first_r * device_3d_MASS_SCALE)
 
-#define second_x (80 * device_3d_SCALE)
+#define knee_r (25 * device_3d_SCALE)
+#define knee_mass (4.0 / 3.0 * M_PI * knee_r * knee_r * knee_r * device_3d_MASS_SCALE)
+
+#define second_x (70 * device_3d_SCALE)
 #define second_y (35 * device_3d_SCALE)
 #define second_z (35 * device_3d_SCALE)
 #define second_mass (second_x * second_y * second_z * device_3d_MASS_SCALE)
@@ -45,9 +46,11 @@ namespace bnn_device_3d::creatures
 class leg
 {
 public:
-    physical_objects::cube first;
+    physical_objects::sphere first;
     physical_objects::cube second;
     physical_objects::cube third;
+    physical_objects::sphere foot;
+    physical_objects::sphere knee;
 
     leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space,
         dReal x, dReal y, dReal z,

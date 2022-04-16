@@ -20,7 +20,8 @@ class data_processing_method
 public:
     virtual ~data_processing_method();
     data_processing_method();
-    virtual void set_inputs(bnn::brain&, u_word& count, u_word length, float value, float range_from, float range_to, std::string& str) = 0;
+    virtual void set_inputs(bnn::brain&, u_word& count, u_word length, float value, float range_from, float range_to,
+                            std::string& str, bool verbose) = 0;
 };
 
 } // namespace bnn_device_3d::data_processing_methods

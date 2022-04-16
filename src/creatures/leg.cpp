@@ -11,6 +11,8 @@
 
 #include "config.hpp"
 
+namespace pho = bnn_device_3d::physical_objects;
+
 namespace bnn_device_3d::creatures
 {
 
@@ -18,18 +20,24 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
          dReal x, dReal y, dReal z,
          dQuaternion q, float direction, uint32_t color)
 {
-    first = physical_objects::cube(name + "_first", scnMgr, world, space, first_mass, first_x, first_y, first_z);
-    second = physical_objects::cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
-    third = physical_objects::cube(name + "_third", scnMgr, world, space, third_mass, third_x, third_y, third_z);
+    first = pho::sphere(name + "_first", scnMgr, world, space, first_mass, first_r);
+    second = pho::cube(name + "_second", scnMgr, world, space, second_mass, second_x, second_y, second_z);
+    third = pho::cube(name + "_third", scnMgr, world, space, third_mass, third_x, third_y, third_z);
+    foot = pho::sphere(name + "_foot", scnMgr, world, space, knee_mass, knee_r);
+    knee = pho::sphere(name + "_knee", scnMgr, world, space, knee_mass, knee_r);
 
-    first.set_material(physical_objects::figure::create_material_chess(128, 32, COLOR_MEDIUM, color));
-    second.set_material(physical_objects::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
-    third.set_material(physical_objects::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
+    first.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, color));
+    second.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
+    third.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
+    foot.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, color));
+    knee.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, color));
 
     //    dBodySetPosition (first.body, 0, 0, dir_fr * first_z / 2);
     //dBodySetPosition (first.body, 0, 0, 0);
     dBodySetPosition(second.body, direction * second_x / 2, 0, 0);
     dBodySetPosition(third.body, direction * (second_x + third_x / 2), 0, 0);
+    dBodySetPosition(foot.body, direction * (second_x + third_x), 0, 0);
+    dBodySetPosition(knee.body, direction * (second_x), 0, 0);
 
     joints.push_back(joint(world, dGeomGetBody(first.geom), dGeomGetBody(second.geom),
                            1 * direction, 0, 0,
@@ -50,6 +58,18 @@ leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID 
         dJointAttach (j_st, dGeomGetBody(second.geom), dGeomGetBody(third.geom));
         dJointSetFixed(j_st);
     }
+
+    auto make_fixed_joint = [&](dGeomID g1, dGeomID g2)
+    {
+        dJointGroupID jg = dJointGroupCreate (0);
+        dJointID j = dJointCreateFixed (world, jg);
+        dJointAttach(j, dGeomGetBody(g1), dGeomGetBody(g2));
+        dJointSetFixed(j);
+    };
+
+    make_fixed_joint(third.geom, foot.geom);
+
+    make_fixed_joint(second.geom, knee.geom);
 
 #ifdef creature_legs_knees_is_blocked
     SetHingeParams(-M_PI / 24, M_PI / 24, +M_PI * 1 / 5, +M_PI * 1 / 5);
@@ -76,6 +96,8 @@ std::vector<physical_objects::figure*> leg::get_figures()
     value.push_back(&first);
     value.push_back(&second);
     value.push_back(&third);
+    value.push_back(&foot);
+    value.push_back(&knee);
 
     return value;
 }
@@ -89,6 +111,8 @@ void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
     dBodySetPosition(first.body, p0[0] + dx, p0[1] + dy, p0[2] + dz);
     dBodySetPosition(second.body, p1[0] + dx, p1[1] + dy, p1[2] + dz);
     dBodySetPosition(third.body, p2[0] + dx, p2[1] + dy, p2[2] + dz);
+    dBodySetPosition(foot.body, p2[0] + dx, p2[1] + dy, p2[2] + dz);
+    dBodySetPosition(knee.body, p2[0] + dx, p2[1] + dy, p2[2] + dz);
 
     // TODO
     //    dBodySetQuaternion(first.body, q);
@@ -127,7 +151,7 @@ void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
 
 void leg::step(double& fs, double& st)
 {
-    fs = fs * (first_z / 2 + second_x / 2);
+    fs = fs * (first_r / 2 + second_x / 2);
     st = st * (second_x / 2 + third_x / 2);
 
     joints[FIRST_JOINT].set_torque(fs);
@@ -142,6 +166,8 @@ void leg::step(double& fs, double& st)
     first.step();
     second.step();
     third.step();
+    foot.step();
+    knee.step();
 }
 
 } // namespace bnn_device_3d::creatures

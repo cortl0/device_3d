@@ -7,8 +7,8 @@
  *   licensed by GPL v3.0
  */
 
+#include <exception>
 #include <iostream>
-#include <stdexcept>
 
 #include "scene/world_3d.h"
 
@@ -17,6 +17,10 @@ int main()
     try
     {
         bnn_device_3d::scene::world_3d().run();
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "Caught std::exception: " << e.what() << std::endl;
     }
     catch(...)
     {

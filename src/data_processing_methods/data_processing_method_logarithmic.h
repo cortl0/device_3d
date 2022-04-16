@@ -22,7 +22,8 @@ class data_processing_method_logarithmic : public data_processing_method
 public:
     ~data_processing_method_logarithmic();
     data_processing_method_logarithmic();
-    void set_inputs(bnn::brain&, u_word& count, u_word length, float value, float range_from, float range_to, std::string& str) override;
+    void set_inputs(bnn::brain&, u_word& count, u_word length, float value, float range_from, float range_to,
+                    std::string& str, bool verbose) override;
 };
 
 } // namespace bnn_device_3d::data_processing_methods

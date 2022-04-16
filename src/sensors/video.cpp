@@ -45,16 +45,17 @@ void video::calculate_data(uint8_t* data, uint32_t full_width, uint32_t)
         }
 }
 
-void video::set_inputs(bnn::brain& brain_, u_word& count_input, u_word length, float, std::string& debug_str)
+void video::set_inputs(bnn::brain& brain_, u_word& count_input, u_word length, float, std::string& debug_str, bool verbose)
 {
     size_t counter = 0;
+
     for(uint32_t i = 0; i < height; i += step)
     {
         for(uint32_t j = 0; j < width; j += step)
         {
 #define VALUE_PER_PIXEL (255 * 3)
 
-            data_processing_method_->set_inputs(brain_, count_input, length, static_cast<float>(calc_data[counter++]), 0, VALUE_PER_PIXEL, debug_str);
+            data_processing_method_->set_inputs(brain_, count_input, length, static_cast<float>(calc_data[counter++]), 0, VALUE_PER_PIXEL, debug_str, verbose);
 
             debug_str += " ";
         }

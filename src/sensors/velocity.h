@@ -25,7 +25,7 @@ struct velocity
 {
     velocity();
 
-    void set_inputs(dBodyID, bnn::brain&, u_word& count, u_word length, float range_from, float range_to, std::string& str);
+    void set_inputs(dBodyID, bnn::brain&, u_word& count, u_word length, float range_from, float range_to, std::string& str, bool verbose);
 
 private:
     std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;

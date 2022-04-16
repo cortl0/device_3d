@@ -17,8 +17,6 @@
 #include "data_processing_methods/data_processing_method_linearly.h"
 #include "data_processing_methods/data_processing_method_binary.h"
 
-namespace dpm = bnn_device_3d::data_processing_methods;
-
 namespace bnn_device_3d::sensors
 {
 
@@ -26,7 +24,7 @@ struct distance
 {
     distance();
 
-    void set_inputs(dBodyID, dGeomID, bnn::brain&, u_word& count, u_word length, float range, std::string& str);
+    void set_inputs(dBodyID, dGeomID, bnn::brain&, u_word& count, u_word length, float range, std::string& str, bool verbose);
 
 private:
     std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
