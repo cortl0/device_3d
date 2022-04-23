@@ -42,9 +42,18 @@ struct config
         keyboard_key_r = 0x72,
         keyboard_key_s = 0x73
     };
+};
 
-public:
-    config(){}
+struct keys_states
+{
+    bool key_a = false;
+    bool key_d = false;
+    bool key_w = false;
+    bool key_s = false;
+    bool key_left = false;
+    bool key_right = false;
+    bool key_up = false;
+    bool key_down = false;
 };
 
 } // namespace bnn_device_3d

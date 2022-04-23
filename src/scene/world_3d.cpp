@@ -20,6 +20,8 @@ typedef sch::time_point<sch::system_clock, sch::microseconds> m_time_point;
 namespace bnn_device_3d::scene
 {
 
+static keys_states keys_states_;
+
 static dWorldID world_st;
 
 static dJointGroupID contactgroup_st;
@@ -45,7 +47,7 @@ void world_3d::collide_action2(world_3d *me, dGeomID o1, dGeomID o2)
     const int N = 1;
     dContact contact[N];
     n = dCollide (o1, o2, N, &contact[0].geom, sizeof(dContact));
-    for (i=0; i<n; i++)
+    for(i = 0; i < n; i++)
     {
         contact[i].surface.mode =
                 0
@@ -140,41 +142,32 @@ void world_3d::collide_action()
 
 bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
 {
-    float force = 100;
     switch (evt.keysym.sym)
     {
     case OgreBites::SDLK_DOWN:
-    {
-        //std::cout << "SDLK_DOWN" << std::endl;
-        auto it = stepping_figures.begin();
-        std::advance(it, 4);
-        dBodyAddForce(it->body, 0, 0, +force);
+        keys_states_.key_down = true;
         break;
-    }
     case OgreBites::SDLK_UP:
-    {
-        //std::cout << "SDLK_UP" << std::endl;
-        auto it = stepping_figures.begin();
-        std::advance(it, 4);
-        dBodyAddForce(it->body, 0, 0, -force);
+        keys_states_.key_up = true;
         break;
-    }
     case OgreBites::SDLK_LEFT:
-    {
-        //std::cout << "SDLK_LEFT" << std::endl;
-        auto it = stepping_figures.begin();
-        std::advance(it, 4);
-        dBodyAddForce(it->body, -force, 0, 0);
+        keys_states_.key_left = true;
         break;
-    }
     case OgreBites::SDLK_RIGHT:
-    {
-        //std::cout << "SDLK_RIGHT" << std::endl;
-        auto it = stepping_figures.begin();
-        std::advance(it, 4);
-        dBodyAddForce(it->body, +force, 0, 0);
+        keys_states_.key_right = true;
         break;
-    }
+    case config::keyboard_key_a: // left
+        keys_states_.key_a = true;
+        break;
+    case config::keyboard_key_d: // right
+        keys_states_.key_d = true;
+        break;
+    case config::keyboard_key_w: // up
+        keys_states_.key_w = true;
+        break;
+    case config::keyboard_key_s: // down
+        keys_states_.key_s = true;
+        break;
     }
 
     return true;
@@ -182,8 +175,6 @@ bool world_3d::keyPressed(const OgreBites::KeyboardEvent& evt)
 
 bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
 {
-    float force = 500.0;
-
     switch (evt.keysym.sym)
     {
     case OgreBites::SDLK_ESCAPE:
@@ -193,14 +184,26 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
             getRoot()->queueEndRendering();
         }).detach();
         break;
+    case OgreBites::SDLK_DOWN:
+        keys_states_.key_down = false;
+        break;
+    case OgreBites::SDLK_UP:
+        keys_states_.key_up = false;
+        break;
+    case OgreBites::SDLK_LEFT:
+        keys_states_.key_left = false;
+        break;
+    case OgreBites::SDLK_RIGHT:
+        keys_states_.key_right = false;
+        break;
     case config::keyboard_key_c: // load
-        std::thread([&](){ load(); }).detach();
+        std::thread(&world_3d::load, this).detach();
         break;
     case config::keyboard_key_z: // save
-        std::thread([&](){ save(); }).detach();
+        std::thread(&world_3d::save, this).detach();
         break;
     case config::keyboard_key_r: // save random
-        std::thread([&](){ save_random(); }).detach();
+        std::thread(&world_3d::save_random, this).detach();
         break;
     case config::keyboard_key_x: // stop <-> start
         if(bnn::state::started == state_)
@@ -212,16 +215,16 @@ bool world_3d::keyReleased(const OgreBites::KeyboardEvent& evt)
         verbose = !verbose;
         break;
     case config::keyboard_key_a: // left
-        dBodyAddForce(creature_->body.body, -force, 0, 0);
+        keys_states_.key_a = false;
         break;
     case config::keyboard_key_d: // right
-        dBodyAddForce(creature_->body.body, force, 0, 0);
+        keys_states_.key_d = false;
         break;
     case config::keyboard_key_w: // up
-        dBodyAddForce(creature_->body.body, 0, 0, -force);
+        keys_states_.key_w = false;
         break;
     case config::keyboard_key_s: // down
-        dBodyAddForce(creature_->body.body, 0, 0, force);
+        keys_states_.key_s = false;
         break;
     }
 
@@ -362,7 +365,7 @@ void world_3d::load()
     stop();
     std::list<std::string> l;
 
-    for (auto & p : fs::directory_iterator(fs::current_path()))
+    for(auto& p : fs::directory_iterator(fs::current_path()))
         if(p.path().filename().extension() == ".bnn")
             l.push_back(p.path().filename());
 
@@ -372,12 +375,21 @@ void world_3d::load()
     l.sort();
     std::ifstream ifs(fs::current_path() / l.back(), std::ios::binary);
 
+    if(creature_->brain_->load(ifs))
+    {
+        std::cout << "loaded" << std::endl;
+        if(l.size() > 8)
+            fs::remove_all(fs::current_path() / l.front());
+    }
+    else
+        std::cout << "load error" << std::endl;
+
     auto load_figure = [&ifs](dBodyID body_id)
     {
         dReal pos[3];
         dReal dir[4];
-        ifs.read(reinterpret_cast<char*>(pos), sizeof(pos));
-        ifs.read(reinterpret_cast<char*>(dir), sizeof(dir));
+        ifs.read(reinterpret_cast<char*>(pos), sizeof(dReal) * 3);
+        ifs.read(reinterpret_cast<char*>(dir), sizeof(dReal) * 4);
         dBodySetPosition(body_id, pos[0], pos[1], pos[2]);
         dBodySetQuaternion(body_id, dir);
     };
@@ -391,15 +403,6 @@ void world_3d::load()
 
     for(const auto& figure : stepping_figures)
         load_figure(figure.body);
-
-    if(creature_->brain_->load(ifs))
-    {
-        std::cout << "loaded" << std::endl;
-        if(l.size() > 8)
-            fs::remove_all(fs::current_path() / l.front());
-    }
-    else
-        std::cout << "load error" << std::endl;
 
     ifs.close();
 
@@ -485,6 +488,36 @@ void world_3d::run()
                 for(auto& node : bounding_nodes)
                     node->_updateBounds();
 
+                {
+                    float force = 50;
+                    auto it = stepping_figures.begin();
+                    std::advance(it, 4);
+
+                    if(keys_states_.key_down)
+                        dBodyAddForce(it->body, 0, 0, +force);
+
+                    if(keys_states_.key_up)
+                        dBodyAddForce(it->body, 0, 0, -force);
+
+                    if(keys_states_.key_left)
+                        dBodyAddForce(it->body, -force, 0, 0);
+
+                    if(keys_states_.key_right)
+                        dBodyAddForce(it->body, +force, 0, 0);
+
+                    if(keys_states_.key_a)
+                        dBodyAddForce(creature_->body.body, -force, 0, 0);
+
+                    if(keys_states_.key_d)
+                        dBodyAddForce(creature_->body.body, force, 0, 0);
+
+                    if(keys_states_.key_w)
+                        dBodyAddForce(creature_->body.body, 0, 0, -force);
+
+                    if(keys_states_.key_s)
+                        dBodyAddForce(creature_->body.body, 0, 0, force);
+                }
+
                 collide_action();
 
                 dWorldStep(world, frame_length_dReal);
@@ -536,12 +569,17 @@ void world_3d::save()
     s += ".bnn";
     std::ofstream ofs(fs::current_path() / s, std::ios::binary);
 
+    if(creature_->brain_->save(ofs))
+        std::cout << "saved" << std::endl;
+    else
+        std::cout << "save error" << std::endl;
+
     auto save_figure = [&ofs](dBodyID body_id)
     {
         const dReal* pos = dBodyGetPosition(body_id);
         const dReal* dir = dBodyGetQuaternion(body_id);
-        ofs.write(reinterpret_cast<const char*>(pos), sizeof(pos) * 3);
-        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dir) * 4);
+        ofs.write(reinterpret_cast<const char*>(pos), sizeof(dReal) * 3);
+        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
     };
 
     save_figure(tripod_->detector);
@@ -549,15 +587,10 @@ void world_3d::save()
     save_figure(tripod_->lower);
 
     for(const auto& figure : creature_->get_figures())
-         save_figure(figure->body);
+        save_figure(figure->body);
 
     for(const auto& figure : stepping_figures)
         save_figure(figure.body);
-
-    if(creature_->brain_->save(ofs))
-        std::cout << "saved" << std::endl;
-    else
-        std::cout << "save error" << std::endl;
 
     ofs.close();
 
@@ -740,7 +773,7 @@ void world_3d::fill_it_up()
 
         bounding_nodes.push_back(creature_->body_sign.node);
 
-        for (size_t i = 0; i < creature_->legs.size(); i++)
+        for(size_t i = 0; i < creature_->legs.size(); i++)
         {
             creature_colliding_geoms.push_back(creature_->legs[i].first.geom);
             creature_colliding_geoms.push_back(creature_->legs[i].second.geom);
@@ -855,9 +888,10 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
             int n = dCollide (o1, o2, N, &(contact[0].geom), sizeof(dContact));
             std::cout << "fffffffffffff" << std::endl;
             std::cout << std::to_string(n) << std::endl;
-            if (n > 0)
+            if(n > 0)
             {
-                for (int i=0; i<1; i++) {
+                for(int i = 0; i < 1; i++)
+                {
                     contact[i].surface.mode = dContactBounce | dContactSoftCFM;
 
                     contact[i].surface.mu = dInfinity;
@@ -928,7 +962,9 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
             }
 
-        } catch (...) {
+        }
+        catch (...)
+        {
             std::cout << "try" << std::endl;
         }
         // add these contact points to the simulation ...
