@@ -49,7 +49,7 @@ creature::creature(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr
     }
 
 #ifdef learning_creature
-    teacher.reset(new teacher_walking());
+    teacher_.reset(new tch::teacher_walking());
 #endif
 
     auto make_fixed_joint = [&](dGeomID g)
@@ -221,7 +221,8 @@ Ogre::Vector3 creature::get_camera_place()
     Ogre::Quaternion ort_x_rel = body_quat * ort_x * body_quat_inv;
     ort_x_rel.normalise();
     const dReal* body_p = dBodyGetPosition(body.body);
-    Ogre::Vector3 v(ort_x_rel.x + body_p[0], ort_x_rel.y + body_p[1], ort_x_rel.z + body_p[2]);
+    //Ogre::Vector3 v(ort_x_rel.x + body_p[0], ort_x_rel.y + body_p[1], ort_x_rel.z + body_p[2]);
+    Ogre::Vector3 v(body_p[0], body_p[1], body_p[2]);
 
     return v;
 }
@@ -267,7 +268,7 @@ void creature::start()
     brain_->start();
 
 #ifdef learning_creature
-    teacher->start();
+    teacher_->start();
 #endif
 }
 
@@ -295,7 +296,7 @@ void creature::step(std::string& debug_str, bool& verbose)
     body_sign.step();
 
 #ifdef learning_creature
-    _word data = teacher->get_data();
+    u_word data = teacher_->get_data();
 #endif
 
     //#define RANDOM_STEPS
@@ -307,10 +308,11 @@ void creature::step(std::string& debug_str, bool& verbose)
 
 #ifdef learning_creature
         float c = static_cast<float>(((static_cast<int>(data) >> (i * 2)) & 1) * 2 - 1);
-        if(teacher->get_count())
+        if(teacher_->get_count())
         {
-            auto k = static_cast<float>(teacher->get_count()) / static_cast<float>(teacher->get_count_max());
+            auto k = static_cast<float>(teacher_->get_count()) / static_cast<float>(teacher_->get_count_max());
             fs = fs * (1.f - k) + c * k;
+            st = st * (1.f - k) + c * k;
         }
 #endif
 
@@ -386,7 +388,7 @@ void creature::step(std::string& debug_str, bool& verbose)
     if(verbose)
     {
         debug_str += "]\n";
-        brain_->debug_out(debug_str);
+        brain_->get_debug_string(debug_str);
     }
 }
 
@@ -394,7 +396,7 @@ void creature::stop()
 {
     brain_->stop();
 #ifdef learning_creature
-    teacher->stop();
+    teacher_->stop();
 #endif
 }
 

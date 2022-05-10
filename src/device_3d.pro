@@ -24,6 +24,9 @@ SOURCES += \
         bnn/src/brain/thread.cpp \
         conductors/conductor.cpp \
         conductors/conductor_circle.cpp \
+        conductors/dream.cpp \
+        conductors/kick.cpp \
+        conductors/tail.cpp \
         creatures/creature.cpp \
         creatures/joint.cpp \
         creatures/leg.cpp \
@@ -64,6 +67,9 @@ HEADERS += \
     bnn/src/brain/thread.h \
     conductors/conductor.h \
     conductors/conductor_circle.h \
+    conductors/dream.h \
+    conductors/kick.h \
+    conductors/tail.h \
     config.hpp \
     creatures/creature.h \
     creatures/joint.h \

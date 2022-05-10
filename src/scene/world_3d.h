@@ -24,8 +24,7 @@
 #include "physical_objects/cube.h"
 #include "physical_objects/sphere.h"
 #include "tripod.h"
-#include "conductors/conductor_circle.h"
-#include "conductors/conductor_circle.h"
+#include "conductors/conductor.h"
 
 using namespace Ogre;
 

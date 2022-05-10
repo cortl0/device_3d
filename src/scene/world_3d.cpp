@@ -12,6 +12,10 @@
 #include <unistd.h>
 
 #include "config.hpp"
+#include "conductors/conductor_circle.h"
+#include "conductors/kick.h"
+#include "conductors/tail.h"
+#include "conductors/dream.h"
 
 namespace sch = std::chrono;
 
@@ -447,10 +451,11 @@ void world_3d::run()
                 for(auto& figure : stepping_figures)
                     figure.step();
 
+                // circle_1
                 {
                     auto it = stepping_figures.begin();
                     std::advance(it, 5);
-                    auto *pos = dBodyGetPosition(it->body);
+                    const auto *pos = dBodyGetPosition(it->body);
                     float x = pos[0];
                     float y = pos[1];
                     float z = pos[2];
@@ -459,16 +464,95 @@ void world_3d::run()
                     dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
                 }
 
+                // circle_2
                 {
                     auto it = stepping_figures.begin();
                     std::advance(it, 6);
-                    auto *pos = dBodyGetPosition(it->body);
+                    const auto *pos = dBodyGetPosition(it->body);
                     float x = pos[0];
                     float y = pos[1];
                     float z = pos[2];
                     conductors[1]->step(x, y, z);
                     auto *vel = dBodyGetLinearVel(it->body);
                     dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
+                }
+
+                // kick
+                {
+                    auto it = stepping_figures.begin();
+                    std::advance(it, 7);
+                    const auto *pos = dBodyGetPosition(it->body);
+                    float x = pos[0];
+                    float y = pos[1];
+                    float z = pos[2];
+
+                    const auto *creature_pos = dBodyGetPosition(creature_->body.body);
+
+                    conductors::kick::data kd
+                    {
+                        .body_x = static_cast<float>(creature_pos[0]),
+                        .body_y = static_cast<float>(creature_pos[1]),
+                        .body_z = static_cast<float>(creature_pos[2]),
+                    };
+
+                    conductors[2]->step(x, y, z, &kd);
+                    if(kd.conduct)
+                    {
+                        auto *vel = dBodyGetLinearVel(it->body);
+                        dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
+                    }
+                }
+
+                // tail
+                {
+                    auto it = stepping_figures.begin();
+                    std::advance(it, 8);
+                    const auto *pos = dBodyGetPosition(it->body);
+                    float x = pos[0];
+                    float y = pos[1];
+                    float z = pos[2];
+
+                    const auto *creature_pos = dBodyGetPosition(creature_->body.body);
+
+                    conductors::tail::data kd
+                    {
+                        .body_x = static_cast<float>(creature_pos[0]),
+                        .body_y = static_cast<float>(creature_pos[1]),
+                        .body_z = static_cast<float>(creature_pos[2]),
+                    };
+
+                    conductors[3]->step(x, y, z, &kd);
+                    if(kd.conduct)
+                    {
+                        auto *vel = dBodyGetLinearVel(it->body);
+                        dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
+                    }
+                }
+
+                // dream
+                {
+                    auto it = stepping_figures.begin();
+                    std::advance(it, 9);
+                    const auto *pos = dBodyGetPosition(it->body);
+                    float x = pos[0];
+                    float y = pos[1];
+                    float z = pos[2];
+
+                    const auto *creature_pos = dBodyGetPosition(creature_->body.body);
+
+                    conductors::dream::data kd
+                    {
+                        .body_x = static_cast<float>(creature_pos[0]),
+                        .body_y = static_cast<float>(creature_pos[1]),
+                        .body_z = static_cast<float>(creature_pos[2]),
+                    };
+
+                    conductors[4]->step(x, y, z, &kd);
+                    if(kd.conduct)
+                    {
+                        auto *vel = dBodyGetLinearVel(it->body);
+                        dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
+                    }
                 }
 
                 bool verbose = this->verbose;
@@ -659,8 +743,11 @@ void world_3d::stop()
 
 void world_3d::fill_it_up()
 {
-    conductors.push_back(std::make_unique<cond::conductor_circle>(10));
-    conductors.push_back(std::make_unique<cond::conductor_circle>(5));
+    conductors.push_back(std::make_unique<cond::conductor_circle>(2.0f, 10));
+    conductors.push_back(std::make_unique<cond::conductor_circle>(2.0f, 5));
+    conductors.push_back(std::make_unique<cond::kick>());
+    conductors.push_back(std::make_unique<cond::tail>());
+    conductors.push_back(std::make_unique<cond::dream>());
 
     // creating stationary objects
     {
@@ -723,8 +810,8 @@ void world_3d::fill_it_up()
 
         if(1)
         {
-            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
-            stepping_figures.push_back(pho::sphere("sphere_ssss", scnMgr, world, space, r*r*r, r));
+            float r = 100.0f * device_3d_SCALE;
+            stepping_figures.push_back(pho::sphere("sphere_circle_1", scnMgr, world, space, r*r*r * device_3d_MASS_SCALE, r));
             stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_LIGHT));
             dBodySetPosition(stepping_figures.back().body, 0, 1, -10);
             movable_colliding_geoms.push_back(stepping_figures.back().geom);
@@ -733,15 +820,45 @@ void world_3d::fill_it_up()
 
         if(1)
         {
-            float r = ((static_cast<float>(rand()) / RAND_MAX) * 20 + 50) * device_3d_SCALE;
-            stepping_figures.push_back(pho::sphere("sphere_sssss", scnMgr, world, space, r*r*r, r));
+            float r = 100.0f * device_3d_SCALE;
+            stepping_figures.push_back(pho::sphere("sphere_circle_2", scnMgr, world, space, r*r*r * device_3d_MASS_SCALE, r));
             stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_LIGHT));
-            dBodySetPosition(stepping_figures.back().body, 0, 1, -10);
+            dBodySetPosition(stepping_figures.back().body, 0, 1, -5);
             movable_colliding_geoms.push_back(stepping_figures.back().geom);
             bounding_nodes.push_back(stepping_figures.back().node);
         }
 
-        for(int i = 0; i < 7; i++)
+        if(1)
+        {
+            float r = 50.0f * device_3d_SCALE;
+            stepping_figures.push_back(pho::sphere("sphere_kick", scnMgr, world, space, r*r*r * 15.0f * device_3d_MASS_SCALE, r));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(256, 32, COLOR_MEDIUM, COLOR_LIGHT));
+            dBodySetPosition(stepping_figures.back().body, 0, 1, -15);
+            movable_colliding_geoms.push_back(stepping_figures.back().geom);
+            bounding_nodes.push_back(stepping_figures.back().node);
+        }
+
+        if(1)
+        {
+            float r = 80.0 * device_3d_SCALE;
+            stepping_figures.push_back(pho::cube("cube_tail", scnMgr, world, space, r*r*r * device_3d_MASS_SCALE / 10.0f, r, r, r));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
+            dBodySetPosition(stepping_figures.back().body, -3.0f, 1.0f, 3.0f);
+            movable_colliding_geoms.push_back(stepping_figures.back().geom);
+            bounding_nodes.push_back(stepping_figures.back().node);
+        }
+
+        if(1)
+        {
+            float r = 80.0 * device_3d_SCALE;
+            stepping_figures.push_back(pho::cube("cube_dream", scnMgr, world, space, r*r*r * device_3d_MASS_SCALE / 10.0f, r, r, r));
+            stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
+            dBodySetPosition(stepping_figures.back().body, 4.0f, 1.0f, -4.0f);
+            movable_colliding_geoms.push_back(stepping_figures.back().geom);
+            bounding_nodes.push_back(stepping_figures.back().node);
+        }
+
+        for(int i = 0; i < 6; i++)
         {
             float r = ((static_cast<float>(rand()) / RAND_MAX) * 50 + 50) * device_3d_SCALE;
 

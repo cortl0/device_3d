@@ -17,14 +17,22 @@ namespace bnn_device_3d::conductors
 
 class conductor_circle : public conductor
 {
+public:
+    struct data : public conductor::data
+    {
+
+    };
+
+    virtual ~conductor_circle();
+    conductor_circle() = delete;
+    conductor_circle(float force, float r);
+    virtual void step(float& x, float& y, float& z, conductor::data* d = nullptr) override;
+private:
+    float force;
     const float c_x = 0.f;
     const float c_y = 0.f;
     const float c_z = 0.f;
-    const float r = 10.f;
-public:
-    virtual ~conductor_circle();
-    conductor_circle(float r);
-    virtual void step(float& x, float& y, float& z) override;
+    const float r;
 };
 
 } // namespace bnn_device_3d::conductors

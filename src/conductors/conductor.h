@@ -18,8 +18,16 @@ namespace bnn_device_3d::conductors
 class conductor
 {
 public:
+    struct data
+    {
+        bool conduct = false;
+    };
+
     virtual ~conductor();
     conductor();
+    float get_length(float x, float y, float z);
+    void normalize(float& x, float& y, float& z);
+    void scale_by_coef(float& x, float& y, float& z, float coef);
 
     /**
      * @param
@@ -28,7 +36,7 @@ public:
      * after calling this method
      * x, y, z - vector to target point
     */
-    virtual void step(float& x, float& y, float& z) = 0;
+    virtual void step(float& x, float& y, float& z, data* d = nullptr) = 0;
 };
 
 } // namespace bnn_device_3d::conductors

@@ -25,6 +25,7 @@
 #include "OgreRTShaderSystem.h"
 
 #include "bnn/src/brain_tools.h"
+#include "config.hpp"
 #include "data_processing_methods/data_processing_method_linearly.h"
 #include "data_processing_methods/data_processing_method_binary.h"
 #include "data_processing_methods/data_processing_method_linearly_single.h"

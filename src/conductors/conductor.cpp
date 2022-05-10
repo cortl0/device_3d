@@ -22,4 +22,25 @@ conductor::conductor()
 
 }
 
+float conductor::get_length(float x, float y, float z)
+{
+    return pow(x*x + y*y + z*z, 0.5);
+}
+
+void conductor::normalize(float& x, float& y, float& z)
+{
+    float r = pow(x*x + y*y + z*z, 0.5);
+
+    x /= r;
+    y /= r;
+    z /= r;
+}
+
+void conductor::scale_by_coef(float& x, float& y, float& z, float coef)
+{
+    x *= coef;
+    y *= coef;
+    z *= coef;
+}
+
 } // namespace bnn_device_3d::conductors
