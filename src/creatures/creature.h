@@ -10,51 +10,15 @@
 #ifndef BNN_DEVICE_3D_CREATURES_CREATURE_H
 #define BNN_DEVICE_3D_CREATURES_CREATURE_H
 
-#include <algorithm>
-#include <experimental/filesystem>
-#include <iostream>
 #include <memory>
-#include <stdexcept>
-#include <stdlib.h>
 #include <vector>
 
-#include "ode.h"
-#include "Ogre.h"
-#include "OgreApplicationContext.h"
-#include "OgreInput.h"
-#include "OgreRTShaderSystem.h"
-
-#include "bnn/src/brain_tools.h"
-#include "config.hpp"
-#include "data_processing_methods/data_processing_method_linearly.h"
-#include "data_processing_methods/data_processing_method_binary.h"
-#include "data_processing_methods/data_processing_method_linearly_single.h"
-#include "data_processing_methods/data_processing_method_logarithmic.h"
-#include "sensors/distance.h"
-#include "sensors/gyroscope.h"
-#include "sensors/time.h"
-#include "sensors/velocity.h"
-#include "sensors/video.h"
-#include "leg.h"
+#include "bnn/src/common/headers/brain_tools.h"
+#include "physical_objects/figure.h"
 #include "physical_objects/cube.h"
-#include "teachers/teacher_walking.h"
+#include "sensors/video.h"
 
-//#define body_length (200 * device_3d_SCALE)
-//#define body_width (75 * device_3d_SCALE)
-//#define body_height (25 * device_3d_SCALE)
-#define body_length (200 * device_3d_SCALE)
-#define body_width (100 * device_3d_SCALE)
-#define body_height (50 * device_3d_SCALE)
-#define body_mass (body_length * body_width * body_height * device_3d_MASS_SCALE)
-
-#define NUMBER_OF_FRONT_LEFT_LEG 0
-#define NUMBER_OF_FRONT_RIGHT_LEG 1
-#define NUMBER_OF_REAR_LEFT_LEG 2
-#define NUMBER_OF_REAR_RIGHT_LEG 3
-#define QUANTITY_BITS_PER_JOINT 8
-#define QUANTITY_OF_EYES 2
 #define coordinates_count 3
-#define QUANTITY_OF_SHAPES_WHICH_I_SEE  2
 
 namespace bnn_device_3d::creatures
 {
@@ -62,36 +26,23 @@ namespace bnn_device_3d::creatures
 class creature
 {
 public:
-    bnn_device_3d::physical_objects::cube body;
-    bnn_device_3d::physical_objects::cube body_sign;
     std::unique_ptr<bnn::brain_tools> brain_;
-    std::vector<leg> legs;
-    sensors::gyroscope gyroscope_;
-    sensors::time time_;
-    sensors::velocity speedometer_;
     std::unique_ptr<sensors::video> video_;
 
-    ~creature();
-    creature() = delete;
-    explicit creature(Ogre::RenderWindow*, Ogre::SceneManager*, dWorldID);
-    std::vector<bnn_device_3d::physical_objects::figure*> get_figures();
-    Ogre::Vector3 get_camera_place();
-    void set_position(dReal x, dReal y, dReal z);
-    void start();
-    void step(std::string& debug_str, bool& verbose);
-    void stop();
+    virtual ~creature();
+    creature();
+    virtual bnn_device_3d::physical_objects::figure& get_body() = 0;
+    virtual Ogre::Vector3 get_camera_place() = 0;
+    virtual std::vector<bnn_device_3d::physical_objects::figure*> get_figures() = 0;
+    virtual dReal get_height() = 0;
+    virtual void set_position(dReal x, dReal y, dReal z) = 0;
 
-private:
-    u_word quantity_of_neurons_in_power_of_two = 20;
-    u_word threads_count_in_power_of_two = 2;
-    u_word input_length;
-    u_word output_length;
-    std::vector<double> force;
-    std::vector<double> distance;
-    dSpaceID space;
-    std::list<dGeomID> colliding_geoms;
-    std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
-    std::unique_ptr<bnn_device_3d::teachers::teacher> teacher_;
+//    std::list<dGeomID> creature_colliding_geoms;
+//    std::list<Ogre::SceneNode*> bounding_nodes;
+
+    void start();
+    virtual void step(std::string& debug_str, bool& verbose) = 0;
+    void stop();
 };
 
 } // namespace bnn_device_3d::creatures

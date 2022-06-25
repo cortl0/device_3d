@@ -11,7 +11,7 @@
 
 #include "config.hpp"
 
-namespace bnn_device_3d::scene
+namespace bnn_device_3d::application
 {
 
 tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
@@ -26,10 +26,11 @@ tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
     dBodySetPosition(lower, cam_node->getPosition()[0], 2.f * dBodyGetPosition(target)[1] - cam_node->getPosition()[1], cam_node->getPosition()[2]);
 
     cam_node->lookAt(Ogre::Vector3(dBodyGetPosition(detector)[0],dBodyGetPosition(detector)[1],dBodyGetPosition(detector)[2]), Ogre::Node::TS_PARENT);
-    dQuaternion q = {cam_node->getOrientation().w,
-                     cam_node->getOrientation().x,
-                     cam_node->getOrientation().y,
-                     cam_node->getOrientation().z};
+    dQuaternion q = {
+        cam_node->getOrientation().w,
+        cam_node->getOrientation().x,
+        cam_node->getOrientation().y,
+        cam_node->getOrientation().z};
     dBodySetQuaternion(upper, q);
 
     {
@@ -95,4 +96,26 @@ void tripod::step()
     cam_node->setOrientation(upper_quat[0], upper_quat[1], upper_quat[2], upper_quat[3]);
 }
 
-} // namespace bnn_device_3d::scene
+void tripod::set_position(dReal x, dReal y, dReal z)
+{
+    auto p = dBodyGetPosition(detector);
+    dReal dx = x - p[0];
+    dReal dy = y - p[1];
+    dReal dz = z - p[2];
+
+    auto set = [&](dBodyID id)
+    {
+        p = dBodyGetPosition(id);
+        dBodySetPosition(id, p[0] + dx, p[1] + dy, p[2] + dz);
+    };
+
+    set(detector);
+    set(lower);
+    set(upper);
+
+    dBodySetLinearVel(detector, 0, 0, 0);
+    dBodySetLinearVel(lower, 0, 0, 0);
+    dBodySetLinearVel(upper, 0, 0, 0);
+}
+
+} // namespace bnn_device_3d::application

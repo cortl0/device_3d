@@ -10,7 +10,7 @@
 #ifndef BNN_DEVICE_3D_SENSORS_TIME_H
 #define BNN_DEVICE_3D_SENSORS_TIME_H
 
-#include "bnn/src/brain_tools.h"
+#include "brain_tools.h"
 
 namespace bnn_device_3d::sensors
 {

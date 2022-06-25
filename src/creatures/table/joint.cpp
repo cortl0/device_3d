@@ -9,9 +9,10 @@
 
 #include "joint.h"
 
-#include "../bnn/src/brain/config.hpp"
+#include "bnn/src/common/headers/config.hpp"
+#include "config.hpp"
 
-namespace bnn_device_3d::creatures
+namespace bnn_device_3d::creatures::table
 {
 
 joint::joint(dWorldID world, dBodyID first_body_id, dBodyID second_body_id,
@@ -21,12 +22,12 @@ joint::joint(dWorldID world, dBodyID first_body_id, dBodyID second_body_id,
              double torque_coefficient)
     : angle_start(angle_start), angle_end(angle_end), torque_coefficient(torque_coefficient)
 {
-    joint_id = dJointCreateHinge (world, Joint_group_id);
-    dJointAttach (joint_id, first_body_id, second_body_id);
-    dJointSetHingeAnchor (joint_id, anchor_x, anchor_y, anchor_z);
-    dJointSetHingeAxis (joint_id, 0, dir_y, dir_z);
-    dJointSetHingeParam (joint_id, dParamLoStop, angle_start);
-    dJointSetHingeParam (joint_id, dParamHiStop, angle_end);
+    joint_id = dJointCreateHinge(world, Joint_group_id);
+    dJointAttach(joint_id, first_body_id, second_body_id);
+    dJointSetHingeAnchor(joint_id, anchor_x, anchor_y, anchor_z);
+    dJointSetHingeAxis(joint_id, 0, dir_y, dir_z);
+    dJointSetHingeParam(joint_id, dParamLoStop, angle_start);
+    dJointSetHingeParam(joint_id, dParamHiStop, angle_end);
 }
 
 double value_in_range(const double& value, const double& range_start, const double& range_end)
@@ -51,4 +52,4 @@ void joint::set_torque(double torque)
     dJointAddHingeTorque(joint_id, torque * torque_coefficient / (1 + abs(dJointGetHingeAngleRate(joint_id))));
 }
 
-} // namespace bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures::table

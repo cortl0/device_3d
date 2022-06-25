@@ -7,13 +7,13 @@
  *   licensed by GPL v3.0
  */
 
-#ifndef BNN_DEVICE_3D_SCENE_TRIPOD_H
-#define BNN_DEVICE_3D_SCENE_TRIPOD_H
+#ifndef BNN_DEVICE_3D_APPLICATION_TRIPOD_H
+#define BNN_DEVICE_3D_APPLICATION_TRIPOD_H
 
 #include "ode.h"
 #include "Ogre.h"
 
-namespace bnn_device_3d::scene
+namespace bnn_device_3d::application
 {
 
 struct tripod
@@ -42,11 +42,12 @@ struct tripod
 
     Ogre::SceneNode* cam_node;
 
+    tripod() = delete;
     tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target);
-
+    void set_position(dReal x, dReal y, dReal z);
     void step();
 };
 
-} // namespace bnn_device_3d::scene
+} // namespace bnn_device_3d::application
 
-#endif // BNN_DEVICE_3D_SCENE_TRIPOD_H
+#endif // BNN_DEVICE_3D_APPLICATION_TRIPOD_H

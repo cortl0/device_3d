@@ -13,7 +13,7 @@
 
 namespace pho = bnn_device_3d::physical_objects;
 
-namespace bnn_device_3d::creatures
+namespace bnn_device_3d::creatures::table
 {
 
 leg::leg(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space,
@@ -170,4 +170,4 @@ void leg::step(double& fs, double& st)
     knee.step();
 }
 
-} // namespace bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures::table

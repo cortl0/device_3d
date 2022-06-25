@@ -9,7 +9,7 @@
 
 #include "figure.h"
 
-#include "../bnn/src/brain/config.hpp"
+#include "config.hpp"
 
 namespace bnn_device_3d::physical_objects
 {

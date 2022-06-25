@@ -10,7 +10,7 @@
 #include "data_processing_method_binary.h"
 
 #include "config.hpp"
-#include "../bnn/src/brain/simple_math.hpp"
+#include "simple_math.hpp"
 
 namespace bnn_device_3d::data_processing_methods
 {

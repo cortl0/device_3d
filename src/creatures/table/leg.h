@@ -7,8 +7,8 @@
  *   licensed by GPL v3.0
  */
 
-#ifndef BNN_DEVICE_3D_CREATURES_LEG_H
-#define BNN_DEVICE_3D_CREATURES_LEG_H
+#ifndef BNN_DEVICE_3D_CREATURES_TABLE_LEG_H
+#define BNN_DEVICE_3D_CREATURES_TABLE_LEG_H
 
 #include <iostream>
 
@@ -40,7 +40,7 @@
 #define FIRST_JOINT 0
 #define SECOND_JOINT 1
 
-namespace bnn_device_3d::creatures
+namespace bnn_device_3d::creatures::table
 {
 
 class leg
@@ -76,6 +76,6 @@ private:
     std::vector<joint> joints;
 };
 
-} // namespace bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures::table
 
-#endif // BNN_DEVICE_3D_CREATURES_LEG_H
+#endif // BNN_DEVICE_3D_CREATURES_TABLE_LEG_H

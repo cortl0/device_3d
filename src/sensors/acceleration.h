@@ -13,8 +13,8 @@
 #include "ode.h"
 #include "Ogre.h"
 
-#include "bnn/src/brain_tools.h"
-#include "data_processing_methods/data_processing_method_linearly.h"
+#include "brain_tools.h"
+#include "data_processing_method_linearly.h"
 
 namespace bnn_device_3d::sensors
 {

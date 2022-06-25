@@ -7,12 +7,12 @@
  *   licensed by GPL v3.0
  */
 
-#ifndef BNN_DEVICE_3D_CREATURES_JOINT_H
-#define BNN_DEVICE_3D_CREATURES_JOINT_H
+#ifndef BNN_DEVICE_3D_CREATURES_TABLE_JOINT_H
+#define BNN_DEVICE_3D_CREATURES_TABLE_JOINT_H
 
 #include "ode.h"
 
-namespace bnn_device_3d::creatures
+namespace bnn_device_3d::creatures::table
 {
 
 class joint
@@ -27,12 +27,12 @@ public:
     void set_torque(double);
 
 private:
-    dJointGroupID Joint_group_id = dJointGroupCreate (0);
+    dJointGroupID Joint_group_id = dJointGroupCreate(0);
     dJointID joint_id;
     double angle_start ,angle_end;
     double torque_coefficient;
 };
 
-} // namespace bnn_device_3d::creatures
+} // namespace bnn_device_3d::creatures::table
 
-#endif // BNN_DEVICE_3D_CREATURES_JOINT_H
+#endif // BNN_DEVICE_3D_CREATURES_TABLE_JOINT_H

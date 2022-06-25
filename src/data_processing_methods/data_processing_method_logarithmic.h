@@ -10,7 +10,7 @@
 #ifndef BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_LOGARITHMIC_H
 #define BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_LOGARITHMIC_H
 
-#include "../bnn/src/brain/simple_math.hpp"
+#include "simple_math.hpp"
 #include "data_processing_method.h"
 
 namespace bnn_device_3d::data_processing_methods

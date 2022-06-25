@@ -10,13 +10,13 @@
 #include <exception>
 #include <iostream>
 
-#include "scene/world_3d.h"
+#include "application/application.h"
 
 int main()
 {
     try
     {
-        bnn_device_3d::scene::world_3d().run();
+        bnn_device_3d::application::application().run();
     }
     catch(const std::exception& e)
     {
