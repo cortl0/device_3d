@@ -20,6 +20,9 @@
 #include "conductors/kick.h"
 #include "conductors/tail.h"
 #include "conductors/dream.h"
+#include <OgreOverlay.h>
+#include <OgreOverlayManager.h>
+#include <OgreOverlayContainer.h>
 
 namespace cond = bnn_device_3d::conductors;
 namespace pho = bnn_device_3d::physical_objects;
@@ -331,17 +334,17 @@ void application::run()
 
             getRoot()->renderOneFrame();
 
-            {
-                static Image img(getRenderWindow()->suggestPixelFormat(), width, height);
-                static PixelBox pb = img.getPixelBox();
+//            {
+//                static Image img(getRenderWindow()->suggestPixelFormat(), width, height);
+//                static PixelBox pb = img.getPixelBox();
 
-                getRenderWindow()->copyContentsToMemory(pb, pb);
+//                getRenderWindow()->copyContentsToMemory(pb, pb);
 
-                Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pb.data);
-                scene->creature_->video_->calculate_data(pDest, width, height);
+//                Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pb.data);
+//                scene->creature_->video_->calculate_data(pDest, width, height);
 
-                //img.save("filename5.png");
-            }
+//                //img.save("filename5.png");
+//            }
 
             current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
             delta = (current_time - time_old).count();
@@ -469,8 +472,8 @@ void application::setup()
 {
     OgreBites::ApplicationContext::setup();
     addInputListener(this);
-    //scene.reset(new scn::bike(getRenderWindow(), getRoot()->createSceneManager()));
-    scene.reset(new scn::table(getRenderWindow(), getRoot()->createSceneManager()));
+    scene.reset(new scn::bike(getRenderWindow(), getRoot()->createSceneManager()));
+    //scene.reset(new scn::table(getRenderWindow(), getRoot()->createSceneManager()));
     scene->setup(
                 stationary_colliding_geoms,
                 movable_colliding_geoms,

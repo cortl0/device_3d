@@ -44,7 +44,7 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
     auto* p = dBodyGetPosition(body.body);
 
     {
-        body_sign = pho::cube("body_sign", scnMgr, world, space, body_mass * 0.001, body_width * 1.05, body_height * 0.95, body_height * 0.95);
+        body_sign = pho::cube("body_sign", scnMgr, world, space, body_mass * 0.001, body_width * 1.05, body_length * 0.95, body_length * 0.95);
         body_sign.set_material(body_sign.create_material_body_sign(256));
         make_fixed_joint(body_sign.geom);
     }
@@ -52,17 +52,19 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
     float whell_r = body_width;
     float wheel_mass = 4.0 / 3.0 * M_PI * whell_r * whell_r * whell_r * device_3d_MASS_SCALE;
 
+    float wheel_pos_z_coefficient = 0.65;
+
     {
         front_wheel = pho::sphere("bike_front_wheel", scnMgr, world, space, wheel_mass, whell_r);
         front_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
         colliding_geoms.push_back(front_wheel.geom);
-        dBodySetPosition(front_wheel.body, p[0], p[1] - clearance, p[2] - body_length);
+        dBodySetPosition(front_wheel.body, p[0], p[1] - clearance, p[2] - body_height * wheel_pos_z_coefficient);
 
         dJointGroupID Joint_group_id = dJointGroupCreate(0);
         front_hinge2_joint_id = dJointCreateHinge2(world, Joint_group_id);
         dJointAttach(front_hinge2_joint_id, body.body, front_wheel.body);
 
-        dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - clearance, p[2] - body_length);
+        dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - clearance, p[2] - body_height * wheel_pos_z_coefficient);
         const dReal axis1[dSA__MAX]{0, 1, 0};
         const dReal axis2[dSA__MAX]{1, 0, 0};
         dJointSetHinge2Axes(front_hinge2_joint_id, axis1, axis2);
@@ -75,12 +77,12 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
         rear_wheel = pho::sphere("bike_rear_wheel", scnMgr, world, space, wheel_mass, whell_r);
         rear_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
         colliding_geoms.push_back(rear_wheel.geom);
-        dBodySetPosition(rear_wheel.body, p[0], p[1] - clearance, p[2] + body_length);
+        dBodySetPosition(rear_wheel.body, p[0], p[1] - clearance, p[2] + body_height * wheel_pos_z_coefficient);
 
         dJointGroupID Joint_group_id = dJointGroupCreate(0);
         rear_hinge_joint_id = dJointCreateHinge(world, Joint_group_id);
         dJointAttach(rear_hinge_joint_id, body.body, rear_wheel.body);
-        dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - clearance, p[2] + body_length);
+        dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - clearance, p[2] + body_height * wheel_pos_z_coefficient);
         dJointSetHingeAxis(rear_hinge_joint_id, 1, 0, 0);
 
         //make_fixed_joint(rear_wheel.geom);
@@ -96,7 +98,8 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
     output_length += front_whell_direction_quantity_bits_right;
 
     // front and rear wheel bytes
-    output_length += 2 * QUANTITY_OF_BITS_IN_BYTE;
+    //input_length += front_whell_trotle_quantity_bits + rear_whell_trotle_quantity_bits;
+    output_length += front_whell_trotle_quantity_bits + rear_whell_trotle_quantity_bits;
 
 //    // I feel my legs (32)
 //    input_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
@@ -250,68 +253,74 @@ void bike::step(std::string& debug_str, bool& verbose)
     double rear_trotle = 0;
     double front_direction;
 
-    for(size_t j = 0; j < front_whell_direction_quantity_bits_left; j++)
     {
-        if(verbose)
-            debug_str += std::to_string(brain_->get_output(i));
+        for(size_t j = 0; j < front_whell_direction_quantity_bits_left; j++)
+        {
+            if(verbose)
+                debug_str += std::to_string(brain_->get_output(i));
 
-        front_direction_left += static_cast<float>(brain_->get_output(i++));
-        //front_direction_left += (rand() % 2);
-        //front_direction_left += 0.5;
+            front_direction_left += static_cast<float>(brain_->get_output(i++));
+            //front_direction_left += (rand() % 2);
+            //front_direction_left += 0.5;
+        }
+
+        for(size_t j = 0; j < front_whell_direction_quantity_bits_right; j++)
+        {
+            if(verbose)
+                debug_str += std::to_string(brain_->get_output(i));
+
+            front_direction_right += static_cast<float>(brain_->get_output(i++));
+            //front_direction_right += (rand() % 2);
+            //front_direction_right += 0.5;
+        }
+
+        front_direction_left /= front_whell_direction_quantity_bits_left;
+        front_direction_right /= front_whell_direction_quantity_bits_right;
+
+        front_direction = -1
+                * (1.0 - abs(front_direction_left - front_direction_right))
+                * ((front_direction_left + front_direction_right) / 2.0);
+
+        front_direction *= (((front_direction_left - front_direction_right)
+                - (dJointGetHinge2Angle1(front_hinge2_joint_id) / front_whell_direction_angle)) / 1.0);
+
+        front_direction += front_direction_left;
+        front_direction -= front_direction_right;
+        front_direction -= dJointGetHinge2Angle1(front_hinge2_joint_id) / front_whell_direction_angle;
+
+        //front_direction /= 2;
+    //    front_direction /= front_whell_direction_angle;
     }
 
-    for(size_t j = 0; j < front_whell_direction_quantity_bits_right; j++)
     {
-        if(verbose)
-            debug_str += std::to_string(brain_->get_output(i));
+        for(size_t j = 0; j < front_whell_trotle_quantity_bits; j++)
+        {
+            if(verbose)
+                debug_str += std::to_string(brain_->get_output(i));
 
-        front_direction_right += static_cast<float>(brain_->get_output(i++));
-        //front_direction_right += (rand() % 2);
-        //front_direction_right += 0.5;
+            front_trotle += static_cast<float>(brain_->get_output(i++));
+        }
+
+        front_trotle /= front_whell_trotle_quantity_bits;
+        front_trotle *= 2;
+        front_trotle -= dJointGetHinge2Angle2Rate(front_hinge2_joint_id) / 10;
     }
 
-    for(size_t j = 0; j < QUANTITY_OF_BITS_IN_BYTE; j++)
     {
-        if(verbose)
-            debug_str += std::to_string(brain_->get_output(i));
+        for(size_t j = 0; j < rear_whell_trotle_quantity_bits; j++)
+        {
+            if(verbose)
+                debug_str += std::to_string(brain_->get_output(i));
 
-        front_trotle += static_cast<float>(brain_->get_output(i++));
+            rear_trotle += static_cast<float>(brain_->get_output(i++));
+        }
+
+        rear_trotle /= rear_whell_trotle_quantity_bits;
+        rear_trotle *= 3;
+        rear_trotle -= dJointGetHingeAngleRate(rear_hinge_joint_id) / 10;
     }
 
-    for(size_t j = 0; j < QUANTITY_OF_BITS_IN_BYTE; j++)
-    {
-        if(verbose)
-            debug_str += std::to_string(brain_->get_output(i));
-
-        rear_trotle += static_cast<float>(brain_->get_output(i++));
-    }
-
-    front_direction_left /= front_whell_direction_quantity_bits_left;
-    front_direction_right /= front_whell_direction_quantity_bits_right;
-
-    front_direction = -1
-            * (1.0 - abs(front_direction_left - front_direction_right))
-            * ((front_direction_left + front_direction_right) / 2.0)
-
-            * (((front_direction_left - front_direction_right)
-                - (dJointGetHinge2Angle1(front_hinge2_joint_id) / front_whell_direction_angle)) / 2.0)
-
-            ;
-
-    front_direction += (front_direction_left - front_direction_right);
-    front_direction -=(dJointGetHinge2Angle1(front_hinge2_joint_id) / front_whell_direction_angle);
-
-    front_direction /= 2;
-//    front_direction /= front_whell_direction_angle;
-
-    front_trotle /= 8;
-    front_trotle -= dJointGetHinge2Angle2Rate(front_hinge2_joint_id) / 25;
     front_trotle = 0;
-
-    rear_trotle /= 8;
-    rear_trotle *= 4;
-    rear_trotle -= dJointGetHingeAngleRate(rear_hinge_joint_id) / 10;
-
     dJointAddHinge2Torques(front_hinge2_joint_id, front_direction, front_trotle);
     dJointAddHingeTorque(rear_hinge_joint_id, rear_trotle);
 

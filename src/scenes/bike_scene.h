@@ -21,18 +21,53 @@ public:
     ~bike();
     bike() = delete;
     bike(Ogre::RenderWindow*, Ogre::SceneManager*);
+
     void setup(
             std::list<dGeomID>& stationary_colliding_geoms,
             std::list<dGeomID>& movable_colliding_geoms,
             std::list<dGeomID>& creature_colliding_geoms,
             std::list<Ogre::SceneNode*>& bounding_nodes,
             std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            dWorldID world) override;
+            dWorldID
+            ) override;
 
     void step(
             std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
             std::list<Ogre::SceneNode*>& bounding_nodes,
-            keys_states& keys_states_) override;
+            keys_states&
+            ) override;
+
+private:
+    void creating_creature(
+            std::list<dGeomID>& creature_colliding_geoms,
+            std::list<Ogre::SceneNode*>& bounding_nodes,
+            dWorldID
+            );
+
+    void creating_movable_objects(
+            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
+            std::list<dGeomID>& movable_colliding_geoms,
+            std::list<Ogre::SceneNode*>& bounding_nodes,
+            dWorldID
+            );
+
+    void creating_stationary_objects(
+            std::list<dGeomID>& stationary_colliding_geoms,
+            std::list<Ogre::SceneNode*>& bounding_nodes,
+            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
+            dWorldID
+            );
+
+    bool is_fail();
+
+    void keyboard_polling(
+            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
+            keys_states&
+            );
+
+    void ogre_setup();
+
+    void print_distance();
 };
 
 } // namespace bnn_device_3d::scenes

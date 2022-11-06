@@ -40,7 +40,8 @@ public:
             std::list<dGeomID>& creature_colliding_geoms,
             std::list<Ogre::SceneNode*>& bounding_nodes,
             std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            dWorldID world) = 0;
+            dWorldID
+            ) = 0;
 
     virtual void start();
 
@@ -49,11 +50,12 @@ public:
     virtual void step(
             std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
             std::list<Ogre::SceneNode*>& bounding_nodes,
-            keys_states& keys_states_) = 0;
+            keys_states&
+            ) = 0;
 
     std::unique_ptr<creatures::creature> creature_;
-protected:
 
+protected:
     void create_light(Real x, Real y, Real z, const std::string name);
 
     Ogre::RenderWindow* render_window;

@@ -85,4 +85,4 @@ LIBS += \
 -lOgreMain \
 -lOgreRTShaderSystem \
 -lOgreOverlay \
-$${_PRO_FILE_PWD_}/bnn/src/bnn_cpu/build/libbnn_cpu.a
+$${_PRO_FILE_PWD_}/bnn/src/build-bnn_cpu/libbnn_cpu.a

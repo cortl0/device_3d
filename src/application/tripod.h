@@ -43,7 +43,7 @@ struct tripod
     Ogre::SceneNode* cam_node;
 
     tripod() = delete;
-    tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target);
+    tripod(dWorldID, Ogre::SceneNode* cam_node, dBodyID target);
     void set_position(dReal x, dReal y, dReal z);
     void step();
 };
