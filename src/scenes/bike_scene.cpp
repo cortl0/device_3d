@@ -9,6 +9,14 @@
 
 #include "bike_scene.h"
 
+#include <OgreOverlaySystem.h>
+#include <OgreOverlayManager.h>
+#include <OgreOverlayElement.h>
+#include <OgreRenderQueueListener.h>
+#include <OgreOverlayContainer.h>
+#include <OgreOverlay.h>
+#include <OgreFontManager.h>
+
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"
 #include "config.hpp"
@@ -37,6 +45,99 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scene_manager)
 
 }
 
+static const std::string font_name{"app_font_name"s};
+
+void load_font()
+{
+    static const std::string resource_group{"General"s};
+
+    Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../src/resources", "FileSystem");
+   // Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+
+    Ogre::FontPtr mFont = Ogre::FontManager::getSingleton().create(font_name, resource_group
+    //,Ogre::OverlayElement::DEFAULT_RESOURCE_GROUP
+                                                                       );
+    mFont->setType(Ogre::FT_TRUETYPE);
+    mFont->setSource("Hack-Regular.ttf");
+    mFont->setParameter("size","26");
+    mFont->setParameter("resolution","96");
+    mFont->load();
+}
+
+Ogre::OverlayContainer* create_panel(Ogre::OverlayManager& overlayManager)
+{
+    auto panel = static_cast<Ogre::OverlayContainer*>
+        (overlayManager.createOverlayElement("Panel", "PanelName"));
+
+    panel->setMetricsMode(Ogre::GMM_PIXELS);
+    panel->setPosition(0.0, 0.0);
+    panel->setDimensions(0.0, 0.0);
+
+//    panel->setMetricsMode(Ogre::GMM_RELATIVE);
+//    panel->setPosition(0.0, 0.75);
+//    panel->setDimensions(1.0, 0.25);
+
+    //panel->setMaterialName("BaseWhite");
+    panel->show();
+
+    return panel;
+}
+
+Ogre::TextAreaOverlayElement* create_text_area(Ogre::OverlayManager& overlayManager)
+{
+    const std::string text_area_name{"TextAreaName"s};
+    const std::string ogre_text_area_type_name{"TextArea"s};
+
+    auto text = static_cast<Ogre::TextAreaOverlayElement*>
+        (overlayManager.createOverlayElement(ogre_text_area_type_name, text_area_name));
+
+    text->setFontName(font_name);
+    text->setMetricsMode(Ogre::GMM_RELATIVE);
+    //text->setMetricsMode(Ogre::GMM_PIXELS);
+    text->setPosition(0.0, 0.0);
+    text->setDimensions(1.0, 1.0);
+    text->setHorizontalAlignment(Ogre::GuiHorizontalAlignment::GHA_LEFT);
+    text->setVerticalAlignment(Ogre::GuiVerticalAlignment::GVA_TOP);
+    text->setCharHeight(0.05);
+    //text->setCharHeight(0.2);
+    //text->setColour(Ogre::ColourValue(1, 1, 1));
+
+    text->setCaption("some text");
+    text->show();
+    return text;
+}
+
+Ogre::Overlay* create_overlay(Ogre::OverlayManager& overlayManager)
+{
+    const std::string overlay_name{"OverlayName"s};
+    auto overlay = overlayManager.create(overlay_name);
+    overlay->setZOrder(0);
+    overlay->show();
+    return overlay;
+}
+
+Ogre::TextAreaOverlayElement* bike::create_text_panel()
+{
+    //    scene_manager->addSpecialCaseRenderQueue(Ogre::RENDER_QUEUE_OVERLAY);
+    //    scene_manager->setSpecialCaseRenderQueueMode(Ogre::SceneManager::SCRQM_INCLUDE);
+
+    load_font();
+    auto& overlayManager = Ogre::OverlayManager::getSingleton();
+    text_area = create_text_area(overlayManager);
+    panel = create_panel(overlayManager);
+    auto overlay = create_overlay(overlayManager);
+    panel->addChild(text_area);
+    overlay->add2D(panel);
+    auto pOverlaySystem = Ogre::OverlaySystem::getSingletonPtr();
+    scene_manager->addRenderQueueListener(pOverlaySystem);
+    return text_area;
+}
+
+void bike::set_text(std::string& str)
+{
+    text_area->setCaption(str);
+}
+
 void bike::setup(
         std::list<dGeomID>& stationary_colliding_geoms,
         std::list<dGeomID>& movable_colliding_geoms,
@@ -60,7 +161,7 @@ void bike::setup(
         creating_movable_objects(stepping_figures, movable_colliding_geoms, bounding_nodes, world);
         creating_creature(creature_colliding_geoms, bounding_nodes, world);
 
-        auto *body = creature_->get_body().body;
+        auto body = creature_->get_body().body;
 
         third_person_camera_node->setPosition(dBodyGetPosition(body)[0] + 0,
                 dBodyGetPosition(body)[1] + 4,
@@ -101,18 +202,22 @@ void bike::ogre_setup()
     creature_camera->setAutoAspectRatio(true);
     creature_camera_node->attachObject(creature_camera);
 
-    render_window->addViewport(third_person_camera, 0, 0.0f, 0.0f, 1.0f, 1.0f);
-    render_window->addViewport(creature_camera, 1, 0.0f, 0.0f, 0.25f, 0.25f);
+    int ZOrder = 0;
+    render_window->addViewport(third_person_camera, ZOrder, 0.0f, 0.0f, 1.0f, 1.0f);
+    render_window->getViewport(ZOrder)->setBackgroundColour(Ogre::ColourValue::White);
 
-    render_window->getViewport(0)->setBackgroundColour(Ogre::ColourValue::White);
-    render_window->getViewport(0)->setBackgroundColour(Ogre::ColourValue::White);
+    ++ZOrder;
+    render_window->addViewport(creature_camera, ZOrder, 0.0f, 0.0f, 0.25f, 0.25f);
+    render_window->getViewport(ZOrder)->setBackgroundColour(Ogre::ColourValue::White);
 
-    auto *ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
-    auto *node_plane = scene_manager->getRootSceneNode()->createChildSceneNode();
+    auto ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
+    auto node_plane = scene_manager->getRootSceneNode()->createChildSceneNode();
     node_plane->setScale(Ogre::Vector3(8, 8, 8));
     node_plane->setDirection(0,-1,0);
     node_plane->attachObject(ent_plane);
     ent_plane->setMaterial(pho::figure::create_material_chess(1024 * 8, 8, COLOR_BLACK, COLOR_DARK));
+
+    text_area = create_text_panel();
 }
 
 void bike::creating_stationary_objects(
@@ -237,7 +342,7 @@ void bike::creating_creature(
 {
 
     creature_.reset(new creatures::bike::bike(render_window, scene_manager, world));
-    creature_->set_position(2, creature_->get_height(), 0);
+    creature_->set_position(2, creature_->get_height() * 20, 0);
 
     if(0)
     {
@@ -264,12 +369,27 @@ void bike::creating_creature(
     }
 }
 
+void bike::panel_to_place()
+{
+    width = render_window->getViewport(0)->getActualWidth();
+    height = render_window->getViewport(0)->getActualHeight();
+
+    auto x0 = 0;
+    auto x1 = width;
+    auto y0 = height * 3.0 / 4.0;
+    auto y1 = height / 4.0;
+    panel->setPosition(x0, y0);
+    panel->setDimensions(x1, y1);
+}
+
 void bike::step(
         std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
         std::list<Ogre::SceneNode*>& bounding_nodes,
         keys_states& keys_state
         )
 {
+    panel_to_place();
+
     for(auto& figure : stepping_figures)
         figure.step();
 
@@ -308,6 +428,17 @@ void bike::step(
     std::string debug_str;
     creature_->step(debug_str, verbose);
     tripod_->step();
+
+    auto cr = static_cast<bnn_device_3d::creatures::bike::bike*>(creature_.get());
+
+    static uint i = 0;
+    std::string d(
+                std::to_string(++i) +
+                "\n" +(cr->front_trotle < 0 ? " v" : " ^") +
+                "\n" +(cr->front_direction < 0 ? "<- " : " ->") +
+                "\n" +(cr->rear_trotle < 0 ? " v" : " ^") + "\n"
+                );
+    set_text(d);
 
     if(verbose)
         std::cout << debug_str << std::endl;

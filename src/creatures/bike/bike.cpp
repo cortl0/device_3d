@@ -41,7 +41,7 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
         colliding_geoms.push_back(body.geom);
     }
 
-    auto* p = dBodyGetPosition(body.body);
+    auto p = dBodyGetPosition(body.body);
 
     {
         body_sign = pho::cube("body_sign", scnMgr, world, space, body_mass * 0.001, body_width * 1.05, body_length * 0.95, body_length * 0.95);
@@ -49,22 +49,19 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
         make_fixed_joint(body_sign.geom);
     }
 
-    float whell_r = body_width;
-    float wheel_mass = 4.0 / 3.0 * M_PI * whell_r * whell_r * whell_r * device_3d_MASS_SCALE;
-
-    float wheel_pos_z_coefficient = 0.65;
+    float wheel_mass = 4.0 / 3.0 * M_PI * whell_radius * whell_radius * whell_radius * device_3d_MASS_SCALE;
 
     {
-        front_wheel = pho::sphere("bike_front_wheel", scnMgr, world, space, wheel_mass, whell_r);
+        front_wheel = pho::sphere("bike_front_wheel", scnMgr, world, space, wheel_mass, whell_radius);
         front_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
         colliding_geoms.push_back(front_wheel.geom);
-        dBodySetPosition(front_wheel.body, p[0], p[1] - clearance, p[2] - body_height * wheel_pos_z_coefficient);
+        dBodySetPosition(front_wheel.body, p[0], p[1] - clearance, p[2] - body_height);
 
         dJointGroupID Joint_group_id = dJointGroupCreate(0);
         front_hinge2_joint_id = dJointCreateHinge2(world, Joint_group_id);
         dJointAttach(front_hinge2_joint_id, body.body, front_wheel.body);
 
-        dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - clearance, p[2] - body_height * wheel_pos_z_coefficient);
+        dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - clearance, p[2] - body_height);
         const dReal axis1[dSA__MAX]{0, 1, 0};
         const dReal axis2[dSA__MAX]{1, 0, 0};
         dJointSetHinge2Axes(front_hinge2_joint_id, axis1, axis2);
@@ -74,15 +71,15 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
     }
 
     {
-        rear_wheel = pho::sphere("bike_rear_wheel", scnMgr, world, space, wheel_mass, whell_r);
+        rear_wheel = pho::sphere("bike_rear_wheel", scnMgr, world, space, wheel_mass, whell_radius);
         rear_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
         colliding_geoms.push_back(rear_wheel.geom);
-        dBodySetPosition(rear_wheel.body, p[0], p[1] - clearance, p[2] + body_height * wheel_pos_z_coefficient);
+        dBodySetPosition(rear_wheel.body, p[0], p[1] - clearance, p[2] + body_height);
 
         dJointGroupID Joint_group_id = dJointGroupCreate(0);
         rear_hinge_joint_id = dJointCreateHinge(world, Joint_group_id);
         dJointAttach(rear_hinge_joint_id, body.body, rear_wheel.body);
-        dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - clearance, p[2] + body_height * wheel_pos_z_coefficient);
+        dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - clearance, p[2] + body_height);
         dJointSetHingeAxis(rear_hinge_joint_id, 1, 0, 0);
 
         //make_fixed_joint(rear_wheel.geom);
@@ -161,7 +158,7 @@ dReal bike::get_height()
 
 void bike::set_position(dReal x, dReal y, dReal z)
 {
-    auto* p = dBodyGetPosition(body.body);
+    auto p = dBodyGetPosition(body.body);
     dReal dx = x - p[0];
     dReal dy = y - p[1];
     dReal dz = z - p[2];
@@ -249,9 +246,9 @@ void bike::step(std::string& debug_str, bool& verbose)
     u_word i = 0;
     double front_direction_left = 0;
     double front_direction_right = 0;
-    double front_trotle = 0;
-    double rear_trotle = 0;
-    double front_direction;
+    /*double*/ front_trotle = 0;
+    /*double*/ rear_trotle = 0;
+    /*double*/ front_direction = 0;
 
     {
         for(size_t j = 0; j < front_whell_direction_quantity_bits_left; j++)
@@ -298,11 +295,11 @@ void bike::step(std::string& debug_str, bool& verbose)
             if(verbose)
                 debug_str += std::to_string(brain_->get_output(i));
 
-            front_trotle += static_cast<float>(brain_->get_output(i++));
+            front_trotle += static_cast<float>(brain_->get_output(i++) * 2 - 1);
         }
 
         front_trotle /= front_whell_trotle_quantity_bits;
-        front_trotle *= 2;
+        front_trotle *= 3;
         front_trotle -= dJointGetHinge2Angle2Rate(front_hinge2_joint_id) / 10;
     }
 
@@ -312,7 +309,7 @@ void bike::step(std::string& debug_str, bool& verbose)
             if(verbose)
                 debug_str += std::to_string(brain_->get_output(i));
 
-            rear_trotle += static_cast<float>(brain_->get_output(i++));
+            rear_trotle += static_cast<float>(brain_->get_output(i++) * 2 - 1);
         }
 
         rear_trotle /= rear_whell_trotle_quantity_bits;
@@ -320,7 +317,7 @@ void bike::step(std::string& debug_str, bool& verbose)
         rear_trotle -= dJointGetHingeAngleRate(rear_hinge_joint_id) / 10;
     }
 
-    front_trotle = 0;
+    //front_trotle = 0;
     dJointAddHinge2Torques(front_hinge2_joint_id, front_direction, front_trotle);
     dJointAddHingeTorque(rear_hinge_joint_id, rear_trotle);
 

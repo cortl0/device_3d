@@ -22,9 +22,9 @@ distance::distance()
 
 void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::brain& brain_, u_word& count_input, u_word length, float range, std::string& debug_str, bool verbose)
 {
-    auto *pos_first = dBodyGetPosition(body_first);
+    auto pos_first = dBodyGetPosition(body_first);
 
-    auto *pos_second = dGeomGetPosition(body_second);
+    auto pos_second = dGeomGetPosition(body_second);
 
     float value = static_cast<float>(pow(pow(pos_first[0] - pos_second[0], 2) + pow(pos_first[1] - pos_second[1], 2) + pow(pos_first[2] - pos_second[2], 2), 0.5));
 

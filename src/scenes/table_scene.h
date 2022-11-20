@@ -15,7 +15,7 @@
 namespace bnn_device_3d::scenes
 {
 
-class table : public scene
+class table final : public scene
 {
 public:
     table() = delete;

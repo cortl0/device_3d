@@ -69,7 +69,7 @@ table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWor
         body_sign = pho::cube("body_sign", scnMgr, world, space, 0.00001, body_width * 0.95, body_height, body_width * 0.95);
         //body_sign = cube("body_sign", scnMgr, world, space, 0.00001, body_length * 2, body_length * 2, body_length * 2);
 
-        auto *p = dBodyGetPosition(body.body);
+        auto p = dBodyGetPosition(body.body);
 
         dBodySetPosition(body_sign.body, p[0], p[1] + body_height / 50.0, p[2]);
         //dBodySetPosition(body_sign.body, p[0], p[1] + body_height * 5.0, p[2]);

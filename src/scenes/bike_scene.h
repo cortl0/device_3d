@@ -10,17 +10,22 @@
 #ifndef BNN_DEVICE_3D_SCENES_BIKE_H
 #define BNN_DEVICE_3D_SCENES_BIKE_H
 
+#include <OgreTextAreaOverlayElement.h>
+
 #include "scene.h"
+
+using namespace std::literals;
 
 namespace bnn_device_3d::scenes
 {
 
-class bike : public scene
+class bike final : public scene
 {
 public:
     ~bike();
     bike() = delete;
     bike(Ogre::RenderWindow*, Ogre::SceneManager*);
+    Ogre::TextAreaOverlayElement* create_text_panel();
 
     void setup(
             std::list<dGeomID>& stationary_colliding_geoms,
@@ -66,8 +71,12 @@ private:
             );
 
     void ogre_setup();
-
+    void panel_to_place();
     void print_distance();
+    void set_text(std::string&);
+
+    Ogre::TextAreaOverlayElement* text_area = nullptr;
+    Ogre::OverlayContainer* panel = nullptr;
 };
 
 } // namespace bnn_device_3d::scenes

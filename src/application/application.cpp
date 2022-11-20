@@ -305,7 +305,9 @@ void application::run()
         m_time_point current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
         m_time_point time_old = current_time;
 
-        while(!getRoot()->endRenderingQueued())
+        auto root = getRoot();
+
+        while(!root->endRenderingQueued())
         {
             if(bnn::state::stop == state_)
                 state_ = bnn::state::stopped;
@@ -332,7 +334,7 @@ void application::run()
 
             //***************
 
-            getRoot()->renderOneFrame();
+            root->renderOneFrame();
 
 //            {
 //                static Image img(getRenderWindow()->suggestPixelFormat(), width, height);

@@ -25,18 +25,18 @@ class bike : public creature
 {
     static constexpr float body_length = 100 * device_3d_SCALE;
     static constexpr float body_width = 50 * device_3d_SCALE;
-    static constexpr float body_height = 200 * device_3d_SCALE;
+    static constexpr float body_height = 100 * device_3d_SCALE;
     static constexpr float body_mass = body_length * body_width * body_height * device_3d_MASS_SCALE;
     static constexpr dReal clearance = body_height;
+    static constexpr float whell_radius = body_height / 2;
     static constexpr float front_whell_direction_angle = M_PI / 6;
-    static constexpr float front_whell_direction_quantity_bits_left = 1;//4 * QUANTITY_OF_BITS_IN_BYTE;
-    static constexpr float front_whell_direction_quantity_bits_right = 1;//4 * QUANTITY_OF_BITS_IN_BYTE;
-    static constexpr float front_whell_trotle_quantity_bits = 1;//4 * QUANTITY_OF_BITS_IN_BYTE;
-    static constexpr float rear_whell_trotle_quantity_bits = 1;//4 * QUANTITY_OF_BITS_IN_BYTE;
-
+    static constexpr float front_whell_direction_quantity_bits_left = 4 * QUANTITY_OF_BITS_IN_BYTE;
+    static constexpr float front_whell_direction_quantity_bits_right = 4 * QUANTITY_OF_BITS_IN_BYTE;
+    static constexpr float front_whell_trotle_quantity_bits = 4 * QUANTITY_OF_BITS_IN_BYTE;
+    static constexpr float rear_whell_trotle_quantity_bits = 4 * QUANTITY_OF_BITS_IN_BYTE;
 
 public:
-    static constexpr dReal level = clearance + body_height / 2 - body_width;
+    static constexpr dReal level = clearance + body_height / 2;
     bnn_device_3d::physical_objects::cube body;
     bnn_device_3d::physical_objects::cube body_sign;
     sensors::gyroscope gyroscope_;
@@ -51,6 +51,10 @@ public:
     dReal get_height() override;
     void set_position(dReal x, dReal y, dReal z) override;
     void step(std::string& debug_str, bool& verbose) override;
+
+    double front_trotle = 0;
+    double rear_trotle = 0;
+    double front_direction;
 
 private:
     float wheel_size_x = body_length;

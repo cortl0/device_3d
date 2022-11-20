@@ -55,7 +55,7 @@ void table::setup(
         creating_movable_objects(stepping_figures, movable_colliding_geoms, bounding_nodes, world);
         creating_creature(creature_colliding_geoms, bounding_nodes, world);
 
-        auto *body = creature_->get_body().body;
+        auto body = creature_->get_body().body;
 
         if(0)
         {
@@ -110,8 +110,8 @@ void table::ogre_setup()
     render_window->getViewport(0)->setBackgroundColour(Ogre::ColourValue::White);
     render_window->getViewport(1)->setBackgroundColour(Ogre::ColourValue::White);
 
-    auto *ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
-    auto *node_plane = scene_manager->getRootSceneNode()->createChildSceneNode();
+    auto ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
+    auto node_plane = scene_manager->getRootSceneNode()->createChildSceneNode();
     node_plane->setScale(Ogre::Vector3(8, 8, 8));
     node_plane->setDirection(0,-1,0);
     node_plane->attachObject(ent_plane);
@@ -332,12 +332,12 @@ void table::circle_step(
 {
     auto it = stepping_figures.begin();
     std::advance(it, figure_number);
-    const auto *pos = dBodyGetPosition(it->body);
+    const auto pos = dBodyGetPosition(it->body);
     float x = pos[0];
     float y = pos[1];
     float z = pos[2];
     conductors[conductor_number]->step(x, y, z);
-    auto *vel = dBodyGetLinearVel(it->body);
+    auto vel = dBodyGetLinearVel(it->body);
     dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
 }
 
@@ -345,12 +345,12 @@ void table::kick_step(std::list<bnn_device_3d::physical_objects::figure>& steppi
 {
     auto it = stepping_figures.begin();
     std::advance(it, 7);
-    const auto *pos = dBodyGetPosition(it->body);
+    const auto pos = dBodyGetPosition(it->body);
     float x = pos[0];
     float y = pos[1];
     float z = pos[2];
 
-    const auto *creature_pos = dBodyGetPosition(creature_->get_body().body);
+    const auto creature_pos = dBodyGetPosition(creature_->get_body().body);
 
     cond::kick::data kd
     {
@@ -362,7 +362,7 @@ void table::kick_step(std::list<bnn_device_3d::physical_objects::figure>& steppi
     conductors[2]->step(x, y, z, &kd);
     if(kd.conduct)
     {
-        auto *vel = dBodyGetLinearVel(it->body);
+        auto vel = dBodyGetLinearVel(it->body);
         dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
     }
 }
@@ -371,12 +371,12 @@ void table::tail_step(std::list<bnn_device_3d::physical_objects::figure>& steppi
 {
     auto it = stepping_figures.begin();
     std::advance(it, 8);
-    const auto *pos = dBodyGetPosition(it->body);
+    const auto pos = dBodyGetPosition(it->body);
     float x = pos[0];
     float y = pos[1];
     float z = pos[2];
 
-    const auto *creature_pos = dBodyGetPosition(creature_->get_body().body);
+    const auto creature_pos = dBodyGetPosition(creature_->get_body().body);
 
     cond::tail::data kd
     {
@@ -388,7 +388,7 @@ void table::tail_step(std::list<bnn_device_3d::physical_objects::figure>& steppi
     conductors[3]->step(x, y, z, &kd);
     if(kd.conduct)
     {
-        auto *vel = dBodyGetLinearVel(it->body);
+        auto vel = dBodyGetLinearVel(it->body);
         dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
     }
 }
@@ -397,12 +397,12 @@ void table::dream_step(std::list<bnn_device_3d::physical_objects::figure>& stepp
 {
     auto it = stepping_figures.begin();
     std::advance(it, 9);
-    const auto *pos = dBodyGetPosition(it->body);
+    const auto pos = dBodyGetPosition(it->body);
     float x = pos[0];
     float y = pos[1];
     float z = pos[2];
 
-    const auto *creature_pos = dBodyGetPosition(creature_->get_body().body);
+    const auto creature_pos = dBodyGetPosition(creature_->get_body().body);
 
     cond::dream::data kd
     {
@@ -414,7 +414,7 @@ void table::dream_step(std::list<bnn_device_3d::physical_objects::figure>& stepp
     conductors[4]->step(x, y, z, &kd);
     if(kd.conduct)
     {
-        auto *vel = dBodyGetLinearVel(it->body);
+        auto vel = dBodyGetLinearVel(it->body);
         dBodyAddForce(it->body, x - vel[0], y - vel[1], z - vel[2]);
     }
 }

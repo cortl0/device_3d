@@ -58,6 +58,8 @@ public:
 protected:
     void create_light(Real x, Real y, Real z, const std::string name);
 
+    int width{0};
+    int height{0};
     Ogre::RenderWindow* render_window;
     Ogre::SceneManager* scene_manager;
     Ogre::SceneNode* third_person_camera_node;

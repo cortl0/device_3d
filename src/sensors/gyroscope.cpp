@@ -42,7 +42,7 @@ void gyroscope::set_inputs(dBodyID body, bnn::brain& brain_, u_word& count_input
     ort_y_rel.normalise();
     ort_z_rel.normalise();
 
-    auto *vel = dBodyGetAngularVel(body);
+    auto vel = dBodyGetAngularVel(body);
 
     x_scalar = ort_x_rel[1] * vel[0] + ort_x_rel[2] * vel[1] + ort_x_rel[3] * vel[2];
     y_scalar = ort_y_rel[1] * vel[0] + ort_y_rel[2] * vel[1] + ort_y_rel[3] * vel[2];

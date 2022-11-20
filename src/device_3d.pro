@@ -62,8 +62,8 @@ INCLUDEPATH += \
 /usr/local/include/OGRE/Bites \
 /usr/local/include/OGRE/RTShaderSystem \
 /usr/local/include/OGRE/Overlay \
-bnn/src/bnn_cpu/headers \
 bnn/src/common/headers \
+bnn/src/cpu \
 ./ \
 application \
 conductors \

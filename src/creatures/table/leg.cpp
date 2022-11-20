@@ -104,9 +104,9 @@ std::vector<physical_objects::figure*> leg::get_figures()
 
 void leg::relocate(dReal dx, dReal dy, dReal dz, dQuaternion q)
 {
-    auto *p0 = dBodyGetPosition(first.body);
-    auto *p1 = dBodyGetPosition(second.body);
-    auto *p2 = dBodyGetPosition(third.body);
+    auto p0 = dBodyGetPosition(first.body);
+    auto p1 = dBodyGetPosition(second.body);
+    auto p2 = dBodyGetPosition(third.body);
 
     dBodySetPosition(first.body, p0[0] + dx, p0[1] + dy, p0[2] + dz);
     dBodySetPosition(second.body, p1[0] + dx, p1[1] + dy, p1[2] + dz);
