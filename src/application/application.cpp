@@ -474,8 +474,8 @@ void application::setup()
 {
     OgreBites::ApplicationContext::setup();
     addInputListener(this);
-    scene.reset(new scn::bike(getRenderWindow(), getRoot()->createSceneManager()));
-    //scene.reset(new scn::table(getRenderWindow(), getRoot()->createSceneManager()));
+    scene.reset(new scn::bike::bike(getRenderWindow(), getRoot()->createSceneManager()));
+    //scene.reset(new scn::table::table(getRenderWindow(), getRoot()->createSceneManager()));
     scene->setup(
                 stationary_colliding_geoms,
                 movable_colliding_geoms,

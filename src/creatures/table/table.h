@@ -73,7 +73,7 @@ public:
     bnn_device_3d::physical_objects::figure& get_body() override;
     std::vector<bnn_device_3d::physical_objects::figure*> get_figures() override;
     Ogre::Vector3 get_camera_place() override;
-    dReal get_height() override;
+    dReal get_level() override;
 
     void set_position(dReal x, dReal y, dReal z) override;
     void step(std::string& debug_str, bool& verbose) override;
@@ -89,6 +89,9 @@ private:
     std::list<dGeomID> colliding_geoms;
     std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
     std::unique_ptr<bnn_device_3d::teachers::teacher> teacher_;
+
+    static constexpr u_word i_feel_my_velosity_quantity_bits = 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
+    static constexpr u_word i_feel_my_orientation_quantity_bits = 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
 };
 
 } // namespace bnn_device_3d::creatures::table

@@ -143,14 +143,12 @@ table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWor
     // I feel my legs (32)
     input_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
 
-    // I feel my velosity [2 bytes / coordinate] (48)
-    input_length += 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
+    input_length +=
+            i_feel_my_velosity_quantity_bits +
+            i_feel_my_orientation_quantity_bits;
 
     // I feel time (64)
     input_length += sensors::time::get_data_size();
-
-    // I feel my orientation [2 bytes / coordinate] (48)
-    input_length += 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
 
     output_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
     force.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG, 0.0);
@@ -203,7 +201,7 @@ Ogre::Vector3 table::get_camera_place()
     return v;
 }
 
-dReal table::get_height()
+dReal table::get_level()
 {
     return 1;
 }

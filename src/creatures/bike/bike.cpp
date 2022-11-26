@@ -21,6 +21,8 @@ bike::~bike()
 
 }
 
+const dQuaternion wheel_default_quaternion{pow(0.5, 0.5), 0, 0, pow(0.5, 0.5)};
+
 bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorldID world)
 {
     data_processing_method_.reset(new dpm::data_processing_method_linearly());
@@ -36,7 +38,9 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
     space = dSimpleSpaceCreate(nullptr);
 
     {
-        body = pho::cube("body", scnMgr, world, space, body_mass, body_width, body_height, body_length);
+        body = pho::cube("body", scnMgr, world, space, settings::body_mass,
+                         settings::body_width, settings::body_height, settings::body_length);
+
         body.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
         colliding_geoms.push_back(body.geom);
     }
@@ -44,83 +48,75 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
     auto p = dBodyGetPosition(body.body);
 
     {
-        body_sign = pho::cube("body_sign", scnMgr, world, space, body_mass * 0.001, body_width * 1.05, body_length * 0.95, body_length * 0.95);
+        body_sign = pho::cube("body_sign", scnMgr, world, space, settings::body_mass * 0.001,
+                              settings::body_width * 1.05, settings::body_length * 0.95, settings::body_length * 0.95);
+
         body_sign.set_material(body_sign.create_material_body_sign(256));
         make_fixed_joint(body_sign.geom);
     }
 
-    float wheel_mass = 4.0 / 3.0 * M_PI * whell_radius * whell_radius * whell_radius * device_3d_MASS_SCALE;
-
     {
-        front_wheel = pho::sphere("bike_front_wheel", scnMgr, world, space, wheel_mass, whell_radius);
+        front_wheel = pho::sphere("bike_front_wheel", scnMgr, world, space, settings::wheel_mass, settings::whell_radius);
         front_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
         colliding_geoms.push_back(front_wheel.geom);
-        dBodySetPosition(front_wheel.body, p[0], p[1] - clearance, p[2] - body_height);
+
+        dBodySetQuaternion(front_wheel.body, wheel_default_quaternion);
+
+        dBodySetPosition(front_wheel.body, p[0], p[1] - settings::clearance, p[2] - settings::body_height);
 
         dJointGroupID Joint_group_id = dJointGroupCreate(0);
         front_hinge2_joint_id = dJointCreateHinge2(world, Joint_group_id);
         dJointAttach(front_hinge2_joint_id, body.body, front_wheel.body);
 
-        dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - clearance, p[2] - body_height);
+        dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - settings::clearance, p[2] - settings::body_height);
         const dReal axis1[dSA__MAX]{0, 1, 0};
         const dReal axis2[dSA__MAX]{1, 0, 0};
         dJointSetHinge2Axes(front_hinge2_joint_id, axis1, axis2);
 
-        dJointSetHinge2Param(front_hinge2_joint_id, dParamLoStop, -front_whell_direction_angle);
-        dJointSetHinge2Param(front_hinge2_joint_id, dParamHiStop, front_whell_direction_angle);
+        dJointSetHinge2Param(front_hinge2_joint_id, dParamLoStop, -settings::front_whell_direction_angle);
+        dJointSetHinge2Param(front_hinge2_joint_id, dParamHiStop, settings::front_whell_direction_angle);
     }
 
     {
-        rear_wheel = pho::sphere("bike_rear_wheel", scnMgr, world, space, wheel_mass, whell_radius);
+        rear_wheel = pho::sphere("bike_rear_wheel", scnMgr, world, space, settings::wheel_mass, settings::whell_radius);
         rear_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
         colliding_geoms.push_back(rear_wheel.geom);
-        dBodySetPosition(rear_wheel.body, p[0], p[1] - clearance, p[2] + body_height);
+
+        dBodySetQuaternion(rear_wheel.body, wheel_default_quaternion);
+
+        dBodySetPosition(rear_wheel.body, p[0], p[1] - settings::clearance, p[2] + settings::body_height);
 
         dJointGroupID Joint_group_id = dJointGroupCreate(0);
         rear_hinge_joint_id = dJointCreateHinge(world, Joint_group_id);
         dJointAttach(rear_hinge_joint_id, body.body, rear_wheel.body);
-        dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - clearance, p[2] + body_height);
+        dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - settings::clearance, p[2] + settings::body_height);
         dJointSetHingeAxis(rear_hinge_joint_id, 1, 0, 0);
 
         //make_fixed_joint(rear_wheel.geom);
     }
 
-    u_word input_length = 0;
-    u_word output_length = 0;
+    u_word input_length =
+            2 * settings::front_wheel_torque_left.bits_quantity +
+            settings::i_feel_my_velosity_quantity_bits +
+            settings::i_feel_my_orientation_quantity_bits;
 
-    input_length += front_whell_direction_quantity_bits_left;
-    input_length += front_whell_direction_quantity_bits_right;
+    u_word output_length =
+            settings::front_wheel_torque_left.bits_quantity +
+            settings::front_wheel_torque_right.bits_quantity +
+            settings::rear_wheel_throttle_forward.bits_quantity +
+            settings::rear_wheel_throttle_backward.bits_quantity;
 
-    output_length += front_whell_direction_quantity_bits_left;
-    output_length += front_whell_direction_quantity_bits_right;
-
-    // front and rear wheel bytes
-    //input_length += front_whell_trotle_quantity_bits + rear_whell_trotle_quantity_bits;
-    output_length += front_whell_trotle_quantity_bits + rear_whell_trotle_quantity_bits;
-
-//    // I feel my legs (32)
-//    input_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
-
-    // I feel my velosity [2 bytes / coordinate] (48)
-    input_length += 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
-
-    // I feel time (64)
+    // I feel time
     input_length += sensors::time::get_data_size();
 
-    // I feel my orientation [2 bytes / coordinate] (48)
-    input_length += 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
-
-//    output_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
-//    force.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG, 0.0);
-//    distance.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG, 0.0);
     auto step = 8;
     video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth() / 4, render_window->getHeight() / 4, step));
     input_length += bnn_device_3d::sensors::video::length * video_->calc_data.size();
 
-    brain_.reset(new bnn::brain_tools(quantity_of_neurons_in_power_of_two,
+    brain_.reset(new bnn::brain_tools(settings::quantity_of_neurons_in_power_of_two,
                                       input_length,
                                       output_length,
-                                      threads_count_in_power_of_two));
+                                      settings::threads_count_in_power_of_two));
 }
 
 physical_objects::figure& bike::get_body()
@@ -151,9 +147,9 @@ Ogre::Vector3 bike::get_camera_place()
     return v * 1.2;
 }
 
-dReal bike::get_height()
+dReal bike::get_level()
 {
-    return level;
+    return settings::level;
 }
 
 void bike::set_position(dReal x, dReal y, dReal z)
@@ -172,14 +168,14 @@ void bike::set_position(dReal x, dReal y, dReal z)
     dBodySetQuaternion(body_sign.body, q);
 
     //p = dBodyGetPosition(front_wheel.body);
-    dBodySetPosition(front_wheel.body, p[0], p[1] - clearance, p[2] - body_length);
+    dBodySetPosition(front_wheel.body, p[0], p[1] - settings::clearance, p[2] - settings::body_length);
     //dBodySetPosition(front_wheel.body, p[0] + dx, p[1] + dy, p[2] + dz);
-    dBodySetQuaternion(front_wheel.body, q);
+    dBodySetQuaternion(front_wheel.body, wheel_default_quaternion);
 
     //p = dBodyGetPosition(rear_wheel.body);
-    dBodySetPosition(rear_wheel.body, p[0], p[1] - clearance, p[2] + body_length);
+    dBodySetPosition(rear_wheel.body, p[0], p[1] - settings::clearance, p[2] + settings::body_length);
     //dBodySetPosition(rear_wheel.body, p[0] + dx, p[1] + dy, p[2] + dz);
-    dBodySetQuaternion(rear_wheel.body, q);
+    dBodySetQuaternion(rear_wheel.body, wheel_default_quaternion);
 
     dBodySetLinearVel(body.body, 0, 0, 0);
     dBodySetLinearVel(body_sign.body, 0, 0, 0);
@@ -190,138 +186,99 @@ void bike::set_position(dReal x, dReal y, dReal z)
     dBodySetAngularVel(body_sign.body, 0, 0, 0);
     dBodySetAngularVel(front_wheel.body, 0, 0, 0);
     dBodySetAngularVel(rear_wheel.body, 0, 0, 0);
-
-//    {
-//        front_wheel = pho::sphere("bike_front_wheel", scnMgr, world, space, body_width * body_width * body_width * 0.125, body_width / 2);
-//        front_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
-//        colliding_geoms.push_back(front_wheel.geom);
-//        dBodySetPosition(front_wheel.body, p[0], p[1] - clearance, p[2] - body_length);
-
-//        dJointGroupID Joint_group_id = dJointGroupCreate(0);
-//        front_hinge2_joint_id = dJointCreateHinge2(world, Joint_group_id);
-//        dJointAttach(front_hinge2_joint_id, body.body, front_wheel.body);
-
-//        dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - clearance, p[2] - body_length);
-//        const dReal axis1[dSA__MAX]{0, 1, 0};
-//        const dReal axis2[dSA__MAX]{1, 0, 0};
-//        dJointSetHinge2Axes(front_hinge2_joint_id, axis1, axis2);
-
-//        dJointSetHinge2Param(front_hinge2_joint_id, dParamLoStop, -M_PI / 12);
-//        dJointSetHinge2Param(front_hinge2_joint_id, dParamHiStop, M_PI / 12);
-//    }
-
-//    {
-//        rear_wheel = pho::sphere("bike_rear_wheel", scnMgr, world, space, body_width * body_width * body_width * 0.125, body_width / 2);
-//        rear_wheel.set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
-//        colliding_geoms.push_back(rear_wheel.geom);
-//        dBodySetPosition(rear_wheel.body, p[0], p[1] - clearance, p[2] + body_length);
-
-//        dJointGroupID Joint_group_id = dJointGroupCreate(0);
-//        rear_hinge_joint_id = dJointCreateHinge(world, Joint_group_id);
-//        dJointAttach(rear_hinge_joint_id, body.body, rear_wheel.body);
-//        dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - clearance, p[2] + body_length);
-//        dJointSetHingeAxis(rear_hinge_joint_id, 1, 0, 0);
-
-//        //make_fixed_joint(rear_wheel.geom);
-//    }
 }
 
 void bike::step(std::string& debug_str, bool& verbose)
 {
-    const u_word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
-    static constexpr double range = 1.0f;
-    static const Ogre::Quaternion ort_x(0, 1, 0, 0);
-    static const Ogre::Quaternion ort_y(0, 0, 1, 0);
-    static const Ogre::Quaternion ort_z(0, 0, 0, 1);
-
     static u_word iteration = brain_->get_iteration();
     static u_word old_iteration = 0;
     iteration = brain_->get_iteration();
 
     if((iteration / 128) > old_iteration)
+    {
+        //debug_str = "";
         old_iteration = iteration / 128;
+        //verbose = true;
+    }
     else
         verbose = false;
 
     u_word i = 0;
-    double front_direction_left = 0;
-    double front_direction_right = 0;
-    /*double*/ front_trotle = 0;
-    /*double*/ rear_trotle = 0;
-    /*double*/ front_direction = 0;
+    sense_.set_default();
 
+    auto get_value = [&](int length, int both_side = 0) -> int
     {
-        for(size_t j = 0; j < front_whell_direction_quantity_bits_left; j++)
+        int value = 0;
+
+        for(int j = 0; j < length; j++)
         {
             if(verbose)
                 debug_str += std::to_string(brain_->get_output(i));
 
-            front_direction_left += static_cast<float>(brain_->get_output(i++));
-            //front_direction_left += (rand() % 2);
-            //front_direction_left += 0.5;
+            value += brain_->get_output(i) * !both_side +
+                    (brain_->get_output(i) * 2 - 1) * both_side;
+
+            ++i;
         }
 
-        for(size_t j = 0; j < front_whell_direction_quantity_bits_right; j++)
-        {
-            if(verbose)
-                debug_str += std::to_string(brain_->get_output(i));
+        return value;
+    };
 
-            front_direction_right += static_cast<float>(brain_->get_output(i++));
-            //front_direction_right += (rand() % 2);
-            //front_direction_right += 0.5;
-        }
+    force_.left = get_value(settings::front_wheel_torque_left.bits_quantity);
+    force_.right = get_value(settings::front_wheel_torque_right.bits_quantity);
+    force_.forward = get_value(settings::rear_wheel_throttle_forward.bits_quantity);
+    force_.backward = get_value(settings::rear_wheel_throttle_backward.bits_quantity);
 
-        front_direction_left /= front_whell_direction_quantity_bits_left;
-        front_direction_right /= front_whell_direction_quantity_bits_right;
-
-        front_direction = -1
-                * (1.0 - abs(front_direction_left - front_direction_right))
-                * ((front_direction_left + front_direction_right) / 2.0);
-
-        front_direction *= (((front_direction_left - front_direction_right)
-                - (dJointGetHinge2Angle1(front_hinge2_joint_id) / front_whell_direction_angle)) / 1.0);
-
-        front_direction += front_direction_left;
-        front_direction -= front_direction_right;
-        front_direction -= dJointGetHinge2Angle1(front_hinge2_joint_id) / front_whell_direction_angle;
-
-        //front_direction /= 2;
-    //    front_direction /= front_whell_direction_angle;
-    }
-
+    auto calculate_single_effector = [](effector& effector, int value, float rate) -> float
     {
-        for(size_t j = 0; j < front_whell_trotle_quantity_bits; j++)
-        {
-            if(verbose)
-                debug_str += std::to_string(brain_->get_output(i));
+        return effector.force_coefficient * value / effector.bits_quantity - rate;
+    };
 
-            front_trotle += static_cast<float>(brain_->get_output(i++) * 2 - 1);
-        }
-
-        front_trotle /= front_whell_trotle_quantity_bits;
-        front_trotle *= 3;
-        front_trotle -= dJointGetHinge2Angle2Rate(front_hinge2_joint_id) / 10;
-    }
-
+    auto calculate_double_opposite_effector = [](
+            const effector& first,
+            const effector& second,
+            float force_first,
+            float force_second,
+            float current_position,
+            float rate,
+            bool full_rate
+            ) -> float
     {
-        for(size_t j = 0; j < rear_whell_trotle_quantity_bits; j++)
-        {
-            if(verbose)
-                debug_str += std::to_string(brain_->get_output(i));
+        float force = 0;
+        force_first = first.force_coefficient * force_first / first.bits_quantity;
+        force_second = second.force_coefficient * force_second / second.bits_quantity;
+        force += force_first;
+        force -= force_second;
+        float position_coefficient = abs(current_position) / ((first.max_position + second.max_position) / 2);
+        force *= 1 - position_coefficient;
+        force -=rate * (!full_rate * position_coefficient + full_rate);
+        return force;
+    };
 
-            rear_trotle += static_cast<float>(brain_->get_output(i++) * 2 - 1);
-        }
+    float front_direction_torque = calculate_double_opposite_effector(
+                settings::front_wheel_torque_right,
+                settings::front_wheel_torque_left,
+                force_.right,
+                force_.left,
+                static_cast<float>(dJointGetHinge2Angle1(front_hinge2_joint_id)),
+                static_cast<float>(dJointGetHinge2Angle1Rate(front_hinge2_joint_id)),
+                false
+                );
 
-        rear_trotle /= rear_whell_trotle_quantity_bits;
-        rear_trotle *= 3;
-        rear_trotle -= dJointGetHingeAngleRate(rear_hinge_joint_id) / 10;
-    }
+    float rear_throttle_torque = calculate_double_opposite_effector(
+                settings::rear_wheel_throttle_forward,
+                settings::rear_wheel_throttle_backward,
+                force_.forward,
+                force_.backward,
+                0.0f,
+                static_cast<float>(dJointGetHingeAngleRate(rear_hinge_joint_id)),
+                true
+                );
 
-    //front_trotle = 0;
-    dJointAddHinge2Torques(front_hinge2_joint_id, front_direction, front_trotle);
-    dJointAddHingeTorque(rear_hinge_joint_id, rear_trotle);
+    dJointAddHinge2Torques(front_hinge2_joint_id, front_direction_torque, 0/*front_throttle*/);
+    dJointAddHingeTorque(rear_hinge_joint_id, rear_throttle_torque);
 
-    front_direction = dJointGetHinge2Angle1(front_hinge2_joint_id);
+    front_direction_torque = dJointGetHinge2Angle1(front_hinge2_joint_id);
     //return value_in_range(dJointGetHingeAngle(joint_id), angle_start, angle_end);
     //front_trotle = dJointGetHinge2Angle2(front_hinge2_joint_id);
 
@@ -380,13 +337,17 @@ void bike::step(std::string& debug_str, bool& verbose)
 
     // steering wheel
     data_processing_method_->set_inputs(*brain_.get(), count_input,
-                                        front_whell_direction_quantity_bits_left + front_whell_direction_quantity_bits_right,
-                                        front_direction, -front_whell_direction_angle,
-                                        front_whell_direction_angle, debug_str, verbose);
+                                        settings::front_wheel_torque_left.bits_quantity +
+                                        settings::front_wheel_torque_right.bits_quantity,
+                                        front_direction_torque, -settings::front_whell_direction_angle,
+                                        settings::front_whell_direction_angle, debug_str, verbose);
+
+#if(0)
     debug_str += " ";
 
     debug_str += "\nvideo [\n";
     video_->set_inputs(*brain_.get(), count_input, bnn_device_3d::sensors::video::length, range, debug_str, verbose);
+#endif
 
 //    brain_->set_input(count_input++, front_direction);
 //    brain_->set_input(count_input++, front_trotle);
@@ -399,6 +360,7 @@ void bike::step(std::string& debug_str, bool& verbose)
 //            debug_str += " ";
 //    }
 
+#if(0)
     debug_str += "]\nvel [ ";
     speedometer_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str, verbose);
 
@@ -407,6 +369,7 @@ void bike::step(std::string& debug_str, bool& verbose)
 
     debug_str += " ]\ntime [ ";
     time_.set_inputs(*brain_.get(), count_input, debug_str, verbose);
+#endif
 
 //    if(verbose)
 //        debug_str += "] out [ ";
@@ -430,11 +393,19 @@ void bike::step(std::string& debug_str, bool& verbose)
 //        force[i] /= QUANTITY_BITS_PER_JOINT;
 //    }
 
-//    if(verbose)
-//    {
-//        debug_str += "]\n";
-//        brain_->get_debug_string(debug_str);
-//    }
+    if(verbose)
+    {
+        debug_str += "]\n";
+        brain_->get_debug_string(debug_str);
+    }
+}
+
+void sense::set_default()
+{
+    left = 0;
+    right = 0;
+    front = 0;
+    rear = 0;
 }
 
 } // namespace bnn_device_3d::creatures::bike

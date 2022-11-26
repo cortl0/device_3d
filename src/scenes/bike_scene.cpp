@@ -31,7 +31,7 @@
 namespace cond = bnn_device_3d::conductors;
 namespace pho = bnn_device_3d::physical_objects;
 
-namespace bnn_device_3d::scenes
+namespace bnn_device_3d::scenes::bike
 {
 
 bike::~bike()
@@ -102,7 +102,7 @@ Ogre::TextAreaOverlayElement* create_text_area(Ogre::OverlayManager& overlayMana
     //text->setCharHeight(0.2);
     //text->setColour(Ogre::ColourValue(1, 1, 1));
 
-    text->setCaption("some text");
+    //text->setCaption("some text");
     text->show();
     return text;
 }
@@ -305,9 +305,9 @@ void bike::creating_movable_objects(
         stepping_figures.back().set_material(pho::figure::create_material_chess(128, 32, COLOR_MEDIUM, COLOR_LIGHT));
 
         dBodySetPosition(stepping_figures.back().body,
-                         ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE,
+                         ((static_cast<float>(rand()) / RAND_MAX) - 0.25f) * 2 * 500 * device_3d_SCALE,
                          ((static_cast<float>(rand()) / RAND_MAX)) * 500 * device_3d_SCALE,
-                         ((static_cast<float>(rand()) / RAND_MAX) - 0.5f) * 2 * 500 * device_3d_SCALE);
+                         ((static_cast<float>(rand()) / RAND_MAX) - 1.5f) * 2 * 500 * device_3d_SCALE);
 
         movable_colliding_geoms.push_back(stepping_figures.back().geom);
 
@@ -342,7 +342,7 @@ void bike::creating_creature(
 {
 
     creature_.reset(new creatures::bike::bike(render_window, scene_manager, world));
-    creature_->set_position(2, creature_->get_height() * 20, 0);
+    creature_->set_position(2, creature_->get_level() * 20, 0);
 
     if(0)
     {
@@ -382,6 +382,43 @@ void bike::panel_to_place()
     panel->setDimensions(x1, y1);
 }
 
+std::string get_string_for_text_panel(bnn_device_3d::creatures::bike::force& f)
+{
+    using sett = bnn_device_3d::creatures::bike::bike::settings;
+    auto foo = [&](int length, int left, int right, char one, char two) -> std::string
+    {
+        std::string s;
+        s.resize(length * 2 + 1);
+        //s[length * 2 + 1] = '\n';
+        s[length] = '|';
+        for(int i = 0; i < length; ++i)
+        {
+            if(left > i)
+                s[length - i - 1] = one;
+            else
+                s[length - i - 1] = ' ';
+            if(right > i)
+                s[length + i + 1] = two;
+            else
+                s[length + i + 1] = ' ';
+        }
+        return s;
+    };
+
+    std::string s;
+    //s += '|' + foo(sett::front_wheel_throttle.bits_quantity / 2, f.front < 0 ? -f.front : 0, f.front > 0 ? f.front : 0, 'v', '^') + '|' + '\n';
+    s += '|' + foo(
+                (sett::settings::front_wheel_torque_left.bits_quantity +
+                 sett::settings::front_wheel_torque_right.bits_quantity) /2,
+                f.left, f.right, '<', '>') + '|' + '\n';
+    s += '|' + foo(
+                (sett::rear_wheel_throttle_forward.bits_quantity +
+                 sett::rear_wheel_throttle_backward.bits_quantity) / 2,
+                f.backward, f.forward, 'v', '^') + '|' + '\n';
+
+    return s;
+}
+
 void bike::step(
         std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
         std::list<Ogre::SceneNode*>& bounding_nodes,
@@ -416,8 +453,8 @@ void bike::step(
 
             //dBodySetForce(creature_->get_body().body, 0, 0, -1000);
             dBodySetForce(creature_->get_body().body, (rand()%2) * 2 - 1, 0, 0);
-            creature_->set_position(2, creature_->get_height(), 0);
-            tripod_->set_position(2, creature_->get_height(), 0);
+            creature_->set_position(2, creature_->get_level(), 0);
+            tripod_->set_position(2, creature_->get_level(), 0);
             go = true;
         }
 
@@ -425,20 +462,28 @@ void bike::step(
     }
 
     bool verbose = false;//this->verbose;
-    std::string debug_str;
+    static std::string debug_str;
     creature_->step(debug_str, verbose);
     tripod_->step();
 
     auto cr = static_cast<bnn_device_3d::creatures::bike::bike*>(creature_.get());
 
     static uint i = 0;
+//    std::string d(
+//                std::to_string(++i) +
+//                "\n" +(cr->front_trotle < 0 ? " v" : " ^") +
+//                "\n" +(cr->front_direction < 0 ? "<- " : " ->") +
+//                "\n" +(cr->rear_trotle < 0 ? " v" : " ^") + "\n"
+//                );
     std::string d(
                 std::to_string(++i) +
-                "\n" +(cr->front_trotle < 0 ? " v" : " ^") +
-                "\n" +(cr->front_direction < 0 ? "<- " : " ->") +
-                "\n" +(cr->rear_trotle < 0 ? " v" : " ^") + "\n"
+                "\n" + get_string_for_text_panel(cr->force_)
                 );
     set_text(d);
+    //set_text(debug_str);
+//    std::string s;
+//    s.resize(1, '\0');
+//    std::cout << s << std::endl;
 
     if(verbose)
         std::cout << debug_str << std::endl;
@@ -525,4 +570,4 @@ void bike::keyboard_polling(
     }
 }
 
-} // namespace bnn_device_3d::scenes
+} // namespace bnn_device_3d::scenes::bike

@@ -21,22 +21,78 @@
 namespace bnn_device_3d::creatures::bike
 {
 
+struct force
+{
+    int left;
+    int right;
+    int forward;
+    int backward;
+};
+
+struct sense
+{
+    int left{0};
+    int right{0};
+    int front{0};
+    int rear{0};
+    void set_default();
+};
+
 class bike : public creature
 {
-    static constexpr float body_length = 100 * device_3d_SCALE;
-    static constexpr float body_width = 50 * device_3d_SCALE;
-    static constexpr float body_height = 100 * device_3d_SCALE;
-    static constexpr float body_mass = body_length * body_width * body_height * device_3d_MASS_SCALE;
-    static constexpr dReal clearance = body_height;
-    static constexpr float whell_radius = body_height / 2;
-    static constexpr float front_whell_direction_angle = M_PI / 6;
-    static constexpr float front_whell_direction_quantity_bits_left = 4 * QUANTITY_OF_BITS_IN_BYTE;
-    static constexpr float front_whell_direction_quantity_bits_right = 4 * QUANTITY_OF_BITS_IN_BYTE;
-    static constexpr float front_whell_trotle_quantity_bits = 4 * QUANTITY_OF_BITS_IN_BYTE;
-    static constexpr float rear_whell_trotle_quantity_bits = 4 * QUANTITY_OF_BITS_IN_BYTE;
-
 public:
-    static constexpr dReal level = clearance + body_height / 2;
+    struct effector
+    {
+        u_word bits_quantity;
+        float force_coefficient;
+        float max_position;
+    };
+
+    struct settings
+    {
+        static constexpr float body_length = 100 * device_3d_SCALE;
+        static constexpr float body_width = 50 * device_3d_SCALE;
+        static constexpr float body_height = 100 * device_3d_SCALE;
+        static constexpr float whell_radius = body_height / 2;
+        static constexpr float body_mass = body_length * body_width * body_height * device_3d_MASS_SCALE;
+
+        static constexpr float wheel_mass = 4.0 / 3.0 * M_PI *
+            whell_radius * whell_radius * whell_radius * device_3d_MASS_SCALE;
+
+        static constexpr float clearance = body_height;
+        static constexpr float level = clearance + body_height / 2;
+        static constexpr float front_whell_direction_angle = M_PI / 4;
+        static constexpr u_word i_feel_my_velosity_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
+        static constexpr u_word i_feel_my_orientation_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
+        static constexpr u_word quantity_of_neurons_in_power_of_two = 20;
+        static constexpr u_word threads_count_in_power_of_two = 2;
+
+        static constexpr effector front_wheel_torque_left
+        {
+            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
+            .force_coefficient = wheel_mass * 10.f,
+            .max_position = M_PI / 4
+        };
+        static constexpr effector front_wheel_torque_right
+        {
+            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
+            .force_coefficient = wheel_mass * 10.f,
+            .max_position = M_PI / 4
+        };
+        static constexpr effector rear_wheel_throttle_forward
+        {
+            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
+            .force_coefficient = wheel_mass * 25.f,
+            .max_position = 1.0f
+        };
+        static constexpr effector rear_wheel_throttle_backward
+        {
+            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
+            .force_coefficient = wheel_mass * 25.f,
+            .max_position = 1.0f
+        };
+    };
+
     bnn_device_3d::physical_objects::cube body;
     bnn_device_3d::physical_objects::cube body_sign;
     sensors::gyroscope gyroscope_;
@@ -48,23 +104,18 @@ public:
     bnn_device_3d::physical_objects::figure& get_body() override;
     std::vector<bnn_device_3d::physical_objects::figure*> get_figures() override;
     Ogre::Vector3 get_camera_place() override;
-    dReal get_height() override;
+    dReal get_level() override;
     void set_position(dReal x, dReal y, dReal z) override;
     void step(std::string& debug_str, bool& verbose) override;
 
-    double front_trotle = 0;
-    double rear_trotle = 0;
-    double front_direction;
+    sense sense_;
+    force force_;
 
 private:
-    float wheel_size_x = body_length;
-    float wheel_size_y = clearance;
     physical_objects::sphere front_wheel;
     physical_objects::sphere rear_wheel;
     dJointID rear_hinge_joint_id;
     dJointID front_hinge2_joint_id;
-    u_word quantity_of_neurons_in_power_of_two = 18;
-    u_word threads_count_in_power_of_two = 2;
     dSpaceID space;
     std::list<dGeomID> colliding_geoms;
     std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;

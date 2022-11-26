@@ -12,7 +12,7 @@
 
 #include "scene.h"
 
-namespace bnn_device_3d::scenes
+namespace bnn_device_3d::scenes::table
 {
 
 class table final : public scene

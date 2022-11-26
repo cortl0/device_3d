@@ -16,7 +16,7 @@
 
 using namespace std::literals;
 
-namespace bnn_device_3d::scenes
+namespace bnn_device_3d::scenes::bike
 {
 
 class bike final : public scene
@@ -79,6 +79,6 @@ private:
     Ogre::OverlayContainer* panel = nullptr;
 };
 
-} // namespace bnn_device_3d::scenes
+} // namespace bnn_device_3d::scenes::bike
 
 #endif // BNN_DEVICE_3D_SCENES_BIKE_H

@@ -23,7 +23,7 @@
 namespace cond = bnn_device_3d::conductors;
 namespace pho = bnn_device_3d::physical_objects;
 
-namespace bnn_device_3d::scenes
+namespace bnn_device_3d::scenes::table
 {
 
 table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scene_manager)

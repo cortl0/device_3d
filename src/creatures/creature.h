@@ -34,7 +34,7 @@ public:
     virtual bnn_device_3d::physical_objects::figure& get_body() = 0;
     virtual Ogre::Vector3 get_camera_place() = 0;
     virtual std::vector<bnn_device_3d::physical_objects::figure*> get_figures() = 0;
-    virtual dReal get_height() = 0;
+    virtual dReal get_level() = 0;
     virtual void set_position(dReal x, dReal y, dReal z) = 0;
 
 //    std::list<dGeomID> creature_colliding_geoms;
