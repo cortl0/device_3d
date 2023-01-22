@@ -20,7 +20,7 @@ distance::distance()
     //data_processing_method_.reset(new data_processing_method_binary());
 }
 
-void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::brain& brain_, u_word& count_input, u_word length, float range, std::string& debug_str, bool verbose)
+void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::cpu& brain_, u_word& count_input, u_word length, float range, std::string& debug_str, bool verbose)
 {
     auto pos_first = dBodyGetPosition(body_first);
 

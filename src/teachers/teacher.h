@@ -11,8 +11,8 @@
 #define BNN_DEVICE_3D_TEACHERS_TEACHER_H
 
 #include "Ogre.h"
-#include "brain.h"
-#include "state.hpp"
+#include "cpu/cpu.h"
+#include "common/state.h"
 
 namespace bnn_device_3d::teachers
 {

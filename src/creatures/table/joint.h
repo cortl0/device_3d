@@ -12,6 +12,8 @@
 
 #include "ode.h"
 
+#include "config.hpp"
+
 namespace bnn_device_3d::creatures::table
 {
 

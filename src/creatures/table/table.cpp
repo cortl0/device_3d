@@ -11,7 +11,7 @@
 
 #include <unistd.h>
 
-#include "config.hpp"
+#include "common/logger.h"
 
 namespace dpm = bnn_device_3d::data_processing_methods;
 namespace pho = bnn_device_3d::physical_objects;
@@ -163,8 +163,8 @@ table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWor
                                       threads_count_in_power_of_two));
 
     //brain_->save_random();
-
-    brain_->primary_filling();
+//TODO
+    //brain_->primary_filling();
 }
 
 physical_objects::figure& table::get_body()

@@ -9,7 +9,9 @@
 
 #include "data_processing_method_logarithmic.h"
 
-#include "config.hpp"
+#include <string>
+
+#include "bnn/config.h"
 
 namespace bnn_device_3d::data_processing_methods
 {
@@ -26,21 +28,43 @@ data_processing_method_logarithmic::data_processing_method_logarithmic()
 
 u_word data_processing_method_logarithmic::get_bools(float from, float to, float value, int levels_number)
 {
+    // TODO
+    auto bnn_math_two_pow_x = [](u_word x) -> u_word
+    {
+        return u_word(1) << x;
+    };
+
+    // TODO
+    auto bnn_math_log2_1 = [](
+            u_word x
+            ) -> u_word
+    {
+        u_word result = ~u_word{0};
+
+        while(x)
+        {
+            x >>= 1;
+            ++result;
+        }
+
+        return result;
+    };
+
     to -= from;
     value -= from;
 
     value /= to;
-    value *= (bnn::simple_math::two_pow_x(levels_number) - 1);
+    value *= (bnn_math_two_pow_x(levels_number) - 1);
 
     if(value < 1.0f)
         return 0;
 
-    u_word value_log = bnn::simple_math::log2_1(static_cast<u_word>(value));
+    u_word value_log = bnn_math_log2_1(static_cast<u_word>(value));
 
     return (static_cast<u_word>(~0) >> (QUANTITY_OF_BITS_IN_WORD - levels_number)) >> (levels_number - value_log - 1);
 }
 
-void data_processing_method_logarithmic::set_inputs(bnn::brain& b, u_word& count, u_word length, float value,
+void data_processing_method_logarithmic::set_inputs(bnn::cpu& b, u_word& count, u_word length, float value,
                                                     float range_from, float range_to, std::string& s, bool verbose)
 {
     u_word bools = get_bools(range_from, range_to, value, length);

@@ -19,7 +19,7 @@ acceleration::acceleration()
     data_processing_method_.reset(new dpm::data_processing_method_linearly());
 }
 
-void acceleration::set_inputs(dBodyID body, bnn::brain& brain_, u_word& count_input, u_word length, float range_from, float range_to, std::string& debug_str)
+void acceleration::set_inputs(dBodyID body, bnn::cpu& brain_, u_word& count_input, u_word length, float range_from, float range_to, std::string& debug_str)
 {
 
 }

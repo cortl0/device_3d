@@ -9,8 +9,7 @@
 
 #include "data_processing_method_binary.h"
 
-#include "config.hpp"
-#include "simple_math.hpp"
+#include <string>
 
 namespace bnn_device_3d::data_processing_methods
 {
@@ -27,16 +26,22 @@ data_processing_method_binary::data_processing_method_binary()
 
 u_word data_processing_method_binary::get_bools(float from, float to, float value, int levels_number)
 {
+    // TODO
+    auto bnn_math_two_pow_x = [](u_word x) -> u_word
+    {
+        return u_word(1) << x;
+    };
+
     to -= from;
     value -= from;
 
     value /= to;
-    value *= (bnn::simple_math::two_pow_x(levels_number) - 1);
+    value *= (bnn_math_two_pow_x(levels_number) - 1);
 
     return value;
 }
 
-void data_processing_method_binary::set_inputs(bnn::brain& b, u_word& count, u_word length, float value,
+void data_processing_method_binary::set_inputs(bnn::cpu& b, u_word& count, u_word length, float value,
                                                float range_from, float range_to, std::string& s, bool verbose)
 {
     u_word bools = get_bools(range_from, range_to, value, length);

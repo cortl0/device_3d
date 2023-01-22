@@ -11,7 +11,7 @@
 #define BNN_DEVICE_3D_CREATURES_BIKE_BIKE_H
 
 #include "config.hpp"
-#include "../creature.h"
+#include "creatures/creature.h"
 #include "physical_objects/sphere.h"
 #include "sensors/gyroscope.h"
 #include "sensors/time.h"
@@ -61,7 +61,7 @@ public:
 
         static constexpr float clearance = body_height;
         static constexpr float level = clearance + body_height / 2;
-        static constexpr float front_whell_direction_angle = M_PI / 4;
+        static constexpr float front_whell_direction_angle = 0;//M_PI / 4;
         static constexpr u_word i_feel_my_velosity_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
         static constexpr u_word i_feel_my_orientation_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
         static constexpr u_word quantity_of_neurons_in_power_of_two = 20;
@@ -69,25 +69,25 @@ public:
 
         static constexpr effector front_wheel_torque_left
         {
-            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
-            .force_coefficient = wheel_mass * 10.f,
+            .bits_quantity = 2,//2 * QUANTITY_OF_BITS_IN_BYTE,
+            .force_coefficient = wheel_mass * 1.f,
             .max_position = M_PI / 4
         };
         static constexpr effector front_wheel_torque_right
         {
-            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
-            .force_coefficient = wheel_mass * 10.f,
+            .bits_quantity = 2,//2 * QUANTITY_OF_BITS_IN_BYTE,
+            .force_coefficient = wheel_mass * 1.f,
             .max_position = M_PI / 4
         };
         static constexpr effector rear_wheel_throttle_forward
         {
-            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
+            .bits_quantity = 4 * QUANTITY_OF_BITS_IN_BYTE,
             .force_coefficient = wheel_mass * 25.f,
             .max_position = 1.0f
         };
         static constexpr effector rear_wheel_throttle_backward
         {
-            .bits_quantity = 2 * QUANTITY_OF_BITS_IN_BYTE,
+            .bits_quantity = 4 * QUANTITY_OF_BITS_IN_BYTE,
             .force_coefficient = wheel_mass * 25.f,
             .max_position = 1.0f
         };

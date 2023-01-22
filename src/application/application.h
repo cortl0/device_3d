@@ -18,7 +18,7 @@
 #include "Ogre.h"
 #include "OgreApplicationContext.h"
 
-#include "state.hpp"
+#include "common/state.h"
 #include "scenes/scene.h"
 
 using namespace Ogre;

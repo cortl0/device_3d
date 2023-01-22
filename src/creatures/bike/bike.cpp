@@ -70,7 +70,7 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
 
         dJointSetHinge2Anchor(front_hinge2_joint_id, p[0], p[1] - settings::clearance, p[2] - settings::body_height);
         const dReal axis1[dSA__MAX]{0, 1, 0};
-        const dReal axis2[dSA__MAX]{1, 0, 0};
+        const dReal axis2[dSA__MAX]{0, 0, 1};
         dJointSetHinge2Axes(front_hinge2_joint_id, axis1, axis2);
 
         dJointSetHinge2Param(front_hinge2_joint_id, dParamLoStop, -settings::front_whell_direction_angle);
@@ -90,7 +90,7 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
         rear_hinge_joint_id = dJointCreateHinge(world, Joint_group_id);
         dJointAttach(rear_hinge_joint_id, body.body, rear_wheel.body);
         dJointSetHingeAnchor(rear_hinge_joint_id, p[0], p[1] - settings::clearance, p[2] + settings::body_height);
-        dJointSetHingeAxis(rear_hinge_joint_id, 1, 0, 0);
+        dJointSetHingeAxis(rear_hinge_joint_id, 0, 0, 1);
 
         //make_fixed_joint(rear_wheel.geom);
     }
@@ -275,7 +275,7 @@ void bike::step(std::string& debug_str, bool& verbose)
                 true
                 );
 
-    dJointAddHinge2Torques(front_hinge2_joint_id, front_direction_torque, 0/*front_throttle*/);
+    dJointAddHinge2Torques(front_hinge2_joint_id, front_direction_torque, rear_throttle_torque/*front_throttle*/);
     dJointAddHingeTorque(rear_hinge_joint_id, rear_throttle_torque);
 
     front_direction_torque = dJointGetHinge2Angle1(front_hinge2_joint_id);

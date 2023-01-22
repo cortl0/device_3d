@@ -9,8 +9,8 @@
 
 #include "joint.h"
 
-#include "bnn/src/common/headers/config.hpp"
-#include "config.hpp"
+#include "bnn/config.h"
+#include "common/logger.h"
 
 namespace bnn_device_3d::creatures::table
 {

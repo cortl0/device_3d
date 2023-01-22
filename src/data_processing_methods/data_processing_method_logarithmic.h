@@ -10,7 +10,6 @@
 #ifndef BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_LOGARITHMIC_H
 #define BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_LOGARITHMIC_H
 
-#include "simple_math.hpp"
 #include "data_processing_method.h"
 
 namespace bnn_device_3d::data_processing_methods
@@ -22,7 +21,7 @@ class data_processing_method_logarithmic : public data_processing_method
 public:
     ~data_processing_method_logarithmic();
     data_processing_method_logarithmic();
-    void set_inputs(bnn::brain&, u_word& count, u_word length, float value, float range_from, float range_to,
+    void set_inputs(bnn::cpu&, u_word& count, u_word length, float value, float range_from, float range_to,
                     std::string& str, bool verbose) override;
 };
 

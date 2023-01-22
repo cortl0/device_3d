@@ -9,8 +9,6 @@
 
 #include "leg.h"
 
-#include "config.hpp"
-
 namespace pho = bnn_device_3d::physical_objects;
 
 namespace bnn_device_3d::creatures::table

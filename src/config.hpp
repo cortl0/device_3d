@@ -25,6 +25,8 @@
 #define COLOR_LIGHT 0xbbbbbbff
 #define COLOR_MEDIUM 0x777777ff
 
+#define device_3d_LITTLE_TIME 1000
+
 namespace bnn_device_3d
 {
 

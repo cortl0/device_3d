@@ -12,8 +12,11 @@ CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG -= qt
 
+DEFINES += "BNN_ARCHITECTURE_CPU"
+
 SOURCES += \
-bnn/src/common/sources/brain_tools.cpp \
+bnn/src/common/logger.cpp \
+bnn/src/common/brain_tools.cpp \
 application/application.cpp \
 application/tripod.cpp \
 conductors/conductor.cpp \
@@ -62,9 +65,8 @@ INCLUDEPATH += \
 /usr/local/include/OGRE/Bites \
 /usr/local/include/OGRE/RTShaderSystem \
 /usr/local/include/OGRE/Overlay \
-bnn/src/common/headers \
-bnn/src/cpu \
-./ \
+bnn/src \
+. \
 application \
 conductors \
 creatures \
@@ -74,6 +76,8 @@ data_processing_methods \
 physical_objects \
 scenes \
 teachers
+
+QMAKE_RPATHDIR += /usr/local/lib
 
 LIBS += \
 -lX11 \
@@ -85,4 +89,4 @@ LIBS += \
 -lOgreMain \
 -lOgreRTShaderSystem \
 -lOgreOverlay \
-$${_PRO_FILE_PWD_}/bnn/src/build-bnn_cpu/libbnn_cpu.a
+$${_PRO_FILE_PWD_}/bnn/src/build/cpu/libbnn-cpu.a

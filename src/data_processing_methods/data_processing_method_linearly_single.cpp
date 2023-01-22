@@ -9,7 +9,7 @@
 
 #include "data_processing_method_linearly_single.h"
 
-#include "config.hpp"
+#include <string>
 
 namespace bnn_device_3d::data_processing_methods
 {
@@ -36,7 +36,7 @@ bool data_processing_method_linearly_single::get_bool(float from, float to, floa
     return value >= levels_size && value < levels_size + level_size;
 }
 
-void data_processing_method_linearly_single::set_inputs(bnn::brain& b, u_word& count, u_word length, float value,
+void data_processing_method_linearly_single::set_inputs(bnn::cpu& b, u_word& count, u_word length, float value,
                                                         float range_from, float range_to, std::string& s, bool verbose)
 {
     for(uint8_t j = 0; j < length; j++)

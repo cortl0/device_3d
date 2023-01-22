@@ -19,6 +19,7 @@
 
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"
+#include "common/logger.h"
 #include "config.hpp"
 #include "conductors/conductor_circle.h"
 #include "conductors/kick.h"

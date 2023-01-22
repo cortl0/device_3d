@@ -45,7 +45,7 @@ void video::calculate_data(uint8_t* data, uint32_t full_width, uint32_t)
         }
 }
 
-void video::set_inputs(bnn::brain& brain_, u_word& count_input, u_word length, float, std::string& debug_str, bool verbose)
+void video::set_inputs(bnn::cpu& brain_, u_word& count_input, u_word length, float, std::string& debug_str, bool verbose)
 {
     size_t counter = 0;
 

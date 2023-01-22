@@ -15,6 +15,7 @@
 
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"
+#include "common/logger.h"
 #include "config.hpp"
 #include "conductors/conductor_circle.h"
 #include "conductors/kick.h"
@@ -317,7 +318,7 @@ void application::run()
 
             if(bnn::state::started != state_)
             {
-                usleep(BNN_LITTLE_TIME);
+                usleep(device_3d_LITTLE_TIME);
                 time_old = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
                 continue;
             }
@@ -445,7 +446,7 @@ void application::start()
     state_ = bnn::state::start;
 
     while(bnn::state::started != state_)
-        usleep(BNN_LITTLE_TIME);
+        usleep(device_3d_LITTLE_TIME);
 
     logging("world_3d::start() end");
 }
@@ -463,7 +464,7 @@ void application::stop()
         state_ = bnn::state::stopped;
 
     while(bnn::state::stopped != state_)
-        usleep(BNN_LITTLE_TIME);
+        usleep(device_3d_LITTLE_TIME);
 
     scene->stop();
 

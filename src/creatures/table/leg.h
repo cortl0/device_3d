@@ -16,6 +16,8 @@
 #include "physical_objects/sphere.h"
 #include "joint.h"
 
+#include "config.hpp"
+
 #define first_r (30 * device_3d_SCALE)
 #define first_mass (4.0 / 3.0 * M_PI * first_r * first_r * first_r * device_3d_MASS_SCALE)
 

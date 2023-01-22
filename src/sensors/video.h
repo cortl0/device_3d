@@ -12,7 +12,7 @@
 
 #include <vector>
 
-#include "brain_tools.h"
+#include "common/brain_tools.h"
 #include "data_processing_method_linearly.h"
 
 namespace bnn_device_3d::sensors
@@ -26,7 +26,7 @@ struct video
 
     void calculate_data(uint8_t* data, uint32_t full_width, uint32_t full_heigth);
 
-    void set_inputs(bnn::brain&, u_word& count, u_word length, float range_ignored, std::string& str, bool verbose);
+    void set_inputs(bnn::cpu&, u_word& count, u_word length, float range_ignored, std::string& str, bool verbose);
 
     uint32_t width, height, step;
     std::vector<int> calc_data;
