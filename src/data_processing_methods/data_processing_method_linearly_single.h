@@ -21,7 +21,7 @@ class data_processing_method_linearly_single : public data_processing_method
 public:
     virtual ~data_processing_method_linearly_single();
     data_processing_method_linearly_single();
-    void set_inputs(bnn::cpu&, u_word& count, u_word length, float value, float range_from, float range_to,
+    void set_inputs(bnn::architecture&, u_word& count, u_word length, float value, float range_from, float range_to,
                     std::string& str, bool verbose) override;
 };
 

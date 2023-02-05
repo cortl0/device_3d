@@ -9,6 +9,9 @@
 
 #include "distance.h"
 
+#include "data_processing_methods/data_processing_method_linearly.h"
+#include "data_processing_methods/data_processing_method_binary.h"
+
 namespace dpm = bnn_device_3d::data_processing_methods;
 
 namespace bnn_device_3d::sensors
@@ -20,7 +23,7 @@ distance::distance()
     //data_processing_method_.reset(new data_processing_method_binary());
 }
 
-void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::cpu& brain_, u_word& count_input, u_word length, float range, std::string& debug_str, bool verbose)
+void distance::set_inputs(dBodyID body_first, dGeomID body_second, bnn::architecture& brain_, u_word& count_input, u_word length, float range, std::string& debug_str, bool verbose)
 {
     auto pos_first = dBodyGetPosition(body_first);
 

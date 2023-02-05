@@ -190,8 +190,8 @@ void bike::set_position(dReal x, dReal y, dReal z)
 
 void bike::step(std::string& debug_str, bool& verbose)
 {
-    static u_word iteration = brain_->get_iteration();
-    static u_word old_iteration = 0;
+    static u_word iteration = 0;
+    static u_word old_iteration = iteration;
     iteration = brain_->get_iteration();
 
     if((iteration / 128) > old_iteration)

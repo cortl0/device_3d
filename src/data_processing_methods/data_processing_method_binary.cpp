@@ -41,7 +41,7 @@ u_word data_processing_method_binary::get_bools(float from, float to, float valu
     return value;
 }
 
-void data_processing_method_binary::set_inputs(bnn::cpu& b, u_word& count, u_word length, float value,
+void data_processing_method_binary::set_inputs(bnn::architecture& b, u_word& count, u_word length, float value,
                                                float range_from, float range_to, std::string& s, bool verbose)
 {
     u_word bools = get_bools(range_from, range_to, value, length);

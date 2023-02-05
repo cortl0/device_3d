@@ -64,8 +64,8 @@ public:
         static constexpr float front_whell_direction_angle = 0;//M_PI / 4;
         static constexpr u_word i_feel_my_velosity_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
         static constexpr u_word i_feel_my_orientation_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
-        static constexpr u_word quantity_of_neurons_in_power_of_two = 20;
-        static constexpr u_word threads_count_in_power_of_two = 2;
+        static constexpr u_word quantity_of_neurons_in_power_of_two = 16;
+        static constexpr u_word threads_count_in_power_of_two = DEVICE_3D_THREADS_QUANTITY;
 
         static constexpr effector front_wheel_torque_left
         {

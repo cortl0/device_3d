@@ -7,6 +7,13 @@ for testing the Binary Neurons Network
 git clone --recursive https://github.com/cortl0/device_3d
 ```
 
+## CMake build
+
+Build and run the application with helper
+```
+run.sh
+```
+
 ## Project requirements
 - BNN (Binary Neurons Network)  
 https://github.com/cortl0/binary_neurons_network
@@ -18,9 +25,6 @@ https://github.com/OGRECave/ogre
 - ODE (Open Dynamics Engine)  
 http://www.ode.org  
 https://bitbucket.org/odedevs/ode
-
-- Qt Creator  
-https://www.qt.io
 
 ## Author
 Ilya Shishkin  

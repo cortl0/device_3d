@@ -20,7 +20,7 @@ class time
 public:
     time();
     static int get_data_size();
-    void set_inputs(bnn::cpu&, u_word& count, std::string& str, bool verbose);
+    void set_inputs(bnn::architecture&, u_word& count, std::string& str, bool verbose);
 };
 
 } // namespace bnn_device_3d::sensors

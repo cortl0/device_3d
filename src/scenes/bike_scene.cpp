@@ -29,6 +29,8 @@
 #include "physical_objects/sphere.h"
 #include "creatures/bike/bike.h"
 
+using namespace std::literals;
+
 namespace cond = bnn_device_3d::conductors;
 namespace pho = bnn_device_3d::physical_objects;
 
@@ -52,7 +54,7 @@ void load_font()
 {
     static const std::string resource_group{"General"s};
 
-    Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../src/resources", "FileSystem");
+    Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./resources", "FileSystem");
    // Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
     Ogre::FontPtr mFont = Ogre::FontManager::getSingleton().create(font_name, resource_group

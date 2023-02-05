@@ -10,7 +10,7 @@
 #ifndef BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_H
 #define BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_H
 
-#include "cpu/cpu.h"
+#include "common/architecture.h"
 
 #include "config.hpp"
 
@@ -22,7 +22,7 @@ class data_processing_method
 public:
     virtual ~data_processing_method();
     data_processing_method();
-    virtual void set_inputs(bnn::cpu&, u_word& count, u_word length, float value, float range_from, float range_to,
+    virtual void set_inputs(bnn::architecture&, u_word& count, u_word length, float value, float range_from, float range_to,
                             std::string& str, bool verbose) = 0;
 };
 

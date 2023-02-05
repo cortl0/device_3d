@@ -19,7 +19,7 @@ velocity::velocity()
     data_processing_method_.reset(new dpm::data_processing_method_linearly());
 }
 
-void velocity::set_inputs(dBodyID body, bnn::cpu& brain_, u_word& count_input, u_word length, float range_from, float range_to, std::string& debug_str, bool verbose)
+void velocity::set_inputs(dBodyID body, bnn::architecture& brain_, u_word& count_input, u_word length, float range_from, float range_to, std::string& debug_str, bool verbose)
 {
     static const Ogre::Quaternion ort_x(0, 1, 0, 0);
     static const Ogre::Quaternion ort_y(0, 0, 1, 0);

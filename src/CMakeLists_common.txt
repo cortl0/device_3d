@@ -1,0 +1,72 @@
+#
+#   device_3d
+#   created by Ilya Shishkin
+#   cortl@8iter.ru
+#   https://github.com/cortl0/device_3d
+#   licensed by GPL v3.0
+#
+
+file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
+
+include_directories(
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/bnn/src
+    ${CMAKE_SOURCE_DIR}/bnn/src/common
+    )
+
+include_directories(
+    /usr/local/include/ode
+    /usr/local/include/OGRE
+    /usr/local/include/OGRE/Bites
+    /usr/local/include/OGRE/RTShaderSystem
+    /usr/local/include/OGRE/Overlay
+    )
+
+set(SOURCES
+    ${CMAKE_SOURCE_DIR}/main.cpp
+    ${CMAKE_SOURCE_DIR}/bnn/src/common/logger.cpp
+    ${CMAKE_SOURCE_DIR}/bnn/src/common/brain_tools.cpp
+    ${CMAKE_SOURCE_DIR}/application/application.cpp
+    ${CMAKE_SOURCE_DIR}/application/tripod.cpp
+    ${CMAKE_SOURCE_DIR}/conductors/conductor.cpp
+    ${CMAKE_SOURCE_DIR}/conductors/conductor_circle.cpp
+    ${CMAKE_SOURCE_DIR}/conductors/dream.cpp
+    ${CMAKE_SOURCE_DIR}/conductors/kick.cpp
+    ${CMAKE_SOURCE_DIR}/conductors/tail.cpp
+    ${CMAKE_SOURCE_DIR}/creatures/bike/bike.cpp
+    ${CMAKE_SOURCE_DIR}/creatures/creature.cpp
+    ${CMAKE_SOURCE_DIR}/creatures/table/joint.cpp
+    ${CMAKE_SOURCE_DIR}/creatures/table/leg.cpp
+    ${CMAKE_SOURCE_DIR}/creatures/table/table.cpp
+    ${CMAKE_SOURCE_DIR}/data_processing_methods/data_processing_method.cpp
+    ${CMAKE_SOURCE_DIR}/data_processing_methods/data_processing_method_binary.cpp
+    ${CMAKE_SOURCE_DIR}/data_processing_methods/data_processing_method_linearly.cpp
+    ${CMAKE_SOURCE_DIR}/data_processing_methods/data_processing_method_linearly_single.cpp
+    ${CMAKE_SOURCE_DIR}/data_processing_methods/data_processing_method_logarithmic.cpp
+    ${CMAKE_SOURCE_DIR}/physical_objects/cube.cpp
+    ${CMAKE_SOURCE_DIR}/physical_objects/figure.cpp
+    ${CMAKE_SOURCE_DIR}/physical_objects/sphere.cpp
+    ${CMAKE_SOURCE_DIR}/scenes/bike_scene.cpp
+    ${CMAKE_SOURCE_DIR}/scenes/scene.cpp
+    ${CMAKE_SOURCE_DIR}/scenes/table_scene.cpp
+    ${CMAKE_SOURCE_DIR}/sensors/acceleration.cpp
+    ${CMAKE_SOURCE_DIR}/sensors/distance.cpp
+    ${CMAKE_SOURCE_DIR}/sensors/gyroscope.cpp
+    ${CMAKE_SOURCE_DIR}/sensors/time.cpp
+    ${CMAKE_SOURCE_DIR}/sensors/velocity.cpp
+    ${CMAKE_SOURCE_DIR}/sensors/video.cpp
+    ${CMAKE_SOURCE_DIR}/teachers/teacher.cpp
+    ${CMAKE_SOURCE_DIR}/teachers/teacher_walking.cpp
+    )
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    -lpthread
+    -lstdc++fs
+    -lode
+    -lOgreBites
+    -lOgreMain
+    -lOgreRTShaderSystem
+    -lOgreOverlay
+    )

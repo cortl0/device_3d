@@ -14,8 +14,6 @@
 
 #include "scene.h"
 
-using namespace std::literals;
-
 namespace bnn_device_3d::scenes::bike
 {
 

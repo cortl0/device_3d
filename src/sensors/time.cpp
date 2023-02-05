@@ -26,7 +26,7 @@ int time::get_data_size()
     return 64;
 }
 
-void time::set_inputs(bnn::cpu& brain_, u_word& count_input, std::string& debug_str, bool verbose)
+void time::set_inputs(bnn::architecture& brain_, u_word& count_input, std::string& debug_str, bool verbose)
 {
     namespace sch = std::chrono;
     typedef sch::time_point<sch::system_clock, sch::microseconds> m_time_point;
