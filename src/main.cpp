@@ -18,9 +18,13 @@ int main()
     {
         bnn_device_3d::application::application().run();
     }
+    catch(int i)
+    {
+        std::cerr << "Caught int [" << i << "]" << std::endl;
+    }
     catch(const std::exception& e)
     {
-        std::cerr << "Caught std::exception: " << e.what() << std::endl;
+        std::cerr << "Caught std::exception [" << e.what() << "]" << std::endl;
     }
     catch(...)
     {

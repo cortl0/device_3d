@@ -113,10 +113,17 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
     video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth() / 4, render_window->getHeight() / 4, step));
     input_length += bnn_device_3d::sensors::video::length * video_->calc_data.size();
 
-    brain_.reset(new bnn::brain_tools(settings::quantity_of_neurons_in_power_of_two,
-                                      input_length,
-                                      output_length,
-                                      settings::threads_count_in_power_of_two));
+    const bnn_settings bs
+    {
+        .quantity_of_neurons_in_power_of_two = settings::quantity_of_neurons_in_power_of_two,
+        .input_length = input_length,
+        .output_length = output_length,
+        .motor_binaries_per_motor = settings::motor_binaries_per_motor,
+        .random_size_in_power_of_two = settings::random_size_in_power_of_two,
+        .quantity_of_threads_in_power_of_two = settings::threads_count_in_power_of_two
+    };
+
+    brain_.reset(new bnn::brain_tools(bs));
 }
 
 physical_objects::figure& bike::get_body()
@@ -190,6 +197,9 @@ void bike::set_position(dReal x, dReal y, dReal z)
 
 void bike::step(std::string& debug_str, bool& verbose)
 {
+    const u_word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
+    static constexpr double range = 1.0f;
+
     static u_word iteration = 0;
     static u_word old_iteration = iteration;
     iteration = brain_->get_iteration();
@@ -342,9 +352,8 @@ void bike::step(std::string& debug_str, bool& verbose)
                                         front_direction_torque, -settings::front_whell_direction_angle,
                                         settings::front_whell_direction_angle, debug_str, verbose);
 
-#if(0)
+#if(1)
     debug_str += " ";
-
     debug_str += "\nvideo [\n";
     video_->set_inputs(*brain_.get(), count_input, bnn_device_3d::sensors::video::length, range, debug_str, verbose);
 #endif
@@ -360,7 +369,7 @@ void bike::step(std::string& debug_str, bool& verbose)
 //            debug_str += " ";
 //    }
 
-#if(0)
+#if(1)
     debug_str += "]\nvel [ ";
     speedometer_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str, verbose);
 

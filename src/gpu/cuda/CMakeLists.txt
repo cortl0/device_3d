@@ -20,6 +20,8 @@ include_directories(
     )
 
 add_compile_definitions(BNN_ARCHITECTURE_CUDA)
-add_compile_definitions(DEVICE_3D_THREADS_QUANTITY=2)
+add_compile_definitions(DEVICE_3D_THREADS_QUANTITY_IN_POWER_OF_TWO=4)
+add_compile_definitions(DEVICE_3D_NEURONS_QUANTITY_IN_POWER_OF_TWO=16)
+add_compile_definitions(DEVICE_3D_RANDOM_SIZE_IN_POWER_OF_TWO=26)
 include(${CMAKE_SOURCE_DIR}/CMakeLists_common.txt)
 target_link_libraries(${PROJECT_NAME} PRIVATE bnn-cuda)

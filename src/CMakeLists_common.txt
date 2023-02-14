@@ -8,20 +8,6 @@
 
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
-include_directories(
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/bnn/src
-    ${CMAKE_SOURCE_DIR}/bnn/src/common
-    )
-
-include_directories(
-    /usr/local/include/ode
-    /usr/local/include/OGRE
-    /usr/local/include/OGRE/Bites
-    /usr/local/include/OGRE/RTShaderSystem
-    /usr/local/include/OGRE/Overlay
-    )
-
 set(SOURCES
     ${CMAKE_SOURCE_DIR}/main.cpp
     ${CMAKE_SOURCE_DIR}/bnn/src/common/logger.cpp
@@ -60,6 +46,17 @@ set(SOURCES
     )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    /usr/local/include/ode
+    /usr/local/include/OGRE
+    /usr/local/include/OGRE/Bites
+    /usr/local/include/OGRE/RTShaderSystem
+    /usr/local/include/OGRE/Overlay
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/bnn/src
+    ${CMAKE_SOURCE_DIR}/bnn/src/common
+    )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     -lpthread

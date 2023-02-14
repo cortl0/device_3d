@@ -79,8 +79,8 @@ public:
     void step(std::string& debug_str, bool& verbose) override;
 
 private:
-    u_word quantity_of_neurons_in_power_of_two = 16;
-    u_word threads_count_in_power_of_two = 2;
+    u_word quantity_of_neurons_in_power_of_two = DEVICE_3D_NEURONS_QUANTITY_IN_POWER_OF_TWO;
+    u_word threads_count_in_power_of_two = DEVICE_3D_THREADS_QUANTITY_IN_POWER_OF_TWO;
     u_word input_length;
     u_word output_length;
     std::vector<double> force;

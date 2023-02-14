@@ -53,17 +53,13 @@ static const std::string font_name{"app_font_name"s};
 void load_font()
 {
     static const std::string resource_group{"General"s};
-
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./resources", "FileSystem");
-   // Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
-
-    Ogre::FontPtr mFont = Ogre::FontManager::getSingleton().create(font_name, resource_group
-    //,Ogre::OverlayElement::DEFAULT_RESOURCE_GROUP
-                                                                       );
+    Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+    Ogre::FontPtr mFont = Ogre::FontManager::getSingleton().create(font_name, resource_group);
     mFont->setType(Ogre::FT_TRUETYPE);
     mFont->setSource("Hack-Regular.ttf");
-    mFont->setParameter("size","26");
-    mFont->setParameter("resolution","96");
+    mFont->setParameter("size","18");
+    mFont->setParameter("resolution","64");
     mFont->load();
 }
 
@@ -392,15 +388,15 @@ std::string get_string_for_text_panel(bnn_device_3d::creatures::bike::force& f)
     {
         std::string s;
         s.resize(length * 2 + 1);
-        //s[length * 2 + 1] = '\n';
         s[length] = '|';
         for(int i = 0; i < length; ++i)
         {
-            if(left > i)
+            if(left == i)
                 s[length - i - 1] = one;
             else
                 s[length - i - 1] = ' ';
-            if(right > i)
+
+            if(right == i)
                 s[length + i + 1] = two;
             else
                 s[length + i + 1] = ' ';
@@ -410,14 +406,14 @@ std::string get_string_for_text_panel(bnn_device_3d::creatures::bike::force& f)
 
     std::string s;
     //s += '|' + foo(sett::front_wheel_throttle.bits_quantity / 2, f.front < 0 ? -f.front : 0, f.front > 0 ? f.front : 0, 'v', '^') + '|' + '\n';
-    s += '|' + foo(
-                (sett::settings::front_wheel_torque_left.bits_quantity +
-                 sett::settings::front_wheel_torque_right.bits_quantity) /2,
-                f.left, f.right, '<', '>') + '|' + '\n';
+//    s += '|' + foo(
+//                (sett::settings::front_wheel_torque_left.bits_quantity +
+//                 sett::settings::front_wheel_torque_right.bits_quantity) /2,
+//                f.left, f.right, '<', '>') + '|' + '\n';
     s += '|' + foo(
                 (sett::rear_wheel_throttle_forward.bits_quantity +
                  sett::rear_wheel_throttle_backward.bits_quantity) / 2,
-                f.backward, f.forward, 'v', '^') + '|' + '\n';
+                f.backward, f.forward, '<', '>') + '|' + '\n';
 
     return s;
 }
@@ -466,7 +462,8 @@ void bike::step(
 
     bool verbose = false;//this->verbose;
     static std::string debug_str;
-    creature_->step(debug_str, verbose);
+    if(creature_->brain_->is_active())
+        creature_->step(debug_str, verbose);
     tripod_->step();
 
     auto cr = static_cast<bnn_device_3d::creatures::bike::bike*>(creature_.get());
@@ -480,8 +477,10 @@ void bike::step(
 //                );
     std::string d(
                 std::to_string(++i) +
-                "\n" + get_string_for_text_panel(cr->force_)
+                "\n" + get_string_for_text_panel(cr->force_) //+
+                //" iteration: " + std::to_string(cr->brain_->get_iteration()) + "\n"
                 );
+    cr->brain_->get_debug_string(d);
     set_text(d);
     //set_text(debug_str);
 //    std::string s;

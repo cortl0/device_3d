@@ -157,10 +157,17 @@ table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWor
     video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth() / 4, render_window->getHeight() / 4, step));
     input_length += bnn_device_3d::sensors::video::length * video_->calc_data.size();
 
-    brain_.reset(new bnn::brain_tools(quantity_of_neurons_in_power_of_two,
-                                      input_length,
-                                      output_length,
-                                      threads_count_in_power_of_two));
+    const bnn_settings bs
+    {
+        .quantity_of_neurons_in_power_of_two = quantity_of_neurons_in_power_of_two,
+        .input_length = input_length,
+        .output_length = output_length,
+        .motor_binaries_per_motor = 16,
+        .random_size_in_power_of_two = DEVICE_3D_RANDOM_SIZE_IN_POWER_OF_TWO,
+        .quantity_of_threads_in_power_of_two = threads_count_in_power_of_two
+    };
+
+    brain_.reset(new bnn::brain_tools(bs));
 
     //brain_->save_random();
 //TODO
