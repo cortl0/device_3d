@@ -250,39 +250,41 @@ Ogre::MaterialPtr figure::create_material_body_sign(size_t size)
 
     triangle(color_yellow, top_x, top_y, left_x, left_y, right_x, right_y);
 
-
-    temp = radius / 9;
+    temp = radius / 8;
     circle(color_black, center_x, center_y, temp);
 
     int start = 2;
     int end = 4;
 
-    int x = temp * cos(150 * M_PI / 180);
-    int y = temp * sin(150 * M_PI / 180);
-    line(color_black,
-              center_x + x * start,
-              center_y - y * start,
-              center_x + x * end,
-              center_y - y * end,
-              temp);
+    int length = radius / 9;
+    int thickness = radius / 12;
 
-    x = temp * cos(30 * M_PI / 180);
-    y = temp * sin(30 * M_PI / 180);
+    int x = length * cos(150 * M_PI / 180);
+    int y = length * sin(150 * M_PI / 180);
     line(color_black,
               center_x + x * start,
               center_y - y * start,
               center_x + x * end,
               center_y - y * end,
-              temp);
+              thickness);
 
-    x = temp * cos(270 * M_PI / 180);
-    y = temp * sin(270 * M_PI / 180);
+    x = length * cos(30 * M_PI / 180);
+    y = length * sin(30 * M_PI / 180);
     line(color_black,
               center_x + x * start,
               center_y - y * start,
               center_x + x * end,
               center_y - y * end,
-              temp);
+              thickness);
+
+    x = length * cos(270 * M_PI / 180);
+    y = length * sin(270 * M_PI / 180);
+    line(color_black,
+              center_x + x * start,
+              center_y - y * start,
+              center_x + x * end,
+              center_y - y * end,
+              thickness);
 
     // Create the texture
     Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().createManual(

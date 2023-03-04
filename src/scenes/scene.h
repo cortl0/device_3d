@@ -40,7 +40,8 @@ public:
             std::list<dGeomID>& creature_colliding_geoms,
             std::list<Ogre::SceneNode*>& bounding_nodes,
             std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            dWorldID
+            dWorldID,
+            const bnn_device_3d::application::config::device_3d::bnn&
             ) = 0;
 
     virtual void start();

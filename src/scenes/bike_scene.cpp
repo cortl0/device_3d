@@ -58,8 +58,8 @@ void load_font()
     Ogre::FontPtr mFont = Ogre::FontManager::getSingleton().create(font_name, resource_group);
     mFont->setType(Ogre::FT_TRUETYPE);
     mFont->setSource("Hack-Regular.ttf");
-    mFont->setParameter("size","18");
-    mFont->setParameter("resolution","64");
+    mFont->setParameter("size","24");
+    //mFont->setParameter("resolution","128");
     mFont->load();
 }
 
@@ -91,17 +91,8 @@ Ogre::TextAreaOverlayElement* create_text_area(Ogre::OverlayManager& overlayMana
         (overlayManager.createOverlayElement(ogre_text_area_type_name, text_area_name));
 
     text->setFontName(font_name);
-    text->setMetricsMode(Ogre::GMM_RELATIVE);
-    //text->setMetricsMode(Ogre::GMM_PIXELS);
-    text->setPosition(0.0, 0.0);
-    text->setDimensions(1.0, 1.0);
-    text->setHorizontalAlignment(Ogre::GuiHorizontalAlignment::GHA_LEFT);
-    text->setVerticalAlignment(Ogre::GuiVerticalAlignment::GVA_TOP);
-    text->setCharHeight(0.05);
-    //text->setCharHeight(0.2);
-    //text->setColour(Ogre::ColourValue(1, 1, 1));
-
-    //text->setCaption("some text");
+    text->setMetricsMode(Ogre::GMM_PIXELS);
+    text->setCharHeight(24);
     text->show();
     return text;
 }
@@ -117,9 +108,6 @@ Ogre::Overlay* create_overlay(Ogre::OverlayManager& overlayManager)
 
 Ogre::TextAreaOverlayElement* bike::create_text_panel()
 {
-    //    scene_manager->addSpecialCaseRenderQueue(Ogre::RENDER_QUEUE_OVERLAY);
-    //    scene_manager->setSpecialCaseRenderQueueMode(Ogre::SceneManager::SCRQM_INCLUDE);
-
     load_font();
     auto& overlayManager = Ogre::OverlayManager::getSingleton();
     text_area = create_text_area(overlayManager);
@@ -143,7 +131,8 @@ void bike::setup(
         std::list<dGeomID>& creature_colliding_geoms,
         std::list<Ogre::SceneNode*>& bounding_nodes,
         std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        dWorldID world
+        dWorldID world,
+        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
         )
 {
     ogre_setup();
@@ -158,7 +147,7 @@ void bike::setup(
 
         creating_stationary_objects(stationary_colliding_geoms, bounding_nodes, stepping_figures, world);
         creating_movable_objects(stepping_figures, movable_colliding_geoms, bounding_nodes, world);
-        creating_creature(creature_colliding_geoms, bounding_nodes, world);
+        creating_creature(creature_colliding_geoms, bounding_nodes, world, config_bnn);
 
         auto body = creature_->get_body().body;
 
@@ -336,11 +325,12 @@ void bike::creating_movable_objects(
 void bike::creating_creature(
         std::list<dGeomID>& creature_colliding_geoms,
         std::list<Ogre::SceneNode*>& bounding_nodes,
-        dWorldID world
+        dWorldID world,
+        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
         )
 {
 
-    creature_.reset(new creatures::bike::bike(render_window, scene_manager, world));
+    creature_.reset(new creatures::bike::bike(render_window, scene_manager, world, config_bnn));
     creature_->set_position(2, creature_->get_level() * 20, 0);
 
     if(0)
@@ -431,30 +421,31 @@ void bike::step(
 
     if(1)
     {
-//        constexpr int start_force_start_value = 1000;
-//        constexpr int up_value_devider = 100;
         static bool go = false;
-//        static int start_force = start_force_start_value;
+        constexpr int frozen_frames = 60;
+        static int counter = frozen_frames;
         if(go)
         {
             if(is_fail())
             {
+                counter = frozen_frames;
                 go = false;
-//                start_force = start_force_start_value;
+                print_distance();
             }
-
-//            if(--start_force < 0)
-//                start_force = 0;
         }
         else
         {
-            print_distance();
-
-            //dBodySetForce(creature_->get_body().body, 0, 0, -1000);
-            dBodySetForce(creature_->get_body().body, (rand()%2) * 2 - 1, 0, 0);
-            creature_->set_position(2, creature_->get_level(), 0);
-            tripod_->set_position(2, creature_->get_level(), 0);
-            go = true;
+            if(counter-- > 0)
+            {
+                //dBodySetForce(creature_->get_body().body, 0, 0, -1000);
+                creature_->set_position(2, creature_->get_level(), 0);
+                tripod_->set_position(2, creature_->get_level(), 0);
+            }
+            else
+            {
+                dBodySetForce(creature_->get_body().body, (rand()%2) * 2 - 1, 0, 0);
+                go = true;
+            }
         }
 
         //dBodySetForce(creature_->get_body().body, 0, start_force / up_value_devider, -start_force / up_value_devider / 4);
@@ -476,7 +467,7 @@ void bike::step(
 //                "\n" +(cr->rear_trotle < 0 ? " v" : " ^") + "\n"
 //                );
     std::string d(
-                std::to_string(++i) +
+                "frame " + std::to_string(++i) +
                 "\n" + get_string_for_text_panel(cr->force_) //+
                 //" iteration: " + std::to_string(cr->brain_->get_iteration()) + "\n"
                 );

@@ -69,7 +69,12 @@ public:
     sensors::velocity speedometer_;
 
     virtual ~table();
-    explicit table(Ogre::RenderWindow*, Ogre::SceneManager*, dWorldID);
+    explicit table(
+            Ogre::RenderWindow*,
+            Ogre::SceneManager*,
+            dWorldID,
+            const bnn_device_3d::application::config::device_3d::bnn&
+            );
     bnn_device_3d::physical_objects::figure& get_body() override;
     std::vector<bnn_device_3d::physical_objects::figure*> get_figures() override;
     Ogre::Vector3 get_camera_place() override;
@@ -79,8 +84,6 @@ public:
     void step(std::string& debug_str, bool& verbose) override;
 
 private:
-    u_word quantity_of_neurons_in_power_of_two = DEVICE_3D_NEURONS_QUANTITY_IN_POWER_OF_TWO;
-    u_word threads_count_in_power_of_two = DEVICE_3D_THREADS_QUANTITY_IN_POWER_OF_TWO;
     u_word input_length;
     u_word output_length;
     std::vector<double> force;

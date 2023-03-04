@@ -30,20 +30,17 @@
 namespace bnn_device_3d
 {
 
-struct config
+enum keyboard_keys
 {
-    enum keyboard_keys
-    {
-        keyboard_key_c = 0x63,
-        keyboard_key_x = 0x78,
-        keyboard_key_z = 0x7A,
-        keyboard_key_v = 0x76,
-        keyboard_key_a = 0x61,
-        keyboard_key_d = 0x64,
-        keyboard_key_w = 0x77,
-        keyboard_key_r = 0x72,
-        keyboard_key_s = 0x73
-    };
+    keyboard_key_c = 0x63,
+    keyboard_key_x = 0x78,
+    keyboard_key_z = 0x7A,
+    keyboard_key_v = 0x76,
+    keyboard_key_a = 0x61,
+    keyboard_key_d = 0x64,
+    keyboard_key_w = 0x77,
+    keyboard_key_r = 0x72,
+    keyboard_key_s = 0x73
 };
 
 struct keys_states

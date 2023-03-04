@@ -26,7 +26,8 @@ public:
             std::list<dGeomID>& creature_colliding_geoms,
             std::list<Ogre::SceneNode*>& bounding_nodes,
             std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            dWorldID
+            dWorldID,
+            const bnn_device_3d::application::config::device_3d::bnn&
             ) override;
 
     void step(
@@ -39,7 +40,8 @@ private:
     void creating_creature(
             std::list<dGeomID>& creature_colliding_geoms,
             std::list<Ogre::SceneNode*>& bounding_nodes,
-            dWorldID
+            dWorldID,
+            const bnn_device_3d::application::config::device_3d::bnn&
             );
 
     void creating_movable_objects(

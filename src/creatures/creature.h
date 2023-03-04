@@ -13,6 +13,7 @@
 #include <memory>
 #include <vector>
 
+#include "application/config.h"
 #include "bnn/src/common/brain_tools.h"
 #include "physical_objects/figure.h"
 #include "physical_objects/cube.h"

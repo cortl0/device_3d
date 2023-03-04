@@ -38,7 +38,8 @@ void table::setup(
         std::list<dGeomID>& creature_colliding_geoms,
         std::list<Ogre::SceneNode*>& bounding_nodes,
         std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        dWorldID world
+        dWorldID world,
+        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
         )
 {
     ogre_setup();
@@ -53,7 +54,7 @@ void table::setup(
 
         creating_stationary_objects(stationary_colliding_geoms, bounding_nodes, stepping_figures, world);
         creating_movable_objects(stepping_figures, movable_colliding_geoms, bounding_nodes, world);
-        creating_creature(creature_colliding_geoms, bounding_nodes, world);
+        creating_creature(creature_colliding_geoms, bounding_nodes, world, config_bnn);
 
         auto body = creature_->get_body().body;
 
@@ -256,10 +257,11 @@ void table::creating_movable_objects(
 void table::creating_creature(
         std::list<dGeomID>& creature_colliding_geoms,
         std::list<Ogre::SceneNode*>& bounding_nodes,
-        dWorldID world
+        dWorldID world,
+        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
         )
 {
-    creature_.reset(new creatures::table::table(render_window, scene_manager, world));
+    creature_.reset(new creatures::table::table(render_window, scene_manager, world, config_bnn));
     creature_->set_position(0, 0.5, 0);
 
     if(0)

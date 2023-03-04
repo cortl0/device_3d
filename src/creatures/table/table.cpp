@@ -27,7 +27,12 @@ table::~table()
     stop();
 }
 
-table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorldID world)
+table::table(
+        Ogre::RenderWindow* render_window,
+        Ogre::SceneManager* scnMgr,
+        dWorldID world,
+        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
+        )
 {
     switch (1)
     {
@@ -74,7 +79,7 @@ table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWor
         dBodySetPosition(body_sign.body, p[0], p[1] + body_height / 50.0, p[2]);
         //dBodySetPosition(body_sign.body, p[0], p[1] + body_height * 5.0, p[2]);
 
-        body_sign.set_material(body_sign.create_material_body_sign(256));
+        body_sign.set_material(body_sign.create_material_body_sign(512));
 
         make_fixed_joint(body_sign.geom);
     }
@@ -159,12 +164,12 @@ table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWor
 
     const bnn_settings bs
     {
-        .quantity_of_neurons_in_power_of_two = quantity_of_neurons_in_power_of_two,
+        .quantity_of_neurons_in_power_of_two = static_cast<u_word>(config_bnn.quantity_of_neurons_in_power_of_two),
         .input_length = input_length,
         .output_length = output_length,
-        .motor_binaries_per_motor = 16,
-        .random_size_in_power_of_two = DEVICE_3D_RANDOM_SIZE_IN_POWER_OF_TWO,
-        .quantity_of_threads_in_power_of_two = threads_count_in_power_of_two
+        .motor_binaries_per_motor = static_cast<u_word>(config_bnn.motor_binaries_per_motor),
+        .random_size_in_power_of_two = static_cast<u_word>(config_bnn.random_size_in_power_of_two),
+        .quantity_of_threads_in_power_of_two = static_cast<u_word>(config_bnn.quantity_of_threads_in_power_of_two)
     };
 
     brain_.reset(new bnn::brain_tools(bs));

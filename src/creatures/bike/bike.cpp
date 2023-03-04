@@ -23,7 +23,12 @@ bike::~bike()
 
 const dQuaternion wheel_default_quaternion{pow(0.5, 0.5), 0, 0, pow(0.5, 0.5)};
 
-bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorldID world)
+bike::bike(
+        Ogre::RenderWindow* render_window,
+        Ogre::SceneManager* scnMgr,
+        dWorldID world,
+        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
+        )
 {
     data_processing_method_.reset(new dpm::data_processing_method_linearly());
 
@@ -51,7 +56,7 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
         body_sign = pho::cube("body_sign", scnMgr, world, space, settings::body_mass * 0.001,
                               settings::body_width * 1.05, settings::body_length * 0.95, settings::body_length * 0.95);
 
-        body_sign.set_material(body_sign.create_material_body_sign(256));
+        body_sign.set_material(body_sign.create_material_body_sign(512));
         make_fixed_joint(body_sign.geom);
     }
 
@@ -115,12 +120,12 @@ bike::bike(Ogre::RenderWindow* render_window, Ogre::SceneManager* scnMgr, dWorld
 
     const bnn_settings bs
     {
-        .quantity_of_neurons_in_power_of_two = settings::quantity_of_neurons_in_power_of_two,
+        .quantity_of_neurons_in_power_of_two = static_cast<u_word>(config_bnn.quantity_of_neurons_in_power_of_two),
         .input_length = input_length,
         .output_length = output_length,
-        .motor_binaries_per_motor = settings::motor_binaries_per_motor,
-        .random_size_in_power_of_two = settings::random_size_in_power_of_two,
-        .quantity_of_threads_in_power_of_two = settings::threads_count_in_power_of_two
+        .motor_binaries_per_motor = static_cast<u_word>(config_bnn.motor_binaries_per_motor),
+        .random_size_in_power_of_two = static_cast<u_word>(config_bnn.random_size_in_power_of_two),
+        .quantity_of_threads_in_power_of_two = static_cast<u_word>(config_bnn.quantity_of_threads_in_power_of_two)
     };
 
     brain_.reset(new bnn::brain_tools(bs));
@@ -162,9 +167,6 @@ dReal bike::get_level()
 void bike::set_position(dReal x, dReal y, dReal z)
 {
     auto p = dBodyGetPosition(body.body);
-    dReal dx = x - p[0];
-    dReal dy = y - p[1];
-    dReal dz = z - p[2];
 
     dQuaternion q{1,0,0,0};
 
@@ -174,14 +176,10 @@ void bike::set_position(dReal x, dReal y, dReal z)
     dBodySetPosition(body_sign.body, x, y, z);
     dBodySetQuaternion(body_sign.body, q);
 
-    //p = dBodyGetPosition(front_wheel.body);
     dBodySetPosition(front_wheel.body, p[0], p[1] - settings::clearance, p[2] - settings::body_length);
-    //dBodySetPosition(front_wheel.body, p[0] + dx, p[1] + dy, p[2] + dz);
     dBodySetQuaternion(front_wheel.body, wheel_default_quaternion);
 
-    //p = dBodyGetPosition(rear_wheel.body);
     dBodySetPosition(rear_wheel.body, p[0], p[1] - settings::clearance, p[2] + settings::body_length);
-    //dBodySetPosition(rear_wheel.body, p[0] + dx, p[1] + dy, p[2] + dz);
     dBodySetQuaternion(rear_wheel.body, wheel_default_quaternion);
 
     dBodySetLinearVel(body.body, 0, 0, 0);
@@ -197,7 +195,6 @@ void bike::set_position(dReal x, dReal y, dReal z)
 
 void bike::step(std::string& debug_str, bool& verbose)
 {
-    const u_word length = 2 * QUANTITY_OF_BITS_IN_BYTE;
     static constexpr double range = 1.0f;
 
     static u_word iteration = 0;
@@ -261,10 +258,13 @@ void bike::step(std::string& debug_str, bool& verbose)
         force -= force_second;
         float position_coefficient = abs(current_position) / ((first.max_position + second.max_position) / 2);
         force *= 1 - position_coefficient;
-        force -=rate * (!full_rate * position_coefficient + full_rate);
+        force -= rate * (!full_rate * position_coefficient + full_rate);
         return force;
     };
 
+#if(1)
+    float front_direction_torque = 0;
+#else
     float front_direction_torque = calculate_double_opposite_effector(
                 settings::front_wheel_torque_right,
                 settings::front_wheel_torque_left,
@@ -274,6 +274,7 @@ void bike::step(std::string& debug_str, bool& verbose)
                 static_cast<float>(dJointGetHinge2Angle1Rate(front_hinge2_joint_id)),
                 false
                 );
+#endif
 
     float rear_throttle_torque = calculate_double_opposite_effector(
                 settings::rear_wheel_throttle_forward,
@@ -371,10 +372,10 @@ void bike::step(std::string& debug_str, bool& verbose)
 
 #if(1)
     debug_str += "]\nvel [ ";
-    speedometer_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str, verbose);
+    speedometer_.set_inputs(body.body, *brain_.get(), count_input, settings::i_feel_my_velosity_quantity_bits, -range, range, debug_str, verbose);
 
     debug_str += " ]\ndir [ ";
-    gyroscope_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str, verbose);
+    gyroscope_.set_inputs(body.body, *brain_.get(), count_input, settings::i_feel_my_orientation_quantity_bits, -range, range, debug_str, verbose);
 
     debug_str += " ]\ntime [ ";
     time_.set_inputs(*brain_.get(), count_input, debug_str, verbose);

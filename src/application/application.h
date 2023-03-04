@@ -18,6 +18,7 @@
 #include "Ogre.h"
 #include "OgreApplicationContext.h"
 
+#include "config.h"
 #include "common/state.h"
 #include "scenes/scene.h"
 
@@ -57,6 +58,8 @@ private:
     std::list<bnn_device_3d::physical_objects::figure> stepping_figures;
     bnn::state state_ = bnn::state::stopped;
     bool verbose = true;
+    config config_;
+
 };
 
 } // namespace bnn_device_3d::application

@@ -6,13 +6,12 @@
 #   licensed by GPL v3.0
 #
 
-file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
-
 set(SOURCES
     ${CMAKE_SOURCE_DIR}/main.cpp
     ${CMAKE_SOURCE_DIR}/bnn/src/common/logger.cpp
     ${CMAKE_SOURCE_DIR}/bnn/src/common/brain_tools.cpp
     ${CMAKE_SOURCE_DIR}/application/application.cpp
+    ${CMAKE_SOURCE_DIR}/application/config.cpp
     ${CMAKE_SOURCE_DIR}/application/tripod.cpp
     ${CMAKE_SOURCE_DIR}/conductors/conductor.cpp
     ${CMAKE_SOURCE_DIR}/conductors/conductor_circle.cpp
@@ -59,6 +58,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    -lconfig++
     -lpthread
     -lstdc++fs
     -lode

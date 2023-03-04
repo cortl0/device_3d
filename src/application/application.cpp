@@ -52,6 +52,13 @@ application::application() : OgreBites::ApplicationContext("bnn_test_app")
     world = dWorldCreate();
     contact_group = dJointGroupCreate(0);
     dWorldSetGravity(world, 0, -device_3d_GRAVITY, 0);
+
+    if(!config_.parse())
+        exit(1);
+
+    config_.print();
+
+    //exit(~0);
 }
 
 void application::collide_action()
@@ -162,16 +169,16 @@ bool application::keyPressed(const OgreBites::KeyboardEvent& evt)
     case OgreBites::SDLK_RIGHT:
         keys_states_.key_right = true;
         break;
-    case config::keyboard_key_a: // left
+    case keyboard_key_a: // left
         keys_states_.key_a = true;
         break;
-    case config::keyboard_key_d: // right
+    case keyboard_key_d: // right
         keys_states_.key_d = true;
         break;
-    case config::keyboard_key_w: // up
+    case keyboard_key_w: // up
         keys_states_.key_w = true;
         break;
-    case config::keyboard_key_s: // down
+    case keyboard_key_s: // down
         keys_states_.key_s = true;
         break;
     }
@@ -202,34 +209,34 @@ bool application::keyReleased(const OgreBites::KeyboardEvent& evt)
     case OgreBites::SDLK_RIGHT:
         keys_states_.key_right = false;
         break;
-    case config::keyboard_key_c: // load
+    case keyboard_key_c: // load
         std::thread(&application::load, this).detach();
         break;
-    case config::keyboard_key_z: // save
+    case keyboard_key_z: // save
         std::thread(&application::save, this).detach();
         break;
-    case config::keyboard_key_r: // save random
+    case keyboard_key_r: // save random
         std::thread(&application::save_random, this).detach();
         break;
-    case config::keyboard_key_x: // stop <-> start
+    case keyboard_key_x: // stop <-> start
         if(bnn::state::started == state_)
             stop();
         else if(bnn::state::stopped == state_)
             start();
         break;
-    case config::keyboard_key_v: // verbose
+    case keyboard_key_v: // verbose
         verbose = !verbose;
         break;
-    case config::keyboard_key_a: // left
+    case keyboard_key_a: // left
         keys_states_.key_a = false;
         break;
-    case config::keyboard_key_d: // right
+    case keyboard_key_d: // right
         keys_states_.key_d = false;
         break;
-    case config::keyboard_key_w: // up
+    case keyboard_key_w: // up
         keys_states_.key_w = false;
         break;
-    case config::keyboard_key_s: // down
+    case keyboard_key_s: // down
         keys_states_.key_s = false;
         break;
     }
@@ -475,15 +482,28 @@ void application::setup()
 {
     OgreBites::ApplicationContext::setup();
     addInputListener(this);
-    scene.reset(new scn::bike::bike(getRenderWindow(), getRoot()->createSceneManager()));
-    //scene.reset(new scn::table::table(getRenderWindow(), getRoot()->createSceneManager()));
+
+    switch(config_.device_3d_.scene_)
+    {
+    case config::device_3d::scene::bike_scene:
+        scene.reset(new scn::bike::bike(getRenderWindow(), getRoot()->createSceneManager()));
+        break;
+    case config::device_3d::scene::table_scene:
+        scene.reset(new scn::table::table(getRenderWindow(), getRoot()->createSceneManager()));
+        break;
+    default:
+        exit(~0);
+    }
+
     scene->setup(
                 stationary_colliding_geoms,
                 movable_colliding_geoms,
                 creature_colliding_geoms,
                 bounding_nodes,
                 stepping_figures,
-                world);
+                world,
+                config_.device_3d_.bnn_
+                );
 }
 
 void nearCallback(void *data, dGeomID o1, dGeomID o2)
