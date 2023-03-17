@@ -33,6 +33,24 @@ figure::figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal
     this->mass.mass = mass;
 }
 
+void figure::load(std::ifstream& ifs)
+{
+    dReal pos[3];
+    dReal dir[4];
+    ifs.read(reinterpret_cast<char*>(pos), sizeof(dReal) * 3);
+    ifs.read(reinterpret_cast<char*>(dir), sizeof(dReal) * 4);
+    dBodySetPosition(body, pos[0], pos[1], pos[2]);
+    dBodySetQuaternion(body, dir);
+}
+
+void figure::save(std::ofstream& ofs) const
+{
+    const dReal* pos = dBodyGetPosition(body);
+    const dReal* dir = dBodyGetQuaternion(body);
+    ofs.write(reinterpret_cast<const char*>(pos), sizeof(dReal) * 3);
+    ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
+}
+
 void figure::step()
 {
     const dReal* pos = dBodyGetPosition(body);
@@ -127,7 +145,7 @@ Ogre::MaterialPtr figure::create_material_chess(uint size, uint step, Ogre::uint
     material->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture" + std::to_string(count_name));
     material->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
 
-    count_name++;
+    ++count_name;
 
     return material;
 
@@ -336,7 +354,7 @@ Ogre::MaterialPtr figure::create_material_body_sign(size_t size)
     material->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture" + std::to_string(count_name));
     material->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
 
-    count_name++;
+    ++count_name;
 
     return material;
 

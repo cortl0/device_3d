@@ -13,6 +13,10 @@
 
 #include "common/logger.h"
 
+#include "sensors/gyroscope.h"
+#include "sensors/time.h"
+#include "sensors/velocity.h"
+
 namespace dpm = bnn_device_3d::data_processing_methods;
 namespace pho = bnn_device_3d::physical_objects;
 namespace sens = bnn_device_3d::sensors;
@@ -148,12 +152,17 @@ table::table(
     // I feel my legs (32)
     input_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
 
-    input_length +=
-            i_feel_my_velosity_quantity_bits +
-            i_feel_my_orientation_quantity_bits;
+    sensors_.push_back(std::make_unique<bnn_device_3d::sensors::velocity>
+                      (bnn_device_3d::sensors::velocity(body.body, input_length, i_feel_my_velosity_quantity_bits)));
+    input_length += i_feel_my_velosity_quantity_bits;
 
-    // I feel time (64)
-    input_length += sensors::time::get_data_size();
+    sensors_.push_back(std::make_unique<bnn_device_3d::sensors::gyroscope>
+                      (bnn_device_3d::sensors::gyroscope(body.body, input_length, i_feel_my_orientation_quantity_bits)));
+    input_length += i_feel_my_orientation_quantity_bits;
+
+    sensors_.push_back(std::make_unique<bnn_device_3d::sensors::time>
+                      (bnn_device_3d::sensors::time(input_length, i_feel_time_quantity_bits)));
+    input_length += i_feel_my_orientation_quantity_bits;
 
     output_length = legs.size() * QUANTITY_BITS_PER_JOINT * QUANTITY_OF_JOINTS_IN_LEG;
     force.resize(legs.size() * QUANTITY_OF_JOINTS_IN_LEG, 0.0);
@@ -172,7 +181,7 @@ table::table(
         .quantity_of_threads_in_power_of_two = static_cast<u_word>(config_bnn.quantity_of_threads_in_power_of_two)
     };
 
-    brain_.reset(new bnn::brain_tools(bs));
+    bnn_.reset(new bnn::bnn_tools(bs));
 
     //brain_->save_random();
 //TODO
@@ -265,9 +274,9 @@ void table::step(std::string& debug_str, bool& verbose)
 
 
 
-    static u_word iteration = brain_->get_iteration();
+    static u_word iteration = bnn_->get_iteration();
     static u_word old_iteration = 0;
-    iteration = brain_->get_iteration();
+    iteration = bnn_->get_iteration();
 
     if((iteration / 128) > old_iteration)
         old_iteration = iteration / 128;
@@ -326,24 +335,27 @@ void table::step(std::string& debug_str, bool& verbose)
     u_word count_input = 0;
 
     debug_str += "\nvideo [\n";
-    video_->set_inputs(*brain_.get(), count_input, bnn_device_3d::sensors::video::length, range, debug_str, verbose);
+    video_->set_inputs(*bnn_.get(),
+                       count_input, bnn_device_3d::sensors::video::length * video_->calc_data.size(), range, debug_str, verbose);
 
     debug_str += "] legs [ ";
     for(size_t i = 0; i < distance.size(); i++)
     {
-        data_processing_method_->set_inputs(*brain_, count_input, QUANTITY_BITS_PER_JOINT, distance[i], -range, range, debug_str, verbose);
+        data_processing_method_->set_inputs(*bnn_, count_input, QUANTITY_BITS_PER_JOINT, distance[i], -range, range, debug_str, verbose);
         if(i % 2)
             debug_str += " ";
     }
 
+    auto sensors_it = sensors_.begin();
+
     debug_str += "]\nvel [ ";
-    speedometer_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str, verbose);
+    (*sensors_it++)->set_inputs(*bnn_.get(), count_input, debug_str, verbose);
 
     debug_str += " ]\ndir [ ";
-    gyroscope_.set_inputs(body.body, *brain_.get(), count_input, length, -range, range, debug_str, verbose);
+    (*sensors_it++)->set_inputs(*bnn_.get(), count_input, debug_str, verbose);
 
     debug_str += " ]\ntime [ ";
-    time_.set_inputs(*brain_.get(), count_input, debug_str, verbose);
+    (*sensors_it++)->set_inputs(*bnn_.get(), count_input, debug_str, verbose);
 
     if(verbose)
         debug_str += "] out [ ";
@@ -355,10 +367,10 @@ void table::step(std::string& debug_str, bool& verbose)
 
         for(size_t j = 0; j < QUANTITY_BITS_PER_JOINT; j++)
         {
-            force[i] += static_cast<float>(brain_->get_output(i * QUANTITY_BITS_PER_JOINT + j) * 2 - 1);
+            force[i] += static_cast<float>(bnn_->get_output(i * QUANTITY_BITS_PER_JOINT + j) * 2 - 1);
 
             if(verbose)
-                debug_str += std::to_string(brain_->get_output(i * QUANTITY_BITS_PER_JOINT + j));
+                debug_str += std::to_string(bnn_->get_output(i * QUANTITY_BITS_PER_JOINT + j));
         }
 
         if(verbose)
@@ -370,7 +382,7 @@ void table::step(std::string& debug_str, bool& verbose)
     if(verbose)
     {
         debug_str += "]\n";
-        brain_->get_debug_string(debug_str);
+        bnn_->get_debug_string(debug_str);
     }
 }
 

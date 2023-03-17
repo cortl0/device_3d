@@ -453,7 +453,7 @@ void bike::step(
 
     bool verbose = false;//this->verbose;
     static std::string debug_str;
-    if(creature_->brain_->is_active())
+    if(creature_->bnn_->is_active())
         creature_->step(debug_str, verbose);
     tripod_->step();
 
@@ -471,7 +471,7 @@ void bike::step(
                 "\n" + get_string_for_text_panel(cr->force_) //+
                 //" iteration: " + std::to_string(cr->brain_->get_iteration()) + "\n"
                 );
-    cr->brain_->get_debug_string(d);
+    cr->bnn_->get_debug_string(d);
     set_text(d);
     //set_text(debug_str);
 //    std::string s;

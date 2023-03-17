@@ -23,7 +23,7 @@ video::video(uint32_t width, uint32_t height, uint32_t step)
     size_t counter = 0;
     for(uint32_t i = 0; i < width; i += step)
         for(uint32_t j = 0; j < height; j += step)
-            counter++;
+            ++counter;
 
     calc_data.resize(counter);
 }
@@ -41,7 +41,7 @@ void video::calculate_data(uint8_t* data, uint32_t full_width, uint32_t)
             for(int k = 0; k < QUANTITY_BYTES_PER_PIXEL; k++)
                 calc_data[counter] += data[(i * full_width + j) * QUANTITY_BYTES_PER_PIXEL + k];
 
-            counter++;
+            ++counter;
         }
 }
 

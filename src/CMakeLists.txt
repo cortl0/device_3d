@@ -9,5 +9,5 @@
 cmake_minimum_required(VERSION 3.0)
 
 add_subdirectory(bnn/src)
-#add_subdirectory(cpu)
+add_subdirectory(cpu)
 add_subdirectory(gpu)

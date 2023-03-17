@@ -44,8 +44,9 @@ public:
             const bnn_device_3d::application::config::device_3d::bnn&
             ) = 0;
 
+    virtual void load(std::ifstream&);
+    virtual void save(std::ofstream&) const;
     virtual void start();
-
     virtual void stop();
 
     virtual void step(

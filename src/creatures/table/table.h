@@ -31,9 +31,8 @@
 #include "data_processing_methods/data_processing_method_linearly_single.h"
 #include "data_processing_methods/data_processing_method_logarithmic.h"
 #include "sensors/distance.h"
-#include "sensors/gyroscope.h"
 #include "sensors/time.h"
-#include "sensors/velocity.h"
+#include "sensors/sensor.h"
 #include "sensors/video.h"
 #include "leg.h"
 #include "physical_objects/cube.h"
@@ -64,9 +63,7 @@ public:
     bnn_device_3d::physical_objects::cube body;
     bnn_device_3d::physical_objects::cube body_sign;
     std::vector<leg> legs;
-    sensors::gyroscope gyroscope_;
-    sensors::time time_;
-    sensors::velocity speedometer_;
+    std::vector<std::unique_ptr<bnn_device_3d::sensors::sensor>> sensors_;
 
     virtual ~table();
     explicit table(
@@ -95,6 +92,7 @@ private:
 
     static constexpr u_word i_feel_my_velosity_quantity_bits = 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
     static constexpr u_word i_feel_my_orientation_quantity_bits = 2 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
+    static constexpr u_word i_feel_time_quantity_bits = 64;
 };
 
 } // namespace bnn_device_3d::creatures::table

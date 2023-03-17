@@ -12,7 +12,7 @@
 
 #include <vector>
 
-#include "common/brain_tools.h"
+#include "common/bnn_tools.h"
 #include "data_processing_methods/data_processing_method_linearly.h"
 
 namespace bnn_device_3d::sensors

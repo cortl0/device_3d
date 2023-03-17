@@ -11,6 +11,7 @@
 
 #include <unistd.h>
 
+#include <filesystem>
 #include <thread>
 
 #include "scenes/bike_scene.h"
@@ -24,6 +25,8 @@
 #include <OgreOverlay.h>
 #include <OgreOverlayManager.h>
 #include <OgreOverlayContainer.h>
+
+namespace fs = std::filesystem;
 
 namespace cond = bnn_device_3d::conductors;
 namespace pho = bnn_device_3d::physical_objects;
@@ -246,7 +249,6 @@ bool application::keyReleased(const OgreBites::KeyboardEvent& evt)
 
 void application::load()
 {
-#if(0)
     auto state = state_;
     stop();
     std::list<std::string> l;
@@ -261,7 +263,9 @@ void application::load()
     l.sort();
     std::ifstream ifs(fs::current_path() / l.back(), std::ios::binary);
 
-    if(creature_->brain_->load(ifs))
+    scene->load(ifs);
+
+    if(scene->creature_->bnn_->load(ifs))
     {
         std::cout << "loaded" << std::endl;
         if(l.size() > 8)
@@ -270,31 +274,26 @@ void application::load()
     else
         std::cout << "load error" << std::endl;
 
-    auto load_figure = [&ifs](dBodyID body_id)
-    {
-        dReal pos[3];
-        dReal dir[4];
-        ifs.read(reinterpret_cast<char*>(pos), sizeof(dReal) * 3);
-        ifs.read(reinterpret_cast<char*>(dir), sizeof(dReal) * 4);
-        dBodySetPosition(body_id, pos[0], pos[1], pos[2]);
-        dBodySetQuaternion(body_id, dir);
-    };
+//    auto load_figure = [&ifs](dBodyID body_id)
+//    {
+//        dReal pos[3];
+//        dReal dir[4];
+//        ifs.read(reinterpret_cast<char*>(pos), sizeof(dReal) * 3);
+//        ifs.read(reinterpret_cast<char*>(dir), sizeof(dReal) * 4);
+//        dBodySetPosition(body_id, pos[0], pos[1], pos[2]);
+//        dBodySetQuaternion(body_id, dir);
+//    };
 
-    load_figure(tripod_->detector);
-    load_figure(tripod_->upper);
-    load_figure(tripod_->lower);
+    for(const auto& figure : scene->creature_->get_figures())
+        figure->load(ifs);
 
-    for(const auto& figure : creature_->get_figures())
-        load_figure(figure->body);
-
-    for(const auto& figure : stepping_figures)
-        load_figure(figure.body);
+    for(auto& figure : stepping_figures)
+        figure.load(ifs);
 
     ifs.close();
 
     if(bnn::state::started == state)
         start();
-#endif
 }
 
 void application::run()
@@ -309,7 +308,7 @@ void application::run()
         auto height = getRenderWindow()->getHeight();
         long delta;
         const long frame_length = 1000000 / 60;
-        const dReal frame_length_dReal = (dReal)frame_length / 1000000.0;
+        const dReal frame_length_dReal = (dReal)frame_length / 1000000.0 * config_.device_3d_.time_coefficient;
         m_time_point current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
         m_time_point time_old = current_time;
 
@@ -377,7 +376,6 @@ void application::run()
 
 void application::save()
 {
-#if(0)
     auto state = state_;
     stop();
     static char time_buffer[15];
@@ -387,34 +385,31 @@ void application::save()
     s += ".bnn";
     std::ofstream ofs(fs::current_path() / s, std::ios::binary);
 
-    if(creature_->brain_->save(ofs))
+    scene->save(ofs);
+
+    if(scene->creature_->bnn_->save(ofs))
         std::cout << "saved" << std::endl;
     else
         std::cout << "save error" << std::endl;
 
-    auto save_figure = [&ofs](dBodyID body_id)
-    {
-        const dReal* pos = dBodyGetPosition(body_id);
-        const dReal* dir = dBodyGetQuaternion(body_id);
-        ofs.write(reinterpret_cast<const char*>(pos), sizeof(dReal) * 3);
-        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
-    };
+//    auto save_figure = [&ofs](dBodyID body_id)
+//    {
+//        const dReal* pos = dBodyGetPosition(body_id);
+//        const dReal* dir = dBodyGetQuaternion(body_id);
+//        ofs.write(reinterpret_cast<const char*>(pos), sizeof(dReal) * 3);
+//        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
+//    };
 
-    save_figure(tripod_->detector);
-    save_figure(tripod_->upper);
-    save_figure(tripod_->lower);
-
-    for(const auto& figure : creature_->get_figures())
-        save_figure(figure->body);
+    for(const auto& figure : scene->creature_->get_figures())
+        figure->save(ofs);
 
     for(const auto& figure : stepping_figures)
-        save_figure(figure.body);
+        figure.save(ofs);
 
     ofs.close();
 
     if(bnn::state::started == state)
         start();
-#endif
 }
 
 void application::save_random()

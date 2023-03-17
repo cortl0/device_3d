@@ -44,6 +44,8 @@ struct tripod
 
     tripod() = delete;
     tripod(dWorldID, Ogre::SceneNode* cam_node, dBodyID target);
+    virtual void load(std::ifstream&);
+    virtual void save(std::ofstream&) const;
     void set_position(dReal x, dReal y, dReal z);
     void step();
 };

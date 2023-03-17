@@ -48,6 +48,51 @@ tripod::tripod(dWorldID world, Ogre::SceneNode* cam_node, dBodyID target)
     }
 }
 
+void tripod::load(std::ifstream& ifs)
+{
+    dReal pos[3];
+    dReal dir[4];
+
+    ifs.read(reinterpret_cast<char*>(pos), sizeof(dReal) * 3);
+    ifs.read(reinterpret_cast<char*>(dir), sizeof(dReal) * 4);
+    dBodySetPosition(detector, pos[0], pos[1], pos[2]);
+    dBodySetQuaternion(detector, dir);
+
+    ifs.read(reinterpret_cast<char*>(pos), sizeof(dReal) * 3);
+    ifs.read(reinterpret_cast<char*>(dir), sizeof(dReal) * 4);
+    dBodySetPosition(upper, pos[0], pos[1], pos[2]);
+    dBodySetQuaternion(upper, dir);
+
+    ifs.read(reinterpret_cast<char*>(pos), sizeof(dReal) * 3);
+    ifs.read(reinterpret_cast<char*>(dir), sizeof(dReal) * 4);
+    dBodySetPosition(lower, pos[0], pos[1], pos[2]);
+    dBodySetQuaternion(lower, dir);
+}
+
+void tripod::save(std::ofstream& ofs) const
+{
+    {
+        const dReal* pos = dBodyGetPosition(detector);
+        const dReal* dir = dBodyGetQuaternion(detector);
+        ofs.write(reinterpret_cast<const char*>(pos), sizeof(dReal) * 3);
+        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
+    }
+
+    {
+        const dReal* pos = dBodyGetPosition(upper);
+        const dReal* dir = dBodyGetQuaternion(upper);
+        ofs.write(reinterpret_cast<const char*>(pos), sizeof(dReal) * 3);
+        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
+    }
+
+    {
+        const dReal* pos = dBodyGetPosition(lower);
+        const dReal* dir = dBodyGetQuaternion(lower);
+        ofs.write(reinterpret_cast<const char*>(pos), sizeof(dReal) * 3);
+        ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
+    }
+}
+
 void tripod::step()
 {
     dBodyAddForce(detector, 0, device_3d_GRAVITY, 0);

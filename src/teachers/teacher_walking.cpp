@@ -36,13 +36,13 @@ void teacher_walking::function(teacher_walking* t)
     while (bnn::state::started == t->state_)
     {
         data = 1;
-t->count--;
+--t->count;
         switch (i)
         {
 //        case 0:
 //            data = 0b00000000;
 //            std::cout << "count is " << std::to_string(t->count) << std::endl;
-//            t->count--;
+//            --t->count;
 //            break;
         case 1:
             data = 0b00000000;
@@ -67,7 +67,7 @@ t->count--;
         if (!t->count)
             t->state_ = bnn::state::stopped;
 
-        i++;
+        ++i;
 
         if(i > 2)
             i = 1;

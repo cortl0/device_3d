@@ -10,17 +10,17 @@
 #ifndef BNN_DEVICE_3D_SENSORS_TIME_H
 #define BNN_DEVICE_3D_SENSORS_TIME_H
 
-#include "common/brain_tools.h"
+#include "common/bnn_tools.h"
+#include "sensor.h"
 
 namespace bnn_device_3d::sensors
 {
 
-class time
+struct time final : sensor
 {
 public:
-    time();
-    static int get_data_size();
-    void set_inputs(bnn::architecture&, u_word& count, std::string& str, bool verbose);
+    time(u_word input_offset, u_word input_length);
+    virtual void set_inputs(bnn::architecture&, u_word& input_offset, std::string& str, bool verbose) override;
 };
 
 } // namespace bnn_device_3d::sensors

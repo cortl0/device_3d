@@ -9,7 +9,7 @@
 set(SOURCES
     ${CMAKE_SOURCE_DIR}/main.cpp
     ${CMAKE_SOURCE_DIR}/bnn/src/common/logger.cpp
-    ${CMAKE_SOURCE_DIR}/bnn/src/common/brain_tools.cpp
+    ${CMAKE_SOURCE_DIR}/bnn/src/common/bnn_tools.cpp
     ${CMAKE_SOURCE_DIR}/application/application.cpp
     ${CMAKE_SOURCE_DIR}/application/config.cpp
     ${CMAKE_SOURCE_DIR}/application/tripod.cpp
@@ -39,6 +39,7 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/sensors/gyroscope.cpp
     ${CMAKE_SOURCE_DIR}/sensors/time.cpp
     ${CMAKE_SOURCE_DIR}/sensors/velocity.cpp
+    ${CMAKE_SOURCE_DIR}/sensors/vestibular.cpp
     ${CMAKE_SOURCE_DIR}/sensors/video.cpp
     ${CMAKE_SOURCE_DIR}/teachers/teacher.cpp
     ${CMAKE_SOURCE_DIR}/teachers/teacher_walking.cpp

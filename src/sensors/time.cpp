@@ -16,17 +16,13 @@
 namespace bnn_device_3d::sensors
 {
 
-time::time()
+time::time(u_word input_offset, u_word input_length)
+    : sensor("time", input_offset, input_length)
 {
 
 }
 
-int time::get_data_size()
-{
-    return 64;
-}
-
-void time::set_inputs(bnn::architecture& brain_, u_word& count_input, std::string& debug_str, bool verbose)
+void time::set_inputs(bnn::architecture& bnn, u_word& input_offset, std::string& debug_str, bool verbose)
 {
     namespace sch = std::chrono;
     typedef sch::time_point<sch::system_clock, sch::microseconds> m_time_point;
@@ -37,7 +33,7 @@ void time::set_inputs(bnn::architecture& brain_, u_word& count_input, std::strin
 
     for(size_t i = mask; i < sizeof(t) * QUANTITY_OF_BITS_IN_BYTE; i++)
     {
-        brain_.set_input(count_input++, (t >> i) & 1);
+        bnn.set_input(input_offset++, (t >> i) & 1);
 
 #ifdef show_debug_data
         debug_str += std::to_string((t >> i) & 1);
@@ -46,7 +42,7 @@ void time::set_inputs(bnn::architecture& brain_, u_word& count_input, std::strin
 
     for(size_t i = 0; i < mask; i++)
     {
-        brain_.set_input(count_input++, 0);
+        bnn.set_input(input_offset++, 0);
 
 #ifdef show_debug_data
         debug_str += std::to_string(0);

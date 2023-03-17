@@ -24,7 +24,7 @@ creature::creature()
 
 void creature::start()
 {
-    brain_->start();
+    bnn_->start();
 
 #ifdef learning_creature
     teacher_->start();
@@ -33,7 +33,7 @@ void creature::start()
 
 void creature::stop()
 {
-    brain_->stop();
+    bnn_->stop();
 
 #ifdef learning_creature
     teacher_->stop();

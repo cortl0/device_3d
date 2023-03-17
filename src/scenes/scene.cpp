@@ -30,6 +30,16 @@ scene::scene(Ogre::RenderWindow* render_window, Ogre::SceneManager* scene_manage
     space = dSimpleSpaceCreate(nullptr);
 }
 
+void scene::load(std::ifstream& ifs)
+{
+    tripod_->load(ifs);
+}
+
+void scene::save(std::ofstream& ofs) const
+{
+    tripod_->save(ofs);
+}
+
 void scene::start()
 {
     creature_->start();

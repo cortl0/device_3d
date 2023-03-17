@@ -45,7 +45,7 @@ bool config::parse_body()
 
     const Setting& device_3d_setting = root["device_3d"];
     *(int*)&device_3d_.scene_ = device_3d_setting["scene"];
-    *(int*)&device_3d_.creature_ = device_3d_setting["creature"];
+    *(double*)&device_3d_.time_coefficient = device_3d_setting["time_coefficient"];
 
     const Setting& bnn_setting = device_3d_setting["bnn"];
     *(int*)&device_3d_.bnn_.quantity_of_neurons_in_power_of_two = bnn_setting["quantity_of_neurons_in_power_of_two"];
@@ -58,8 +58,8 @@ bool config::parse_body()
 
 void config::print()
 {
+    printf("config_.device_3d_.time_coefficient [%lf]\n", device_3d_.time_coefficient);
     printf("config_.device_3d_.scene_ [%d]\n", device_3d_.scene_);
-    printf("config_.device_3d_.creature_ [%d]\n", device_3d_.creature_);
     printf("config_.device_3d_.bnn_.quantity_of_neurons_in_power_of_two [%d]\n", device_3d_.bnn_.quantity_of_neurons_in_power_of_two);
     printf("config_.device_3d_.bnn_.motor_binaries_per_motor [%d]\n", device_3d_.bnn_.motor_binaries_per_motor);
     printf("config_.device_3d_.bnn_.random_size_in_power_of_two [%d]\n", device_3d_.bnn_.random_size_in_power_of_two);

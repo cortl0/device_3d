@@ -9,6 +9,11 @@
 
 #include "bike.h"
 
+#include "sensors/gyroscope.h"
+#include "sensors/time.h"
+#include "sensors/velocity.h"
+#include "sensors/vestibular.h"
+
 namespace dpm = bnn_device_3d::data_processing_methods;
 namespace pho = bnn_device_3d::physical_objects;
 namespace sens = bnn_device_3d::sensors;
@@ -100,10 +105,25 @@ bike::bike(
         //make_fixed_joint(rear_wheel.geom);
     }
 
-    u_word input_length =
-            2 * settings::front_wheel_torque_left.bits_quantity +
-            settings::i_feel_my_velosity_quantity_bits +
-            settings::i_feel_my_orientation_quantity_bits;
+    u_word input_length{0};
+
+    input_length += 2 * settings::front_wheel_torque_left.bits_quantity;
+
+    sensors_.push_back(std::make_unique<bnn_device_3d::sensors::velocity>
+                      (bnn_device_3d::sensors::velocity(body.body, input_length, settings::i_feel_my_velosity_quantity_bits)));
+    input_length += settings::i_feel_my_velosity_quantity_bits;
+
+    sensors_.push_back(std::make_unique<bnn_device_3d::sensors::gyroscope>
+                      (bnn_device_3d::sensors::gyroscope(body.body, input_length, settings::i_feel_my_orientation_quantity_bits)));
+    input_length += settings::i_feel_my_orientation_quantity_bits;
+
+    sensors_.push_back(std::make_unique<bnn_device_3d::sensors::vestibular>
+                      (bnn_device_3d::sensors::vestibular(body.body, input_length, settings::i_feel_my_vestibular_quantity_bits)));
+    input_length += settings::i_feel_my_vestibular_quantity_bits;
+
+    sensors_.push_back(std::make_unique<bnn_device_3d::sensors::time>
+                      (bnn_device_3d::sensors::time(input_length, settings::i_feel_time_quantity_bits)));
+    input_length += settings::i_feel_time_quantity_bits;
 
     u_word output_length =
             settings::front_wheel_torque_left.bits_quantity +
@@ -111,12 +131,12 @@ bike::bike(
             settings::rear_wheel_throttle_forward.bits_quantity +
             settings::rear_wheel_throttle_backward.bits_quantity;
 
-    // I feel time
-    input_length += sensors::time::get_data_size();
-
-    auto step = 8;
+    //auto step = 2;
+    auto step = render_window->getHeight() / 4;
+#if(0)
     video_.reset(new bnn_device_3d::sensors::video(render_window->getWidth() / 4, render_window->getHeight() / 4, step));
     input_length += bnn_device_3d::sensors::video::length * video_->calc_data.size();
+#endif
 
     const bnn_settings bs
     {
@@ -128,7 +148,7 @@ bike::bike(
         .quantity_of_threads_in_power_of_two = static_cast<u_word>(config_bnn.quantity_of_threads_in_power_of_two)
     };
 
-    brain_.reset(new bnn::brain_tools(bs));
+    bnn_.reset(new bnn::bnn_tools(bs));
 }
 
 physical_objects::figure& bike::get_body()
@@ -199,7 +219,7 @@ void bike::step(std::string& debug_str, bool& verbose)
 
     static u_word iteration = 0;
     static u_word old_iteration = iteration;
-    iteration = brain_->get_iteration();
+    iteration = bnn_->get_iteration();
 
     if((iteration / 128) > old_iteration)
     {
@@ -220,10 +240,10 @@ void bike::step(std::string& debug_str, bool& verbose)
         for(int j = 0; j < length; j++)
         {
             if(verbose)
-                debug_str += std::to_string(brain_->get_output(i));
+                debug_str += std::to_string(bnn_->get_output(i));
 
-            value += brain_->get_output(i) * !both_side +
-                    (brain_->get_output(i) * 2 - 1) * both_side;
+            value += bnn_->get_output(i) * !both_side +
+                    (bnn_->get_output(i) * 2 - 1) * both_side;
 
             ++i;
         }
@@ -257,8 +277,8 @@ void bike::step(std::string& debug_str, bool& verbose)
         force += force_first;
         force -= force_second;
         float position_coefficient = abs(current_position) / ((first.max_position + second.max_position) / 2);
-        force *= 1 - position_coefficient;
-        force -= rate * (!full_rate * position_coefficient + full_rate);
+//        force *= 1 - position_coefficient;
+//        force -= rate * (!full_rate * position_coefficient + full_rate);
         return force;
     };
 
@@ -347,16 +367,17 @@ void bike::step(std::string& debug_str, bool& verbose)
     u_word count_input = 0;
 
     // steering wheel
-    data_processing_method_->set_inputs(*brain_.get(), count_input,
+    data_processing_method_->set_inputs(*bnn_.get(), count_input,
                                         settings::front_wheel_torque_left.bits_quantity +
                                         settings::front_wheel_torque_right.bits_quantity,
                                         front_direction_torque, -settings::front_whell_direction_angle,
                                         settings::front_whell_direction_angle, debug_str, verbose);
 
-#if(1)
+#if(0)
     debug_str += " ";
     debug_str += "\nvideo [\n";
-    video_->set_inputs(*brain_.get(), count_input, bnn_device_3d::sensors::video::length, range, debug_str, verbose);
+    video_->set_inputs(*brain_.get(), count_input,
+                       bnn_device_3d::sensors::video::length * video_->calc_data.size(), range, debug_str, verbose);
 #endif
 
 //    brain_->set_input(count_input++, front_direction);
@@ -371,14 +392,11 @@ void bike::step(std::string& debug_str, bool& verbose)
 //    }
 
 #if(1)
-    debug_str += "]\nvel [ ";
-    speedometer_.set_inputs(body.body, *brain_.get(), count_input, settings::i_feel_my_velosity_quantity_bits, -range, range, debug_str, verbose);
-
-    debug_str += " ]\ndir [ ";
-    gyroscope_.set_inputs(body.body, *brain_.get(), count_input, settings::i_feel_my_orientation_quantity_bits, -range, range, debug_str, verbose);
-
-    debug_str += " ]\ntime [ ";
-    time_.set_inputs(*brain_.get(), count_input, debug_str, verbose);
+    for(auto& sensor : sensors_)
+    {
+        debug_str += " ]\n" + sensor->name + " [ ";
+        sensor->set_inputs(*bnn_.get(), count_input, debug_str, verbose);
+    }
 #endif
 
 //    if(verbose)
@@ -406,7 +424,7 @@ void bike::step(std::string& debug_str, bool& verbose)
     if(verbose)
     {
         debug_str += "]\n";
-        brain_->get_debug_string(debug_str);
+        bnn_->get_debug_string(debug_str);
     }
 }
 

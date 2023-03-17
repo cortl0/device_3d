@@ -10,12 +10,13 @@
 #ifndef BNN_DEVICE_3D_CREATURES_BIKE_BIKE_H
 #define BNN_DEVICE_3D_CREATURES_BIKE_BIKE_H
 
+#include <vector>
+
 #include "config.hpp"
 #include "creatures/creature.h"
 #include "physical_objects/sphere.h"
-#include "sensors/gyroscope.h"
+#include "sensors/sensor.h"
 #include "sensors/time.h"
-#include "sensors/velocity.h"
 #include "sensors/video.h"
 
 namespace bnn_device_3d::creatures::bike
@@ -62,8 +63,10 @@ public:
         static constexpr float clearance = body_height;
         static constexpr float level = clearance + body_height / 2;
         static constexpr float front_whell_direction_angle = 0;//M_PI / 4;
-        static constexpr u_word i_feel_my_velosity_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
-        static constexpr u_word i_feel_my_orientation_quantity_bits = 1 * QUANTITY_OF_BITS_IN_BYTE * coordinates_count;
+        static constexpr u_word i_feel_my_velosity_quantity_bits = 0 * coordinates_count;
+        static constexpr u_word i_feel_my_orientation_quantity_bits = 0 * coordinates_count;
+        static constexpr u_word i_feel_my_vestibular_quantity_bits = 64 * coordinates_count;
+        static constexpr u_word i_feel_time_quantity_bits = 0;
 
         static constexpr effector front_wheel_torque_left
         {
@@ -80,22 +83,20 @@ public:
         static constexpr effector rear_wheel_throttle_forward
         {
             .bits_quantity = 4,//4 * QUANTITY_OF_BITS_IN_BYTE,
-            .force_coefficient = wheel_mass * 10.f,
+            .force_coefficient = wheel_mass * 5.f,
             .max_position = 1.0f
         };
         static constexpr effector rear_wheel_throttle_backward
         {
             .bits_quantity = 4,//4 * QUANTITY_OF_BITS_IN_BYTE,
-            .force_coefficient = wheel_mass * 10.f,
+            .force_coefficient = wheel_mass * 5.f,
             .max_position = 1.0f
         };
     };
 
     bnn_device_3d::physical_objects::cube body;
     bnn_device_3d::physical_objects::cube body_sign;
-    sensors::gyroscope gyroscope_;
-    sensors::time time_;
-    sensors::velocity speedometer_;
+    std::vector<std::unique_ptr<bnn_device_3d::sensors::sensor>> sensors_;
 
     virtual ~bike();
     bike(

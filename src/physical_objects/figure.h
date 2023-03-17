@@ -36,6 +36,9 @@ struct figure
     figure();
     figure(Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass);
 
+    virtual void load(std::ifstream&);
+    virtual void save(std::ofstream&) const;
+
     /**
      * @param color0, color1 - BGRA
      */

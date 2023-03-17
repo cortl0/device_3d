@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "application/config.h"
-#include "bnn/src/common/brain_tools.h"
+#include "bnn/src/common/bnn_tools.h"
 #include "physical_objects/figure.h"
 #include "physical_objects/cube.h"
 #include "sensors/video.h"
@@ -27,7 +27,7 @@ namespace bnn_device_3d::creatures
 class creature
 {
 public:
-    std::unique_ptr<bnn::brain_tools> brain_;
+    std::unique_ptr<bnn::bnn_tools> bnn_;
     std::unique_ptr<sensors::video> video_;
 
     virtual ~creature();

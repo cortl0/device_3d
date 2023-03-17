@@ -7,8 +7,8 @@
  *   licensed by GPL v3.0
  */
 
-#ifndef BNN_DEVICE_3D_SENSORS_VELOCITY_H
-#define BNN_DEVICE_3D_SENSORS_VELOCITY_H
+#ifndef BNN_DEVICE_3D_SENSORS_VESTIBULAR_H
+#define BNN_DEVICE_3D_SENSORS_VESTIBULAR_H
 
 #include "ode.h"
 #include "Ogre.h"
@@ -22,9 +22,9 @@ namespace dpm = bnn_device_3d::data_processing_methods;
 namespace bnn_device_3d::sensors
 {
 
-struct velocity final : sensor
+struct vestibular final : sensor
 {
-    velocity(dBodyID body_id, u_word input_offset, u_word input_length);
+    vestibular(dBodyID body_id, u_word input_offset, u_word input_length);
 
     virtual void set_inputs(bnn::architecture&, u_word& input_offset, std::string& debug_str, bool verbose) override;
 
@@ -35,4 +35,4 @@ private:
 
 } // namespace bnn_device_3d::sensors
 
-#endif // BNN_DEVICE_3D_SENSORS_VELOCITY_H
+#endif // BNN_DEVICE_3D_SENSORS_VESTIBULAR_H

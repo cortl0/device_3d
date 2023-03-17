@@ -13,21 +13,23 @@
 #include "ode.h"
 #include "Ogre.h"
 
-#include "common/brain_tools.h"
+#include "common/bnn_tools.h"
 #include "data_processing_methods/data_processing_method_linearly.h"
+#include "sensor.h"
 
 namespace dpm = bnn_device_3d::data_processing_methods;
 
 namespace bnn_device_3d::sensors
 {
 
-struct gyroscope
+struct gyroscope final : sensor
 {
-    gyroscope();
+    gyroscope(dBodyID body_id, u_word input_offset, u_word input_length);
 
-    void set_inputs(dBodyID, bnn::architecture&, u_word& count, u_word length, float range_from, float range_to, std::string& str, bool verbose);
+    virtual void set_inputs(bnn::architecture&, u_word& input_offset, std::string& debug_str, bool verbose) override;
 
 private:
+    dBodyID body_id;
     std::unique_ptr<bnn_device_3d::data_processing_methods::data_processing_method> data_processing_method_;
 };
 

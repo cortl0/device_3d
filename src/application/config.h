@@ -9,19 +9,14 @@ class config
 public:
     struct device_3d
     {
+        double time_coefficient;
+
         enum scene : int
         {
             bike_scene,
             table_scene,
         };
         scene scene_;
-
-        enum creature : int
-        {
-            bike,
-            table,
-        };
-        creature creature_;
 
         struct bnn
         {
