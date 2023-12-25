@@ -20,7 +20,7 @@ cube::cube() : figure()
 cube::cube(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass, dReal lx, dReal ly, dReal lz)
     : figure(scnMgr, world, space, mass)
 {
-    ent = scnMgr->createEntity(name, Ogre::SceneManager::PrefabType::PT_CUBE);
+    ent = scnMgr->createEntity(name, Ogre::SceneManager::PT_CUBE);
 
     // the default diameter of sphere is 100.0f
 //    Ogre::Real scale = radius * 2 / 100.0f;

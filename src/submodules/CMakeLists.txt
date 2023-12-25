@@ -8,8 +8,5 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-add_compile_options(-Wformat)
-
-add_subdirectory(cpu)
-add_subdirectory(gpu)
-add_subdirectory(submodules)
+add_subdirectory(bnn/src)
+add_subdirectory(logger/src)

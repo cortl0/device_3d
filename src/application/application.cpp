@@ -14,17 +14,19 @@
 #include <filesystem>
 #include <thread>
 
+#include <OgreOverlay.h>
+#include <OgreOverlayManager.h>
+#include <OgreOverlayContainer.h>
+
+#include "submodules/logger/src/helpers/log.h"
+
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"
-#include "common/logger.h"
 #include "config.hpp"
 #include "conductors/conductor_circle.h"
 #include "conductors/kick.h"
 #include "conductors/tail.h"
 #include "conductors/dream.h"
-#include <OgreOverlay.h>
-#include <OgreOverlayManager.h>
-#include <OgreOverlayContainer.h>
 
 namespace fs = std::filesystem;
 
@@ -41,13 +43,13 @@ static keys_states keys_states_;
 
 application::~application()
 {
-    logging("world_3d::~world_3d() begin");
+    log_place;
     stop();
 //    dJointGroupEmpty(contact_group);
 //    dJointGroupDestroy(contact_group);
 //    dWorldDestroy(world);
 //    dCloseODE();
-    logging("world_3d::~world_3d() end");
+    log_place;
 }
 
 application::application() : OgreBites::ApplicationContext("bnn_test_app")
@@ -368,7 +370,7 @@ void application::run()
     }
     catch (...)
     {
-        logging("unknown error");
+        log_error("unknown error");
     }
 
     closeApp();
@@ -438,7 +440,7 @@ void application::save_random()
 
 void application::start()
 {
-    logging("world_3d::start() begin");
+    log_place;
 
     if(bnn::state::stopped != state_)
         return;
@@ -450,12 +452,12 @@ void application::start()
     while(bnn::state::started != state_)
         usleep(device_3d_LITTLE_TIME);
 
-    logging("world_3d::start() end");
+    log_place;
 }
 
 void application::stop()
 {
-    logging("world_3d::stop() begin");
+    log_place;
 
     if(bnn::state::started != state_)
         return;
@@ -470,7 +472,7 @@ void application::stop()
 
     scene->stop();
 
-    logging("world_3d::stop() end");
+    log_place;
 }
 
 void application::setup()

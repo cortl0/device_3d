@@ -8,19 +8,13 @@
 
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
+project(device-3d-cuda LANGUAGES CXX CUDA)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(device-3d-cuda LANGUAGES CXX CUDA)
-
 file(COPY config.cfg DESTINATION ${CMAKE_BINARY_DIR}/gpu/cuda)
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR}/gpu/cuda)
-
-include_directories(
-    ${CMAKE_SOURCE_DIR}/bnn/src/gpu/cuda
-    ${CMAKE_SOURCE_DIR}/bnn/src/gpu/cuda/external
-    /usr/local/cuda
-    )
 
 add_compile_definitions(BNN_ARCHITECTURE_CUDA)
 include(${CMAKE_SOURCE_DIR}/CMakeLists_common.txt)

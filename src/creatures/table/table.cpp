@@ -11,7 +11,7 @@
 
 #include <unistd.h>
 
-#include "common/logger.h"
+#include "submodules/logger/src/helpers/log.h"
 
 #include "sensors/gyroscope.h"
 #include "sensors/time.h"
@@ -27,8 +27,9 @@ namespace bnn_device_3d::creatures::table
 
 table::~table()
 {
-    logging("");
+    log_place;
     stop();
+    log_place;
 }
 
 table::table(

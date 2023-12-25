@@ -11,7 +11,8 @@
 #define BNN_DEVICE_3D_SENSORS_SENSOR_H
 
 #include <string>
-#include "common/bnn_tools.h"
+
+#include "submodules/bnn/src/common/bnn_tools.h"
 
 namespace bnn_device_3d::sensors
 {

@@ -20,7 +20,7 @@ sphere::sphere() : figure()
 sphere::sphere(std::string name, Ogre::SceneManager* scnMgr, dWorldID world, dSpaceID space, dReal mass, dReal radius)
     : figure(scnMgr, world, space, mass)
 {
-    ent = scnMgr->createEntity(name, Ogre::SceneManager::PrefabType::PT_SPHERE);
+    ent = scnMgr->createEntity(name, Ogre::SceneManager::PT_SPHERE);
 
     // the default diameter of sphere is 100.0f
     Ogre::Real scale = radius * 2 / 100.0f;

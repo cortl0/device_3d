@@ -14,12 +14,13 @@
 #include <list>
 #include <memory>
 
-#include "ode.h"
-#include "Ogre.h"
-#include "OgreApplicationContext.h"
+#include <ode.h>
+#include <Ogre.h>
+#include <OgreApplicationContext.h>
+
+#include "submodules/bnn/src/common/state.h"
 
 #include "config.h"
-#include "common/state.h"
 #include "scenes/scene.h"
 
 using namespace Ogre;

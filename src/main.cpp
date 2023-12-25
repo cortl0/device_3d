@@ -10,10 +10,14 @@
 #include <exception>
 #include <iostream>
 
+#include <submodules/logger/src/helpers/log.h>
+
 #include "application/application.h"
 
 int main()
 {
+    cortl_logger_instance.set_level(cortl::logger::logger::level::debug);
+
     try
     {
         bnn_device_3d::application::application().run();

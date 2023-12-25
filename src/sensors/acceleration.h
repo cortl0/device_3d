@@ -10,10 +10,11 @@
 #ifndef BNN_DEVICE_3D_SENSORS_ACCELERATION_H
 #define BNN_DEVICE_3D_SENSORS_ACCELERATION_H
 
-#include "ode.h"
-#include "Ogre.h"
+#include <ode.h>
+#include <Ogre.h>
 
-#include "common/bnn_tools.h"
+#include "submodules/bnn/src/common/bnn_tools.h"
+
 #include "data_processing_methods/data_processing_method_linearly.h"
 
 namespace bnn_device_3d::sensors

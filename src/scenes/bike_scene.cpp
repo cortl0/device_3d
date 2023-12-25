@@ -17,6 +17,8 @@
 #include <OgreOverlay.h>
 #include <OgreFontManager.h>
 
+#include "submodules/logger/src/helpers/log.h"
+
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"
 #include "common/logger.h"
@@ -198,7 +200,7 @@ void bike::ogre_setup()
     render_window->addViewport(creature_camera, ZOrder, 0.0f, 0.0f, 0.25f, 0.25f);
     render_window->getViewport(ZOrder)->setBackgroundColour(Ogre::ColourValue::White);
 
-    auto ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
+    auto ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PT_PLANE);
     auto node_plane = scene_manager->getRootSceneNode()->createChildSceneNode();
     node_plane->setScale(Ogre::Vector3(8, 8, 8));
     node_plane->setDirection(0,-1,0);
@@ -522,7 +524,7 @@ void bike::print_distance()
     if(ff>max)
     {
         max = ff;
-        logging(std::to_string(ff));
+        log_info("%f", ff);
     }
 }
 

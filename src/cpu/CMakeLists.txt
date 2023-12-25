@@ -8,10 +8,10 @@
 
 cmake_minimum_required(VERSION 3.0)
 
+project(device-3d-cpu LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-project(device-3d-cpu LANGUAGES CXX)
 
 file(COPY config.cfg DESTINATION ${CMAKE_BINARY_DIR}/cpu)
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR}/cpu)

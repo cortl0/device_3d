@@ -111,7 +111,7 @@ void table::ogre_setup()
     render_window->getViewport(0)->setBackgroundColour(Ogre::ColourValue::White);
     render_window->getViewport(1)->setBackgroundColour(Ogre::ColourValue::White);
 
-    auto ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PrefabType::PT_PLANE);
+    auto ent_plane = scene_manager->createEntity("plane", Ogre::SceneManager::PT_PLANE);
     auto node_plane = scene_manager->getRootSceneNode()->createChildSceneNode();
     node_plane->setScale(Ogre::Vector3(8, 8, 8));
     node_plane->setDirection(0,-1,0);
