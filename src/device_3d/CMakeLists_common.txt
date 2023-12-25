@@ -6,6 +6,7 @@
 #   licensed by GPL v3.0
 #
 
+add_compile_options(-Wformat)
 add_compile_definitions(CORTL_LOGGER_USE_HUMAN_READABLE_TIME)
 add_compile_definitions(CORTL_LOGGER_USE_LOCAL_TIME)
 
