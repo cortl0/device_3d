@@ -8,5 +8,6 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-add_subdirectory(bnn/src)
+add_subdirectory(bnn/src/cpu)
+add_subdirectory(bnn/src/gpu/cuda)
 add_subdirectory(logger/src)

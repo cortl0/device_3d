@@ -13,9 +13,9 @@ project(device-3d-cpu LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(COPY config.cfg DESTINATION ${CMAKE_BINARY_DIR}/cpu)
-file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR}/cpu)
+file(COPY config.cfg DESTINATION ${CMAKE_BINARY_DIR}/device_3d/cpu)
+file(COPY ${CMAKE_SOURCE_DIR}/device_3d/resources DESTINATION ${CMAKE_BINARY_DIR}/device_3d/cpu)
 
 add_compile_definitions(BNN_ARCHITECTURE_CPU)
-include(${CMAKE_SOURCE_DIR}/CMakeLists_common.txt)
+include(${CMAKE_SOURCE_DIR}/device_3d/CMakeLists_common.txt)
 target_link_libraries(${PROJECT_NAME} PRIVATE bnn-cpu)
