@@ -6,8 +6,7 @@
 #   licensed by GPL v3.0
 #
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.17)
 
-add_subdirectory(bnn/src/cpu)
-add_subdirectory(bnn/src/gpu/cuda)
+add_subdirectory(bnn/src)
 add_subdirectory(logger/src)

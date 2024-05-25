@@ -2,16 +2,21 @@
 This is an implementation of the 3d model with binary neurons  
 for testing the Binary Neurons Network  
 
-## To clone the repository
+## Cloning the repository with submodules
 ```
 git clone --recursive https://github.com/cortl0/device_3d
 ```
 
-## CMake build
+## Build
+CMake
 
-Build and run the application with helper
+## Launch
 ```
-run.sh
+./build/device_3d/cpu/device-3d-cpu
+```
+or
+```
+./build/device_3d/gpu/cuda/device-3d-cuda
 ```
 
 ## Project requirements

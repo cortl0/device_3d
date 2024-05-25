@@ -6,7 +6,7 @@
 #   licensed by GPL v3.0
 #
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.17)
 
 add_subdirectory(cpu)
-add_subdirectory(gpu)
+add_subdirectory(gpu/cuda)

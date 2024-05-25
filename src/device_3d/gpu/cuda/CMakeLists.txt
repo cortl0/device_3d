@@ -6,7 +6,9 @@
 #   licensed by GPL v3.0
 #
 
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.17)
+
+set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 
 project(device-3d-cuda LANGUAGES CXX CUDA)
 
