@@ -12,9 +12,9 @@
 
 #include <memory>
 
-#include "ode.h"
-#include "Ogre.h"
-#include "OgreApplicationContext.h"
+#include <ode.h>
+#include <Ogre.h>
+#include <OgreApplicationContext.h>
 #include "OgrePrerequisites.h"
 
 #include "config.hpp"

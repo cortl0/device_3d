@@ -9,10 +9,6 @@
 
 #include "teacher_walking.h"
 
-#include <unistd.h>
-
-#include <iostream>
-
 namespace bnn_device_3d::teachers
 {
 
@@ -62,7 +58,7 @@ void teacher_walking::function(teacher_walking* t)
 
         //std::cout << data << std::endl;
 
-        usleep(500000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
         if (!t->count)
             t->state_ = bnn::state::stopped;

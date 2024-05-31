@@ -10,7 +10,6 @@
 #ifndef BNN_DEVICE_3D_APPLICATION_APPLICATION_H
 #define BNN_DEVICE_3D_APPLICATION_APPLICATION_H
 
-#include <iostream>
 #include <list>
 #include <memory>
 
@@ -18,7 +17,7 @@
 #include <Ogre.h>
 #include <OgreApplicationContext.h>
 
-#include "submodules/bnn/src/common/state.h"
+#include <submodules/bnn/src/common/state.h>
 
 #include "config.h"
 #include "scenes/scene.h"
@@ -60,7 +59,7 @@ private:
     bnn::state state_ = bnn::state::stopped;
     bool verbose = true;
     config config_;
-
+    keys_states keys_states_;
 };
 
 } // namespace bnn_device_3d::application

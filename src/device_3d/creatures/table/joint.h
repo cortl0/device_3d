@@ -10,7 +10,7 @@
 #ifndef BNN_DEVICE_3D_CREATURES_TABLE_JOINT_H
 #define BNN_DEVICE_3D_CREATURES_TABLE_JOINT_H
 
-#include "ode.h"
+#include <ode.h>
 
 #include "config.hpp"
 

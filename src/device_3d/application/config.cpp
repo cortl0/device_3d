@@ -1,16 +1,11 @@
 #include "config.h"
 
-#include <iostream>
-
 #include <libconfig.h++>
+
+#include <submodules/logger/src/helpers/log.h>
 
 namespace bnn_device_3d::application
 {
-
-config::config()
-{
-
-}
 
 bool config::parse()
 {
@@ -18,25 +13,26 @@ bool config::parse()
 
     try
     {
-        return parse_body();
+        parse_body();
+        return true;
     }
     catch(const FileIOException& e)
     {
-      std::cerr << "I/O error while reading file" << std::endl;
+        log_error("I/O error while reading file");
     }
     catch(const ParseException& e)
     {
-      std::cerr << "Parse error at " << e.getFile() << ":" << e.getLine() << " - " << e.getError() << std::endl;
+        log_error("Parse error [%s] at %s:%d", e.getError(), e.getFile(), e.getLine());
     }
     catch(const SettingNotFoundException& e)
     {
-      std::cerr << "No [" << e.getPath() << "] setting in configuration file" << std::endl;
+        log_error("No [%s] setting in configuration file", e.getPath());
     }
 
     return false;
 }
 
-bool config::parse_body()
+void config::parse_body()
 {
     using namespace libconfig;
     Config cfg;
@@ -52,18 +48,16 @@ bool config::parse_body()
     *(int*)&device_3d_.bnn_.motor_binaries_per_motor = bnn_setting["motor_binaries_per_motor"];
     *(int*)&device_3d_.bnn_.random_size_in_power_of_two = bnn_setting["random_size_in_power_of_two"];
     *(int*)&device_3d_.bnn_.quantity_of_threads_in_power_of_two = bnn_setting["quantity_of_threads_in_power_of_two"];
-
-    return true;
 }
 
 void config::print()
 {
-    printf("config_.device_3d_.time_coefficient [%lf]\n", device_3d_.time_coefficient);
-    printf("config_.device_3d_.scene_ [%d]\n", device_3d_.scene_);
-    printf("config_.device_3d_.bnn_.quantity_of_neurons_in_power_of_two [%d]\n", device_3d_.bnn_.quantity_of_neurons_in_power_of_two);
-    printf("config_.device_3d_.bnn_.motor_binaries_per_motor [%d]\n", device_3d_.bnn_.motor_binaries_per_motor);
-    printf("config_.device_3d_.bnn_.random_size_in_power_of_two [%d]\n", device_3d_.bnn_.random_size_in_power_of_two);
-    printf("config_.device_3d_.bnn_.quantity_of_threads_in_power_of_two [%d]\n", device_3d_.bnn_.quantity_of_threads_in_power_of_two);
+    log_info("config_.device_3d_.time_coefficient [%lf]", device_3d_.time_coefficient);
+    log_info("config_.device_3d_.scene_ [%d]", device_3d_.scene_);
+    log_info("config_.device_3d_.bnn_.quantity_of_neurons_in_power_of_two [%d]", device_3d_.bnn_.quantity_of_neurons_in_power_of_two);
+    log_info("config_.device_3d_.bnn_.motor_binaries_per_motor [%d]", device_3d_.bnn_.motor_binaries_per_motor);
+    log_info("config_.device_3d_.bnn_.random_size_in_power_of_two [%d]", device_3d_.bnn_.random_size_in_power_of_two);
+    log_info("config_.device_3d_.bnn_.quantity_of_threads_in_power_of_two [%d]", device_3d_.bnn_.quantity_of_threads_in_power_of_two);
 }
 
 } // namespace bnn_device_3d::application

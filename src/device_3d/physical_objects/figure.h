@@ -10,11 +10,11 @@
 #ifndef BNN_DEVICE_3D_PHYSICAL_OBJECTS_FIGURE_H
 #define BNN_DEVICE_3D_PHYSICAL_OBJECTS_FIGURE_H
 
-#include "ode.h"
-#include "Ogre.h"
-#include "OgreApplicationContext.h"
-#include "OgreInput.h"
-#include "OgreRTShaderSystem.h"
+#include <ode.h>
+#include <Ogre.h>
+#include <OgreApplicationContext.h>
+#include <OgreInput.h>
+#include <OgreRTShaderSystem.h>
 
 namespace bnn_device_3d::physical_objects
 {

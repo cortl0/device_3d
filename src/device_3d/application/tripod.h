@@ -10,8 +10,8 @@
 #ifndef BNN_DEVICE_3D_APPLICATION_TRIPOD_H
 #define BNN_DEVICE_3D_APPLICATION_TRIPOD_H
 
-#include "ode.h"
-#include "Ogre.h"
+#include <ode.h>
+#include <Ogre.h>
 
 namespace bnn_device_3d::application
 {

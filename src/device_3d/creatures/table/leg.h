@@ -10,8 +10,6 @@
 #ifndef BNN_DEVICE_3D_CREATURES_TABLE_LEG_H
 #define BNN_DEVICE_3D_CREATURES_TABLE_LEG_H
 
-#include <iostream>
-
 #include "physical_objects/cube.h"
 #include "physical_objects/sphere.h"
 #include "joint.h"
@@ -74,7 +72,6 @@ public:
 private:
     dJointGroupID jg_fs = dJointGroupCreate (0);
     dJointGroupID jg_st = dJointGroupCreate (0);
-
     std::vector<joint> joints;
 };
 

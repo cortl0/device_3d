@@ -9,13 +9,15 @@
 
 #include "teacher.h"
 
-#include <unistd.h>
+#include <chrono>
 
 #include "common/logger.h"
 #include "config.hpp"
 
 namespace bnn_device_3d::teachers
 {
+
+using namespace std::chrono_literals;
 
 teacher::~teacher()
 {
@@ -55,7 +57,7 @@ void teacher::start()
     inner_start();
 
     while (bnn::state::started != state_)
-        usleep(device_3d_LITTLE_TIME);
+        std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
 }
 
 void teacher::stop()
@@ -66,7 +68,7 @@ void teacher::stop()
     state_ = bnn::state::stop;
 
     while (bnn::state::stopped != state_)
-        usleep(device_3d_LITTLE_TIME);
+        std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
 }
 
 } // namespace bnn_device_3d::teachers

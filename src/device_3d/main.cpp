@@ -8,7 +8,6 @@
  */
 
 #include <exception>
-#include <iostream>
 
 #include <submodules/logger/src/helpers/log.h>
 
@@ -24,15 +23,15 @@ int main()
     }
     catch(int i)
     {
-        std::cerr << "Caught int [" << i << "]" << std::endl;
+        log_error("Caught int [%d]", i);
     }
     catch(const std::exception& e)
     {
-        std::cerr << "Caught std::exception [" << e.what() << "]" << std::endl;
+        log_error("Caught std::exception [%s]", e.what());
     }
     catch(...)
     {
-        std::cerr << "Caught unknown error" << std::endl;
+        log_error("Caught unknown error");
     }
 
     return 0;

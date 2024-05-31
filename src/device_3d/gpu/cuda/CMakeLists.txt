@@ -15,6 +15,8 @@ project(device-3d-cuda LANGUAGES CXX CUDA)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(OGRE REQUIRED COMPONENTS Bites CONFIG)
+
 file(COPY config.cfg DESTINATION ${CMAKE_BINARY_DIR}/device_3d/gpu/cuda)
 file(COPY ${CMAKE_SOURCE_DIR}/device_3d/resources DESTINATION ${CMAKE_BINARY_DIR}/device_3d/gpu/cuda)
 

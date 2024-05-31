@@ -12,17 +12,15 @@
 
 #include <algorithm>
 #include <experimental/filesystem>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
-#include <stdlib.h>
 #include <vector>
 
-#include "ode.h"
-#include "Ogre.h"
-#include "OgreApplicationContext.h"
-#include "OgreInput.h"
-#include "OgreRTShaderSystem.h"
+#include <ode.h>
+#include <Ogre.h>
+#include <OgreApplicationContext.h>
+#include <OgreInput.h>
+#include <OgreRTShaderSystem.h>
 
 #include "config.hpp"
 #include "../creature.h"

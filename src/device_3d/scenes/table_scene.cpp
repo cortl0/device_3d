@@ -9,6 +9,8 @@
 
 #include "table_scene.h"
 
+#include <submodules/logger/src/helpers/log.h>
+
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"
 #include "config.hpp"
@@ -312,7 +314,7 @@ void table::step(
     tripod_->step();
 
     if(verbose)
-        std::cout << debug_str << std::endl;
+        log_debug("%s", debug_str.c_str());
 
     auto pl = creature_->get_camera_place();
     creature_camera_node->setPosition(static_cast<Ogre::Real>(pl[0]), static_cast<Ogre::Real>(pl[1]), static_cast<Ogre::Real>(pl[2]));

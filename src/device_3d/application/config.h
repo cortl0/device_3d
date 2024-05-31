@@ -27,14 +27,14 @@ public:
         };
         bnn bnn_;
     };
+
     device_3d device_3d_;
 
-    config();
     bool parse();
     void print();
 
 private:
-    bool parse_body();
+    void parse_body();
 };
 
 } // namespace bnn_device_3d::application

@@ -9,8 +9,6 @@
 
 #include "scene.h"
 
-#include <unistd.h>
-
 namespace bnn_device_3d::scenes
 {
 

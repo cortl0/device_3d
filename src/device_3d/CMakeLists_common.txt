@@ -69,6 +69,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     -lOgreMain
     -lOgreRTShaderSystem
     -lOgreOverlay
-    cortl_logger
-    cortl_logger_helpers
+    cortl_logger_with_helpers
     )

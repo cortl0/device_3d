@@ -10,7 +10,7 @@
 #ifndef BNN_DEVICE_3D_TEACHERS_TEACHER_H
 #define BNN_DEVICE_3D_TEACHERS_TEACHER_H
 
-#include "Ogre.h"
+#include <Ogre.h>
 #include "cpu/cpu.h"
 #include "common/state.h"
 

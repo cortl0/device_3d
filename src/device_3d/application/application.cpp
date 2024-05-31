@@ -9,8 +9,6 @@
 
 #include "application.h"
 
-#include <unistd.h>
-
 #include <filesystem>
 #include <thread>
 
@@ -18,15 +16,15 @@
 #include <OgreOverlayManager.h>
 #include <OgreOverlayContainer.h>
 
-#include "submodules/logger/src/helpers/log.h"
+#include <submodules/logger/src/helpers/log.h>
 
-#include "scenes/bike_scene.h"
-#include "scenes/table_scene.h"
 #include "config.hpp"
 #include "conductors/conductor_circle.h"
 #include "conductors/kick.h"
 #include "conductors/tail.h"
 #include "conductors/dream.h"
+#include "scenes/bike_scene.h"
+#include "scenes/table_scene.h"
 
 namespace fs = std::filesystem;
 
@@ -39,31 +37,28 @@ typedef sch::time_point<sch::system_clock, sch::microseconds> m_time_point;
 namespace bnn_device_3d::application
 {
 
-static keys_states keys_states_;
+using namespace std::chrono_literals;
 
 application::~application()
 {
-    log_place;
+    log_place
     stop();
-//    dJointGroupEmpty(contact_group);
-//    dJointGroupDestroy(contact_group);
-//    dWorldDestroy(world);
-//    dCloseODE();
-    log_place;
+    // dJointGroupEmpty(contact_group);
+    // dJointGroupDestroy(contact_group);
+    // dWorldDestroy(world);
+    dCloseODE();
+    log_place
 }
 
 application::application() : OgreBites::ApplicationContext("bnn_test_app")
 {
+    if(!config_.parse())
+        exit(EXIT_FAILURE);
+
+    config_.print();
     world = dWorldCreate();
     contact_group = dJointGroupCreate(0);
     dWorldSetGravity(world, 0, -device_3d_GRAVITY, 0);
-
-    if(!config_.parse())
-        exit(1);
-
-    config_.print();
-
-    //exit(~0);
 }
 
 void application::collide_action()
@@ -196,11 +191,7 @@ bool application::keyReleased(const OgreBites::KeyboardEvent& evt)
     switch (evt.keysym.sym)
     {
     case OgreBites::SDLK_ESCAPE:
-        std::thread([&]()
-        {
-            stop();
-            getRoot()->queueEndRendering();
-        }).detach();
+        std::thread([this](){ stop(); getRoot()->queueEndRendering(); }).detach();
         break;
     case OgreBites::SDLK_DOWN:
         keys_states_.key_down = false;
@@ -225,9 +216,9 @@ bool application::keyReleased(const OgreBites::KeyboardEvent& evt)
         break;
     case keyboard_key_x: // stop <-> start
         if(bnn::state::started == state_)
-            stop();
+            std::thread(&application::stop, this).detach();
         else if(bnn::state::stopped == state_)
-            start();
+            std::thread(&application::start, this).detach();
         break;
     case keyboard_key_v: // verbose
         verbose = !verbose;
@@ -264,17 +255,19 @@ void application::load()
 
     l.sort();
     std::ifstream ifs(fs::current_path() / l.back(), std::ios::binary);
-
     scene->load(ifs);
 
     if(scene->creature_->bnn_->load(ifs))
     {
-        std::cout << "loaded" << std::endl;
+        log_info("loaded");
+
         if(l.size() > 8)
             fs::remove_all(fs::current_path() / l.front());
     }
     else
-        std::cout << "load error" << std::endl;
+    {
+        log_error("load error");
+    }
 
 //    auto load_figure = [&ifs](dBodyID body_id)
 //    {
@@ -304,8 +297,6 @@ void application::run()
 
     try
     {
-        { std::thread([&](){ start(); }).detach(); }
-
         auto width = getRenderWindow()->getWidth();
         auto height = getRenderWindow()->getHeight();
         long delta;
@@ -313,8 +304,9 @@ void application::run()
         const dReal frame_length_dReal = (dReal)frame_length / 1000000.0 * config_.device_3d_.time_coefficient;
         m_time_point current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
         m_time_point time_old = current_time;
-
         auto root = getRoot();
+        scene->creature_->bnn_->initialize();
+        std::thread(&application::start, this).detach();
 
         while(!root->endRenderingQueued())
         {
@@ -326,23 +318,16 @@ void application::run()
 
             if(bnn::state::started != state_)
             {
-                usleep(device_3d_LITTLE_TIME);
+                std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
                 time_old = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
+                root->renderOneFrame();
                 continue;
             }
 
-            {
-                dJointGroupEmpty(contact_group);
-
-                scene->step(stepping_figures, bounding_nodes, keys_states_);
-
-                collide_action();
-
-                dWorldStep(world, frame_length_dReal);
-            }
-
-            //***************
-
+            dJointGroupEmpty(contact_group);
+            scene->step(stepping_figures, bounding_nodes, keys_states_);
+            collide_action();
+            dWorldStep(world, frame_length_dReal);
             root->renderOneFrame();
 
 //            {
@@ -361,7 +346,7 @@ void application::run()
             delta = (current_time - time_old).count();
 
             if(delta < frame_length)
-                usleep(frame_length - delta);
+                std::this_thread::sleep_for(std::chrono::microseconds(frame_length - delta));
 
             time_old += sch::microseconds((long long int)frame_length);
         }
@@ -386,13 +371,12 @@ void application::save()
     std::string s(time_buffer);
     s += ".bnn";
     std::ofstream ofs(fs::current_path() / s, std::ios::binary);
-
     scene->save(ofs);
 
     if(scene->creature_->bnn_->save(ofs))
-        std::cout << "saved" << std::endl;
+        log_info("saved")
     else
-        std::cout << "save error" << std::endl;
+        log_error("save error")
 
 //    auto save_figure = [&ofs](dBodyID body_id)
 //    {
@@ -440,39 +424,35 @@ void application::save_random()
 
 void application::start()
 {
-    log_place;
+    log_place
 
     if(bnn::state::stopped != state_)
         return;
 
     scene->start();
-
     state_ = bnn::state::start;
 
-    while(bnn::state::started != state_)
-        usleep(device_3d_LITTLE_TIME);
+    while(bnn::state::start == state_)
+        std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
 
-    log_place;
+    log_place
 }
 
 void application::stop()
 {
-    log_place;
+    log_place
 
     if(bnn::state::started != state_)
         return;
 
     state_ = bnn::state::stop;
 
-    if(getRoot()->endRenderingQueued())
-        state_ = bnn::state::stopped;
-
-    while(bnn::state::stopped != state_)
-        usleep(device_3d_LITTLE_TIME);
+    while(bnn::state::stop == state_)
+        std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
 
     scene->stop();
 
-    log_place;
+    log_place
 }
 
 void application::setup()
@@ -507,7 +487,6 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
     //    int i,n;
     //    cout << "aaaaaaaaaaaaaaa" << endl;
-
     //    const int N = 10;
     //    dContact contact[N];
     //    n = dCollide (o1,o2,N,&contact[0].geom,sizeof(dContact));
@@ -515,7 +494,6 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
     //    {
     //        cout << to_string(n) << endl;
     //        for (i=0; i<n; i++)
-
     //        {
     //            contact[i].surface.mode = dContactSlip1 | dContactSlip2 |
     //                    dContactSoftERP | dContactSoftCFM | dContactApprox1;
@@ -531,26 +509,25 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
     //        }
     //    }
     //    cout << "bbbbbbbbbbbb" << endl;
-
     return;
 
     // TODO
-    if (dGeomIsSpace (o1) || dGeomIsSpace (o2)) {
-        std::cout << "bbbbbbbbbbb" << std::endl;
+    if (dGeomIsSpace (o1) || dGeomIsSpace (o2))
+    {
         // colliding a space with something :
         dSpaceCollide2 (o1, o2, data, &nearCallback);
 
         // collide all geoms internal to the space(s)
         if (dGeomIsSpace (o1))
             dSpaceCollide (reinterpret_cast<dSpaceID>(o1), data, &nearCallback);
+
         if (dGeomIsSpace (o2))
             dSpaceCollide (reinterpret_cast<dSpaceID>(o2), data, &nearCallback);
-
-    } else {
-
+    }
+    else
+    {
         //       #define max_contacts 100;
         //        #define contact_array 100;
-
         //        typedef struct dContactGeom {
         //            dVector3 pos;          /*< contact position*/
         //            dVector3 normal;       /*< normal vector*/
@@ -561,37 +538,27 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
         //dContactGeom cg[5];
         //        cg->g1 = o1;
         //        cg->g2 = o2;
-        std::cout << "ccccccccccccc" << std::endl;
         // colliding two non-space geoms, so generate contact
         // points between o1 and o2
         //return;
-        try {
+        try
+        {
             //int num_contact = dCollide (o1, o2, 1, cg, 1);
             const int N = 32;
             dContact contact[N];
+            int number_of_contact_points = dCollide(o1, o2, N, &(contact[0].geom), sizeof(dContact));
+            log_verbose("number of contact points [%d]", number_of_contact_points);
 
-
-
-            int n = dCollide (o1, o2, N, &(contact[0].geom), sizeof(dContact));
-            std::cout << "fffffffffffff" << std::endl;
-            std::cout << std::to_string(n) << std::endl;
-            if(n > 0)
+            if(number_of_contact_points > 0)
             {
                 for(int i = 0; i < 1; i++)
                 {
                     contact[i].surface.mode = dContactBounce | dContactSoftCFM;
-
                     contact[i].surface.mu = dInfinity;
-
                     contact[i].surface.mu2 = 5;
-
                     contact[i].surface.bounce = 0.5;
-
                     contact[i].surface.bounce_vel = 0.5;
-
                     contact[i].surface.soft_cfm = 0.5;
-
-
                     //                    contact[i].surface.mode = dContactSlip1 | dContactSlip2 |
                     //                            dContactSoftERP | dContactSoftCFM | dContactApprox1;
                     //                    contact[i].surface.mu = dInfinity;
@@ -603,42 +570,27 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
                     dJointID c = dJointCreateContact(app->get_world(), app->get_gontact_group(), &contact[i]);
                     dJointAttach(c, dGeomGetBody(contact[i].geom.g1), dGeomGetBody(contact[i].geom.g2));
                 }
-
                 //                for (int i=0; i<n; i++)
                 //                {
                 //                    cout << "ccccssss = " << contact << endl;
                 //                    //cout << "ccccssss = " << to_string(contact[i].geom.g1.depth) << endl;
-
                 //                    //contact[i].geom
-
-
                 //                    contact[i].surface.mode = dContactBounce | dContactSoftCFM;
-
                 //                    contact[i].surface.mu = dInfinity;
-
                 //                    contact[i].surface.mu2 = 0;
-
                 //                    contact[i].surface.bounce = 0.01;
-
                 //                    contact[i].surface.bounce_vel = 0.1;
-
                 //                    contact[i].surface.soft_cfm = 0.01;
-
-
                 //                    //           contact[i].surface.slip1 = 0.7;
                 //                    //           contact[i].surface.slip2 = 0.7;
                 //                    //           contact[i].surface.mode = dContactSoftERP | dContactSoftCFM | dContactApprox1 | dContactSlip1 | dContactSlip2;
                 //                    //           contact[i].surface.mu = 50.0; // was: dInfinity
                 //                    //           contact[i].surface.soft_erp = 0.96;
                 //                    //           contact[i].surface.soft_cfm = 0.04;
-
                 //                    //           dJointID c = dJointCreateContact(World, contactgroup, contact + i);
-
                 //                    //                       dJointAttach(c, b1, b2);
-
                 //                    //dJointID c = dJointCreateContact (world_st, contactgroup_st, &contact[i]);
                 //                    //dJointID c = dJointCreateUniversal (world_st, contactgroup_st);
-
                 //                    //dJointID c = dJointCreateHinge2 (world_st, contactgroup_st);
                 //                    //                    dJointID c = dJointCreatePR (world_st, contactgroup_st);
                 //                    //                    dJointAttach (c,
@@ -647,15 +599,12 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2)
                 //                }
 
             }
-
         }
         catch (...)
         {
-            std::cout << "try" << std::endl;
+            log_error("in:");
+            log_place
         }
-        // add these contact points to the simulation ...
-        std::cout << "ccccccccccccc12" << std::endl;
-        //cout << to_string(num_contact) << endl;
     }
 }
 
