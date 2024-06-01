@@ -13,6 +13,8 @@
 #include <memory>
 #include <vector>
 
+#include "lib/bnn/src/common/bnn_tools.h"
+
 #include "application/config.h"
 #include "physical_objects/figure.h"
 #include "physical_objects/cube.h"

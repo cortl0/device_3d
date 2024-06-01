@@ -17,7 +17,7 @@
 #include <OgreOverlay.h>
 #include <OgreFontManager.h>
 
-#include <submodules/logger/src/helpers/log.h>
+#include <lib/logger/src/helpers/log.h>
 
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"

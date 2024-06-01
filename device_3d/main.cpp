@@ -9,7 +9,7 @@
 
 #include <exception>
 
-#include <submodules/logger/src/helpers/log.h>
+#include <lib/logger/src/helpers/log.h>
 
 #include "application/application.h"
 

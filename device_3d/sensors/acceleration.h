@@ -13,8 +13,6 @@
 #include <ode.h>
 #include <Ogre.h>
 
-#include "submodules/bnn/src/common/bnn_tools.h"
-
 #include "data_processing_methods/data_processing_method_linearly.h"
 
 namespace bnn_device_3d::sensors

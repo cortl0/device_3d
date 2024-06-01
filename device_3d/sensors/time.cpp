@@ -11,6 +11,8 @@
 
 #include <thread>
 
+#include "lib/bnn/src/bnn/config.h"
+
 #include "config.hpp"
 
 namespace bnn_device_3d::sensors

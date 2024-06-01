@@ -10,7 +10,9 @@
 #ifndef BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_H
 #define BNN_DEVICE_3D_DATA_PROCESSING_METHODS_DATA_PROCESSING_METHOD_H
 
-#include "submodules/bnn/src/common/architecture.h"
+#include "lib/bnn/src/common/architecture.h"
+
+#include <string>
 
 #include "config.hpp"
 

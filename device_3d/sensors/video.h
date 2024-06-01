@@ -10,9 +10,10 @@
 #ifndef BNN_DEVICE_3D_SENSORS_VIDEO_H
 #define BNN_DEVICE_3D_SENSORS_VIDEO_H
 
+#include <memory>
 #include <vector>
 
-#include "submodules/bnn/src/common/bnn_tools.h"
+#include "lib/bnn/src/common/architecture.h"
 
 #include "data_processing_methods/data_processing_method_linearly.h"
 

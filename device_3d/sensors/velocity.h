@@ -13,7 +13,7 @@
 #include <ode.h>
 #include <Ogre.h>
 
-#include "submodules/bnn/src/common/bnn_tools.h"
+#include "lib/bnn/src/common/architecture.h"
 
 #include "data_processing_methods/data_processing_method_linearly.h"
 #include "sensor.h"

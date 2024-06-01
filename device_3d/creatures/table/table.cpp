@@ -9,8 +9,6 @@
 
 #include "table.h"
 
-#include <submodules/logger/src/helpers/log.h>
-
 #include "sensors/gyroscope.h"
 #include "sensors/time.h"
 #include "sensors/velocity.h"
@@ -25,9 +23,7 @@ namespace bnn_device_3d::creatures::table
 
 table::~table()
 {
-    log_place
     stop();
-    log_place
 }
 
 table::table(

@@ -8,5 +8,5 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-add_subdirectory(bnn/src)
-add_subdirectory(logger/src)
+add_subdirectory(bnn)
+add_subdirectory(logger)

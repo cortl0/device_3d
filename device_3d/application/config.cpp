@@ -2,7 +2,7 @@
 
 #include <libconfig.h++>
 
-#include <submodules/logger/src/helpers/log.h>
+#include <lib/logger/src/helpers/log.h>
 
 namespace bnn_device_3d::application
 {

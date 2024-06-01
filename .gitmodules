@@ -1,6 +1,6 @@
 [submodule "binary_neurons_network"]
 	path = lib/bnn
 	url = https://github.com/cortl0/binary_neurons_network
-[submodule "src/submodules/logger"]
+[submodule "logger"]
 	path = lib/logger
 	url = https://github.com/cortl0/logger

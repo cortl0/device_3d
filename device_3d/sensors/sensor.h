@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include "submodules/bnn/src/common/bnn_tools.h"
+#include "lib/bnn/src/common/architecture.h"
 
 namespace bnn_device_3d::sensors
 {

@@ -17,7 +17,7 @@
 #include <Ogre.h>
 #include <OgreApplicationContext.h>
 
-#include <submodules/bnn/src/common/state.h>
+#include <lib/bnn/src/common/state.h>
 
 #include "config.h"
 #include "scenes/scene.h"

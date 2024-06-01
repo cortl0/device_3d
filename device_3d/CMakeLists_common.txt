@@ -12,7 +12,7 @@ add_compile_definitions(CORTL_LOGGER_USE_LOCAL_TIME)
 
 set(SOURCES
     ${CMAKE_SOURCE_DIR}/device_3d/main.cpp
-    ${CMAKE_SOURCE_DIR}/submodules/bnn/src/common/bnn_tools.cpp
+    ${CMAKE_SOURCE_DIR}/lib/bnn/src/common/bnn_tools.cpp
     ${CMAKE_SOURCE_DIR}/device_3d/application/application.cpp
     ${CMAKE_SOURCE_DIR}/device_3d/application/config.cpp
     ${CMAKE_SOURCE_DIR}/device_3d/application/tripod.cpp
@@ -57,7 +57,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     /usr/local/include/OGRE/RTShaderSystem
     /usr/local/include/OGRE/Overlay
     ${CMAKE_SOURCE_DIR}/device_3d
-    ${CMAKE_SOURCE_DIR}/submodules/bnn/src
+    ${CMAKE_SOURCE_DIR}/lib/bnn/src
     )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
