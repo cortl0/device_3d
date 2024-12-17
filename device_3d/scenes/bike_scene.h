@@ -23,53 +23,16 @@ public:
     ~bike();
     bike() = delete;
     bike(Ogre::RenderWindow*, Ogre::SceneManager*);
-    Ogre::TextAreaOverlayElement* create_text_panel();
-
-    void setup(
-            std::list<dGeomID>& stationary_colliding_geoms,
-            std::list<dGeomID>& movable_colliding_geoms,
-            std::list<dGeomID>& creature_colliding_geoms,
-            std::list<Ogre::SceneNode*>& bounding_nodes,
-            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            dWorldID,
-            const bnn_device_3d::application::config::device_3d::bnn& config_bnn
-            ) override;
-
-    void step(
-            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            std::list<Ogre::SceneNode*>& bounding_nodes,
-            keys_states&
-            ) override;
+    void setup(const bnn_device_3d::application::config::device_3d::bnn&) override;
+    void step(keys_states&, dReal frame_length_dReal) override;
 
 private:
-    void creating_creature(
-            std::list<dGeomID>& creature_colliding_geoms,
-            std::list<Ogre::SceneNode*>& bounding_nodes,
-            dWorldID,
-            const bnn_device_3d::application::config::device_3d::bnn&
-            );
-
-    void creating_movable_objects(
-            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            std::list<dGeomID>& movable_colliding_geoms,
-            std::list<Ogre::SceneNode*>& bounding_nodes,
-            dWorldID
-            );
-
-    void creating_stationary_objects(
-            std::list<dGeomID>& stationary_colliding_geoms,
-            std::list<Ogre::SceneNode*>& bounding_nodes,
-            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            dWorldID
-            );
-
+    Ogre::TextAreaOverlayElement* create_text_panel();
+    void creating_creature(const bnn_device_3d::application::config::device_3d::bnn&);
+    void creating_movable_objects();
+    void creating_stationary_objects();
     bool is_fail();
-
-    void keyboard_polling(
-            std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-            keys_states&
-            );
-
+    void keyboard_polling(keys_states&);
     void ogre_setup();
     void panel_to_place();
     void print_distance();

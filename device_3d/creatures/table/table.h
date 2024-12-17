@@ -74,11 +74,12 @@ public:
     std::vector<bnn_device_3d::physical_objects::figure*> get_figures() override;
     Ogre::Vector3 get_camera_place() override;
     dReal get_level() override;
-
     void set_position(dReal x, dReal y, dReal z) override;
     void step(std::string& debug_str, bool& verbose) override;
 
 private:
+    void update_visual() override;
+
     u_word input_length;
     u_word output_length;
     std::vector<double> force;

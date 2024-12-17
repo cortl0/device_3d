@@ -34,15 +34,7 @@ table::table(Ogre::RenderWindow* render_window, Ogre::SceneManager* scene_manage
 
 }
 
-void table::setup(
-        std::list<dGeomID>& stationary_colliding_geoms,
-        std::list<dGeomID>& movable_colliding_geoms,
-        std::list<dGeomID>& creature_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        dWorldID world,
-        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
-        )
+void table::setup(const bnn_device_3d::application::config::device_3d::bnn& config_bnn)
 {
     ogre_setup();
 
@@ -54,9 +46,9 @@ void table::setup(
         conductors.push_back(std::make_unique<cond::tail>());
         conductors.push_back(std::make_unique<cond::dream>());
 
-        creating_stationary_objects(stationary_colliding_geoms, bounding_nodes, stepping_figures, world);
-        creating_movable_objects(stepping_figures, movable_colliding_geoms, bounding_nodes, world);
-        creating_creature(creature_colliding_geoms, bounding_nodes, world, config_bnn);
+        creating_stationary_objects();
+        creating_movable_objects();
+        creating_creature(config_bnn);
 
         auto body = creature_->get_body().body;
 
@@ -121,12 +113,7 @@ void table::ogre_setup()
     ent_plane->setMaterial(pho::figure::create_material_chess(1024 * 8, 8, COLOR_BLACK, COLOR_DARK));
 }
 
-void table::creating_stationary_objects(
-        std::list<dGeomID>& stationary_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        dWorldID world
-        )
+void table::creating_stationary_objects()
 {
     stationary_colliding_geoms.push_back(dCreatePlane(space, 0.0f, 1.0f, 0.0f, 0.0f));
 
@@ -163,12 +150,7 @@ void table::creating_stationary_objects(
     }
 }
 
-void table::creating_movable_objects(
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        std::list<dGeomID>& movable_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        dWorldID world
-        )
+void table::creating_movable_objects()
 {
     {
         float r = 120.0 * device_3d_SCALE;// ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
@@ -256,12 +238,7 @@ void table::creating_movable_objects(
     }
 }
 
-void table::creating_creature(
-        std::list<dGeomID>& creature_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        dWorldID world,
-        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
-        )
+void table::creating_creature(const bnn_device_3d::application::config::device_3d::bnn& config_bnn)
 {
     creature_.reset(new creatures::table::table(render_window, scene_manager, world, config_bnn));
     creature_->set_position(0, 0.5, 0);
@@ -293,14 +270,12 @@ void table::creating_creature(
     //creature_->get_body().node->showBoundingBox(true);
 }
 
-void table::step(
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        keys_states& keys_state
-        )
+void table::step(keys_states& keys_state, dReal frame_length_dReal)
 {
+    dJointGroupEmpty(contact_group);
+
     for(auto& figure : stepping_figures)
-        figure.step();
+        figure.update_visual();
 
     circle_step(5, 0, stepping_figures);
     circle_step(6, 1, stepping_figures);
@@ -325,7 +300,9 @@ void table::step(
     for(auto& node : bounding_nodes)
         node->_updateBounds();
 
-    keyboard_polling(stepping_figures, keys_state);
+    keyboard_polling(keys_state);
+    collide_action();
+    dWorldStep(world, frame_length_dReal);
 }
 
 void table::circle_step(
@@ -423,10 +400,7 @@ void table::dream_step(std::list<bnn_device_3d::physical_objects::figure>& stepp
     }
 }
 
-void table::keyboard_polling(
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        keys_states& keys_states
-        )
+void table::keyboard_polling(keys_states& keys_states)
 {
     float force_cube = 50;
     float force_creature = 10;

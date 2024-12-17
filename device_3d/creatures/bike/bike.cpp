@@ -313,10 +313,7 @@ void bike::step(std::string& debug_str, bool& verbose)
     //return value_in_range(dJointGetHingeAngle(joint_id), angle_start, angle_end);
     //front_trotle = dJointGetHinge2Angle2(front_hinge2_joint_id);
 
-    body.step();
-    body_sign.step();
-    front_wheel.step();
-    rear_wheel.step();
+    update_visual();
 
 //#ifdef learning_creature
 //    u_word data = teacher_->get_data();
@@ -426,6 +423,14 @@ void bike::step(std::string& debug_str, bool& verbose)
         debug_str += "]\n";
         bnn_->get_debug_string(debug_str);
     }
+}
+
+void bike::update_visual()
+{
+    body.update_visual();
+    body_sign.update_visual();
+    front_wheel.update_visual();
+    rear_wheel.update_visual();
 }
 
 void sense::set_default()

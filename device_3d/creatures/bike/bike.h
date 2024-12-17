@@ -113,10 +113,13 @@ public:
     void set_position(dReal x, dReal y, dReal z) override;
     void step(std::string& debug_str, bool& verbose) override;
 
+public:
     sense sense_;
     force force_;
 
 private:
+    void update_visual() override;
+
     physical_objects::sphere front_wheel;
     physical_objects::sphere rear_wheel;
     dJointID rear_hinge_joint_id;

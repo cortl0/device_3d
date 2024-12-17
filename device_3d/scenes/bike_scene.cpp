@@ -127,15 +127,7 @@ void bike::set_text(std::string& str)
     text_area->setCaption(str);
 }
 
-void bike::setup(
-        std::list<dGeomID>& stationary_colliding_geoms,
-        std::list<dGeomID>& movable_colliding_geoms,
-        std::list<dGeomID>& creature_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        dWorldID world,
-        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
-        )
+void bike::setup(const bnn_device_3d::application::config::device_3d::bnn& config_bnn)
 {
     ogre_setup();
 
@@ -147,9 +139,9 @@ void bike::setup(
         conductors.push_back(std::make_unique<cond::tail>());
         conductors.push_back(std::make_unique<cond::dream>());
 
-        creating_stationary_objects(stationary_colliding_geoms, bounding_nodes, stepping_figures, world);
-        creating_movable_objects(stepping_figures, movable_colliding_geoms, bounding_nodes, world);
-        creating_creature(creature_colliding_geoms, bounding_nodes, world, config_bnn);
+        creating_stationary_objects();
+        creating_movable_objects();
+        creating_creature(config_bnn);
 
         auto body = creature_->get_body().body;
 
@@ -210,14 +202,8 @@ void bike::ogre_setup()
     text_area = create_text_panel();
 }
 
-void bike::creating_stationary_objects(
-        std::list<dGeomID>& stationary_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        dWorldID world
-        )
+void bike::creating_stationary_objects()
 {
-
     auto create_stationarity_cube = [&](std::string name, dReal x, dReal y, dReal z, dReal xx, dReal yy, dReal zz, dReal mass)
     {
         stepping_figures.push_back(pho::cube(name, scene_manager, world, space, mass, x, y, z));
@@ -279,12 +265,7 @@ void bike::creating_stationary_objects(
 //            }
 }
 
-void bike::creating_movable_objects(
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        std::list<dGeomID>& movable_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        dWorldID world
-        )
+void bike::creating_movable_objects()
 {
     {
         float r = 120.0 * device_3d_SCALE;// ((static_cast<float>(rand()) / RAND_MAX) * 20 + 100) * device_3d_SCALE;
@@ -324,16 +305,10 @@ void bike::creating_movable_objects(
     }
 }
 
-void bike::creating_creature(
-        std::list<dGeomID>& creature_colliding_geoms,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        dWorldID world,
-        const bnn_device_3d::application::config::device_3d::bnn& config_bnn
-        )
+void bike::creating_creature(const bnn_device_3d::application::config::device_3d::bnn& config_bnn)
 {
-
     creature_.reset(new creatures::bike::bike(render_window, scene_manager, world, config_bnn));
-    creature_->set_position(2, creature_->get_level() * 20, 0);
+    creature_->set_position(2, creature_->get_level(), 0);
 
     if(0)
     {
@@ -410,17 +385,14 @@ std::string get_string_for_text_panel(bnn_device_3d::creatures::bike::force& f)
     return s;
 }
 
-void bike::step(
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        std::list<Ogre::SceneNode*>& bounding_nodes,
-        keys_states& keys_state
-        )
+void bike::step(keys_states& keys_state, dReal frame_length_dReal)
 {
+    dJointGroupEmpty(contact_group);
+
     panel_to_place();
 
     for(auto& figure : stepping_figures)
-        figure.step();
-
+        figure.update_visual();
     if(1)
     {
         static bool go = false;
@@ -494,7 +466,9 @@ void bike::step(
 
     dBodyAddForce(creature_->get_body().body, 0, 0, 0);
 
-    keyboard_polling(stepping_figures, keys_state);
+    keyboard_polling(keys_state);
+    collide_action();
+    dWorldStep(world, frame_length_dReal);
 }
 
 bool bike::is_fail()
@@ -528,10 +502,7 @@ void bike::print_distance()
     }
 }
 
-void bike::keyboard_polling(
-        std::list<bnn_device_3d::physical_objects::figure>& stepping_figures,
-        keys_states& keys_states
-        )
+void bike::keyboard_polling(keys_states& keys_states)
 {
     {
         float force_cube = 50;

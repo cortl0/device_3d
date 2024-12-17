@@ -278,8 +278,7 @@ void table::step(std::string& debug_str, bool& verbose)
     else
         verbose = false;
 
-    body.step();
-    body_sign.step();
+    update_visual();
 
 #ifdef learning_creature
     u_word data = teacher_->get_data();
@@ -379,6 +378,12 @@ void table::step(std::string& debug_str, bool& verbose)
         debug_str += "]\n";
         bnn_->get_debug_string(debug_str);
     }
+}
+
+void table::update_visual()
+{
+    body.update_visual();
+    body_sign.update_visual();
 }
 
 } // namespace bnn_device_3d::creatures::table

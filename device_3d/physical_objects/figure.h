@@ -47,7 +47,7 @@ struct figure
     static Ogre::MaterialPtr create_material_body_sign(size_t size);
 
     void set_material(Ogre::MaterialPtr materialPtr);
-    void step();
+    void update_visual();
 };
 
 } // namespace bnn_device_3d::physical_objects

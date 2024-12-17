@@ -51,17 +51,10 @@ void figure::save(std::ofstream& ofs) const
     ofs.write(reinterpret_cast<const char*>(dir), sizeof(dReal) * 4);
 }
 
-void figure::step()
+void figure::update_visual()
 {
     const dReal* pos = dBodyGetPosition(body);
     const dReal* qrot = dBodyGetQuaternion(body);
-
-    //float x = pos[0];
-    //float y = pos[1];
-    //float z = pos[2];
-
-    //logging("x=" + std::to_string(x) + " y=" + std::to_string(y) + " z=" + std::to_string(z))
-
     node->setPosition(static_cast<Ogre::Real>(pos[0]), static_cast<Ogre::Real>(pos[1]), static_cast<Ogre::Real>(pos[2]));
     node->setOrientation(static_cast<Ogre::Real>(qrot[0]), static_cast<Ogre::Real>(qrot[1]), static_cast<Ogre::Real>(qrot[2]), static_cast<Ogre::Real>(qrot[3]));
 }

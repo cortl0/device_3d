@@ -28,9 +28,6 @@ namespace bnn_device_3d::creatures
 class creature
 {
 public:
-    std::unique_ptr<bnn::bnn_tools> bnn_;
-    std::unique_ptr<sensors::video> video_;
-
     virtual ~creature();
     creature();
     virtual bnn_device_3d::physical_objects::figure& get_body() = 0;
@@ -38,13 +35,13 @@ public:
     virtual std::vector<bnn_device_3d::physical_objects::figure*> get_figures() = 0;
     virtual dReal get_level() = 0;
     virtual void set_position(dReal x, dReal y, dReal z) = 0;
-
-//    std::list<dGeomID> creature_colliding_geoms;
-//    std::list<Ogre::SceneNode*> bounding_nodes;
-
     void start();
     virtual void step(std::string& debug_str, bool& verbose) = 0;
     void stop();
+    virtual void update_visual() = 0;
+
+    std::unique_ptr<bnn::bnn_tools> bnn_;
+    std::unique_ptr<sensors::video> video_;
 };
 
 } // namespace bnn_device_3d::creatures

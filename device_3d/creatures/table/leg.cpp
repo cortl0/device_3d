@@ -161,11 +161,16 @@ void leg::step(double& fs, double& st)
     fs = joints[FIRST_JOINT].get_angle();
     st = joints[SECOND_JOINT].get_angle();
 
-    first.step();
-    second.step();
-    third.step();
-    foot.step();
-    knee.step();
+    update_visual();
+}
+
+void leg::update_visual()
+{
+    first.update_visual();
+    second.update_visual();
+    third.update_visual();
+    foot.update_visual();
+    knee.update_visual();
 }
 
 } // namespace bnn_device_3d::creatures::table

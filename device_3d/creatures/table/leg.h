@@ -70,6 +70,7 @@ public:
     void step(double& fs, double& st);
 
 private:
+    void update_visual();
     dJointGroupID jg_fs = dJointGroupCreate (0);
     dJointGroupID jg_st = dJointGroupCreate (0);
     std::vector<joint> joints;

@@ -12,6 +12,7 @@
 
 #include "lib/bnn/src/common/architecture.h"
 
+#include <stdint.h>
 #include <string>
 
 #include "config.hpp"
