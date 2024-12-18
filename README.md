@@ -33,7 +33,7 @@ https://bitbucket.org/odedevs/ode
 
 ## Author
 Ilya Shishkin  
-mailto: cortl@8iter.ru
+mailto: cortl@yandex.ru
 
 ## Links
 - https://github.com/cortl0/binary_neurons_network  

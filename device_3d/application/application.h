@@ -1,7 +1,7 @@
 /*
  *   device_3d
  *   created by Ilya Shishkin
- *   cortl@8iter.ru
+ *   cortl@yandex.ru
  *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
@@ -11,8 +11,6 @@
 #define BNN_DEVICE_3D_APPLICATION_APPLICATION_H
 
 #include <Ogre.h>
-
-#include <lib/bnn/src/common/state.h>
 
 #include "config.h"
 #include "scenes/scene.h"
@@ -38,7 +36,6 @@ private:
     void stop();
 
     std::unique_ptr<bnn_device_3d::scenes::scene> scene;
-    bnn::state state_ = bnn::state::stopped;
     bool verbose = true;
     config config_;
     keys_states keys_states_;

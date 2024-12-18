@@ -1,13 +1,15 @@
 /*
  *   device_3d
  *   created by Ilya Shishkin
- *   cortl@8iter.ru
+ *   cortl@yandex.ru
  *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
  */
 
 #include "bike_scene.h"
+
+#include <iostream>
 
 #include <OgreOverlaySystem.h>
 #include <OgreOverlayManager.h>
@@ -21,7 +23,6 @@
 
 #include "scenes/bike_scene.h"
 #include "scenes/table_scene.h"
-#include "common/logger.h"
 #include "config.hpp"
 #include "conductors/conductor_circle.h"
 #include "conductors/kick.h"
@@ -427,7 +428,7 @@ void bike::step(keys_states& keys_state, dReal frame_length_dReal)
 
     bool verbose = false;//this->verbose;
     static std::string debug_str;
-    if(creature_->bnn_->is_active())
+    if(creature_->bnn_->get_state() == bnn_state::started)
         creature_->step(debug_str, verbose);
     tripod_->step();
 

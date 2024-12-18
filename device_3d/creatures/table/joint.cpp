@@ -1,7 +1,7 @@
 /*
  *   device_3d
  *   created by Ilya Shishkin
- *   cortl@8iter.ru
+ *   cortl@yandex.ru
  *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
@@ -9,8 +9,7 @@
 
 #include "joint.h"
 
-#include "bnn/config.h"
-#include "common/logger.h"
+#include <stdexcept>
 
 namespace bnn_device_3d::creatures::table
 {
@@ -37,7 +36,7 @@ double value_in_range(const double& value, const double& range_start, const doub
     static constexpr double default_range_delta = default_range_end - default_range_start;
 
     if(value < range_start - default_range_delta || value > range_end + default_range_delta)
-        throw_error("");
+        throw std::runtime_error("error in joint.cpp double value_in_range()");
 
     return default_range_start + ((value - range_start) / (range_end - range_start)) * default_range_delta;
 }

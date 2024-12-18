@@ -1,7 +1,7 @@
 /*
  *   device_3d
  *   created by Ilya Shishkin
- *   cortl@8iter.ru
+ *   cortl@yandex.ru
  *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
@@ -10,8 +10,8 @@
 #include "teacher.h"
 
 #include <chrono>
+#include <stdexcept>
 
-#include "common/logger.h"
 #include "config.hpp"
 
 namespace bnn_device_3d::teachers
@@ -21,7 +21,7 @@ using namespace std::chrono_literals;
 
 teacher::~teacher()
 {
-    if(bnn::state::started == state_)
+    if(bnn_state::started == state_)
         stop();
 }
 
@@ -47,27 +47,27 @@ u_word teacher::get_data()
 
 void teacher::start()
 {
-    if(bnn::state::stopped != state_)
-        throw_error("busines logic error in teacher_base::start()");
+    if(bnn_state::stopped != state_)
+        throw std::runtime_error("busines logic error in teacher_base::start()");
 
     count = count_max;
 
-    state_ = bnn::state::start;
+    state_ = bnn_state::start;
 
     inner_start();
 
-    while (bnn::state::started != state_)
+    while (bnn_state::started != state_)
         std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
 }
 
 void teacher::stop()
 {
-    if(bnn::state::started != state_)
-        throw_error("busines logic error in teacher_base::stop()");
+    if(bnn_state::started != state_)
+        throw std::runtime_error("busines logic error in teacher_base::stop()");
 
-    state_ = bnn::state::stop;
+    state_ = bnn_state::stop;
 
-    while (bnn::state::stopped != state_)
+    while (bnn_state::stopped != state_)
         std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
 }
 

@@ -1,7 +1,7 @@
 /*
  *   device_3d
  *   created by Ilya Shishkin
- *   cortl@8iter.ru
+ *   cortl@yandex.ru
  *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
@@ -32,7 +32,6 @@ using namespace std::chrono_literals;
 application::~application()
 {
     log_place
-    stop();
     // dJointGroupEmpty(contact_group);
     // dJointGroupDestroy(contact_group);
     // dWorldDestroy(world);
@@ -86,7 +85,8 @@ bool application::keyReleased(const OgreBites::KeyboardEvent& evt)
     switch (evt.keysym.sym)
     {
     case OgreBites::SDLK_ESCAPE:
-        std::thread([this](){ stop(); getRoot()->queueEndRendering(); }).detach();
+        stop();
+        getRoot()->queueEndRendering();
         break;
     case OgreBites::SDLK_DOWN:
         keys_states_.key_down = false;
@@ -101,19 +101,19 @@ bool application::keyReleased(const OgreBites::KeyboardEvent& evt)
         keys_states_.key_right = false;
         break;
     case keyboard_key_c: // load
-        std::thread(&application::load, this).detach();
+        load();
         break;
     case keyboard_key_z: // save
-        std::thread(&application::save, this).detach();
+        save();
         break;
     case keyboard_key_r: // save random
-        std::thread(&application::save_random, this).detach();
+        save_random();
         break;
     case keyboard_key_x: // stop <-> start
-        if(bnn::state::started == state_)
-            std::thread(&application::stop, this).detach();
-        else if(bnn::state::stopped == state_)
-            std::thread(&application::start, this).detach();
+        if(scene->creature_->bnn_->get_state() == bnn_state::started)
+            stop();
+        else if(scene->creature_->bnn_->get_state() == bnn_state::stopped)
+            start();
         break;
     case keyboard_key_v: // verbose
         verbose = !verbose;
@@ -139,42 +139,26 @@ void application::run()
 {
     namespace sch = std::chrono;
     typedef sch::time_point<sch::system_clock, sch::microseconds> m_time_point;
-
     initApp();
+    // auto width = getRenderWindow()->getWidth();
+    // auto height = getRenderWindow()->getHeight();
+    const long frame_length = 1000000 / 60;
+    const dReal frame_length_dReal = (dReal)frame_length / 1000000.0 * config_.device_3d_.time_coefficient;
+    scene->step(keys_states_, frame_length_dReal);
+    scene->creature_->update_visual();
+    scene->creature_->bnn_->initialize();
+    long delta;
+    auto current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
+    auto time_old = current_time;
+    auto root = getRoot();
+    start();
 
-    try
+    while(!root->endRenderingQueued())
     {
-        // auto width = getRenderWindow()->getWidth();
-        // auto height = getRenderWindow()->getHeight();
-        long delta;
-        const long frame_length = 1000000 / 60;
-        const dReal frame_length_dReal = (dReal)frame_length / 1000000.0 * config_.device_3d_.time_coefficient;
-        m_time_point current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
-        m_time_point time_old = current_time;
-        scene->step(keys_states_, frame_length_dReal);
-        scene->creature_->update_visual();
-        auto root = getRoot();
-        scene->creature_->bnn_->initialize();
-        std::thread(&application::start, this).detach();
-
-        while(!root->endRenderingQueued())
-        {
-            if(bnn::state::stop == state_)
-                state_ = bnn::state::stopped;
-
-            if(bnn::state::start == state_)
-                state_ = bnn::state::started;
-
-            if(bnn::state::started != state_)
-            {
-                std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
-                time_old = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
-                root->renderOneFrame();
-                continue;
-            }
-
+        if(scene->creature_->bnn_->get_state() == bnn_state::started)
             scene->step(keys_states_, frame_length_dReal);
-            root->renderOneFrame();
+
+        root->renderOneFrame();
 
 //            {
 //                static Image img(getRenderWindow()->suggestPixelFormat(), width, height);
@@ -188,28 +172,22 @@ void application::run()
 //                //img.save("filename5.png");
 //            }
 
-            current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
-            delta = (current_time - time_old).count();
+        current_time = sch::time_point_cast<m_time_point::duration>(sch::system_clock::time_point(sch::system_clock::now()));
+        delta = (current_time - time_old).count();
 
-            if(delta < frame_length)
-                std::this_thread::sleep_for(std::chrono::microseconds(frame_length - delta));
+        if(delta < frame_length)
+            std::this_thread::sleep_for(std::chrono::microseconds(frame_length - delta));
 
-            time_old += sch::microseconds((long long int)frame_length);
-        }
-
-        stop();
-    }
-    catch (...)
-    {
-        log_error("unknown error");
+        time_old += sch::microseconds((long long int)frame_length);
     }
 
+    stop();
     closeApp();
 }
 
 void application::load()
 {
-    auto state = state_;
+    auto state = scene->creature_->bnn_->get_state();
     stop();
     std::list<std::string> l;
 
@@ -240,13 +218,13 @@ void application::load()
 
     ifs.close();
 
-    if(bnn::state::started == state)
+    if(bnn_state::started == state)
         start();
 }
 
 void application::save()
 {
-    auto state = state_;
+    auto state = scene->creature_->bnn_->get_state();
     stop();
     static char time_buffer[15];
     std::time_t time = std::time(nullptr);
@@ -266,14 +244,14 @@ void application::save()
 
     ofs.close();
 
-    if(bnn::state::started == state)
+    if(bnn_state::started == state)
         start();
 }
 
 void application::save_random()
 {
 #if(0)
-    auto state = state_;
+    auto state = scene->creature_->bnn_->get_state();
 
     stop();
 
@@ -296,35 +274,12 @@ void application::save_random()
 
 void application::start()
 {
-    log_place
-
-    if(bnn::state::stopped != state_)
-        return;
-
     scene->start();
-    state_ = bnn::state::start;
-
-    while(bnn::state::start == state_)
-        std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
-
-    log_place
 }
 
 void application::stop()
 {
-    log_place
-
-    if(bnn::state::started != state_)
-        return;
-
-    state_ = bnn::state::stop;
-
-    while(bnn::state::stop == state_)
-        std::this_thread::sleep_for(device_3d_LITTLE_TIMEms);
-
     scene->stop();
-
-    log_place
 }
 
 void application::setup()
@@ -343,7 +298,8 @@ void application::setup()
         scene.reset(new scn::table::table(getRenderWindow(), getRoot()->createSceneManager()));
         break;
     default:
-        exit(~0);
+        log_error("unknown scene type [%d]", config_.device_3d_.scene_);
+        exit(EXIT_FAILURE);
     }
 
     scene->setup(config_.device_3d_.bnn_);

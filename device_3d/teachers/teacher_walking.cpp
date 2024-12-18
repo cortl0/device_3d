@@ -1,7 +1,7 @@
 /*
  *   device_3d
  *   created by Ilya Shishkin
- *   cortl@8iter.ru
+ *   cortl@yandex.ru
  *   http://8iter.ru/ai.html
  *   https://github.com/cortl0/device_3d
  *   licensed by GPL v3.0
@@ -26,10 +26,10 @@ void teacher_walking::function(teacher_walking* t)
 {
     u_word data;
 
-    t->state_ = bnn::state::started;
+    t->state_ = bnn_state::started;
 
     int i = 0;
-    while (bnn::state::started == t->state_)
+    while (bnn_state::started == t->state_)
     {
         data = 1;
 --t->count;
@@ -61,7 +61,7 @@ void teacher_walking::function(teacher_walking* t)
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
         if (!t->count)
-            t->state_ = bnn::state::stopped;
+            t->state_ = bnn_state::stopped;
 
         ++i;
 
